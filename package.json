@@ -1,0 +1,25 @@
+{
+  "name": "biblioteca-obras",
+  "version": "1.0.0",
+  "description": "É uma aplicação de uso pessoal, para categoria e acompanhar suas obras, já que vemos de diversas fontes diferentes. Para não se esquecer e continuar acompanhando, de forma fácil vai salvar os dados de onde parou da obra que já viu.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LanaWss/biblioteca-obras.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/LanaWss/biblioteca-obras/issues"
+  },
+  "homepage": "https://github.com/LanaWss/biblioteca-obras#readme",
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "express": "^5.2.1"
+  }
+}

@@ -1,0 +1,93 @@
+const express = require("express");
+const Database = require("better-sqlite3");
+
+const app = express();
+
+app.use(express.json());
+app.use(express.static("public"));
+
+const db = new Database("obras.db");
+
+app.get("/obras", (req, res) => {
+  const obras = db
+    .prepare(
+      `
+        SELECT * FROM obras
+    `,
+    )
+    .all();
+
+  res.json(obras);
+});
+
+app.post("/obras", (req, res) => {
+  const obra = req.body;
+
+  const inserir = db.prepare(`
+        INSERT INTO obras (title)
+        VALUES (?)
+    `);
+
+  const resultado = inserir.run(obra.title);
+
+  res.json({
+    id: resultado.lastInsertRowid,
+    title: obra.title,
+    done: 0,
+  });
+});
+
+app.put("/obras/:id", (req, res) => {
+    const id = req.params.id;
+    const obra = req.body;
+
+    const atualizar = db.prepare(`
+        UPDATE obras
+        SET title = ?
+        WHERE id = ?
+    `);
+
+    atualizar.run(obra.title, id);
+
+    res.json({
+        id: id,
+        title: obra.title
+    });
+});
+
+app.patch("/obras/:id", (req, res) => {
+    const id = req.params.id;
+    const obra = req.body;
+
+    const atualizar = db.prepare(`
+        UPDATE obras
+        SET done = ?
+        WHERE id = ?
+    `);
+
+    atualizar.run(obra.done, id);
+
+    res.json({
+        id: id,
+        done: obra.done
+    });
+});
+
+app.delete("/obras/:id", (req, res) => {
+    const id = req.params.id;
+
+    const apagar = db.prepare(`
+        DELETE FROM obras
+        WHERE id = ?
+    `);
+
+    apagar.run(id);
+
+    res.json({
+        mensagem: "Obra apagada"
+    });
+});
+
+app.listen(3000, () => {
+  console.log("Servidor rodando em http://localhost:3000");
+});

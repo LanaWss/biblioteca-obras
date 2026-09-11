@@ -1,0 +1,12 @@
+:root {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 5px;
+    color: black;
+    border-radius: 10px;
+    cursor: pointer;
+}
