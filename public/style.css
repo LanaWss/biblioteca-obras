@@ -1,12 +1,100 @@
 :root {
     font-family: Arial, sans-serif;
     margin: 20px;
+    --primary-color: #ffef0e;
+    --secundary-color: #5a03fa;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #4287f5;
+    color: #333;
+    text-align: center;
 }
 
 button {
-    padding: 10px 20px;
-    margin: 5px;
-    color: black;
+    padding: 6px 10px;
+    margin: 3px;
+    color: var(--primary-color);
+    background-color: var(--secundary-color);
     border-radius: 10px;
     cursor: pointer;
+}
+
+.cards {
+    border: 1.3px solid #3f1515;
+    border-radius: 20px;
+    padding: 10px;
+    margin: auto;
+    border-radius: 5px;
+    background-color: #f09898;
+    align-items: center;
+    align-content: auto;
+    position: relative;
+    width: 100%;
+    max-width: 280px;
+}
+
+.cards button {
+    padding: 6px 10px;
+    margin: 3px;
+    font-size: 13px;
+}
+
+.cards img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: 200px;
+    object-fit: cover;
+    margin: 10px auto;
+}
+
+#lista-obras {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 350px));
+    padding-bottom: 20px;
+    column-gap: 30px;
+    row-gap: 30px;
+    justify-content: center;
+    margin-top: 50px;
+}
+
+#popup-criar {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+}
+
+#popup-criar > div {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+}
+
+#preview-imagem {
+    display: block;
+    width: 100%;
+    max-width: 350px;
+    max-height: 250px;
+    object-fit: contain;
+    margin: 10px auto;
+}
+
+@media (max-width: 600px) {
+    .cards {
+        padding: 5px;
+        margin: 5px 0;
+    }
 }

@@ -1,18 +1,60 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
+  <head>
     <title>Biblioteca de Obras</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
     <h1>Minhas Obras</h1>
     <p>Esta é a página principal da sua biblioteca de obras.</p>
 
-    <button id="botao-criar">Criar</button>
+    <button id="botao-criar">Criar obra</button>
+    <div id="popup-criar">
+      <div>
+        <h2>Criar obra</h2>
+
+        <button id="fechar-popup">X</button>
+
+        <form id="form-criar" autocomplete="off">
+          <label for="titulo-obra">Nome: </label>
+
+          <input
+            id="titulo-obra"
+            type="text"
+            placeholder="Nome da obra"
+            required
+          />
+
+          <label for="tipo-obra">Tipo</label>
+
+          <select id="tipo-obra" required>
+            <option value="">Selecione</option>
+            <option value="anime">Anime</option>
+            <option value="manga">Mangá</option>
+          </select>
+
+          <label for="status-obra">Status</label>
+
+          <select id="status-obra" required>
+            <option value="">Selecione</option>
+            <option value="completa">Completa</option>
+            <option value="hiato">Em hiato</option>
+            <option value="lancando">Lançando</option>
+          </select>
+
+          <label for="imagem-obra">Imagem</label>
+
+          <input id="imagem-obra" type="url" required placeholder="URL da imagem" />
+          <img id="preview-imagem" src="" alt="Preview da obra">
+
+          
+          <button type="submit">Criar</button>
+        </form>
+      </div>
+    </div>
 
     <div id="lista-obras"></div>
 
     <script src="script.js"></script>
-</body>
+  </body>
 </html>

@@ -24,68 +24,76 @@ app.post("/obras", (req, res) => {
   const obra = req.body;
 
   const inserir = db.prepare(`
-        INSERT INTO obras (title)
-        VALUES (?)
-    `);
+    INSERT INTO obras (title, tipo, status, imagem)
+    VALUES (?, ?, ?, ?)
+`);
 
-  const resultado = inserir.run(obra.title);
+  const resultado = inserir.run(
+    obra.title,
+    obra.tipo,
+    obra.status,
+    obra.imagem,
+  );
 
   res.json({
     id: resultado.lastInsertRowid,
     title: obra.title,
+    tipo: obra.tipo,
+    status: obra.status,
+    imagem: obra.imagem,
     done: 0,
   });
 });
 
 app.put("/obras/:id", (req, res) => {
-    const id = req.params.id;
-    const obra = req.body;
+  const id = req.params.id;
+  const obra = req.body;
 
-    const atualizar = db.prepare(`
+  const atualizar = db.prepare(`
         UPDATE obras
         SET title = ?
         WHERE id = ?
     `);
 
-    atualizar.run(obra.title, id);
+  atualizar.run(obra.title, id);
 
-    res.json({
-        id: id,
-        title: obra.title
-    });
+  res.json({
+    id: id,
+    title: obra.title,
+  });
 });
 
 app.patch("/obras/:id", (req, res) => {
-    const id = req.params.id;
-    const obra = req.body;
+  const id = req.params.id;
+  const obra = req.body;
 
-    const atualizar = db.prepare(`
+  const atualizar = db.prepare(`
         UPDATE obras
         SET done = ?
         WHERE id = ?
     `);
 
-    atualizar.run(obra.done, id);
+  atualizar.run(obra.done, id);
 
-    res.json({
-        id: id,
-        done: obra.done
-    });
+  res.json({
+    id: id,
+    done: obra.done,
+  });
 });
 
 app.delete("/obras/:id", (req, res) => {
-    const id = req.params.id;
+  const id = req.params.id;
 
-    const apagar = db.prepare(`
+  const apagar = db.prepare(`
         DELETE FROM obras
         WHERE id = ?
     `);
 
-    apagar.run(id);
+  apagar.run(id);
 
-    res.json({
-        mensagem: "Obra apagada"
-    });
+  res.json({
+    mensagem: "Obra apagada",
+  });
 });
 
 app.listen(3000, () => {
