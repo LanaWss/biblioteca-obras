@@ -6,7 +6,7 @@ const app = express();
 app.use(express.json());
 app.use(express.static("public"));
 
-const db = new Database("obras.db");
+const db = new Database(process.env.DB_PATH || "obras.db");
 
 app.get("/obras", (req, res) => {
   const obras = db
