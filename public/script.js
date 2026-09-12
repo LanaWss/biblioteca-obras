@@ -38,6 +38,8 @@ document.addEventListener("click", (evento) => {
       .then((obra) => {
         const popupEditar = document.getElementById("popup-editar");
 
+        popupEditar.dataset.id = id;
+
         document.getElementById("editar-titulo").value = obra.title;
         document.getElementById("editar-tipo").value = obra.tipo;
         document.getElementById("editar-status").value = obra.status;
@@ -122,4 +124,31 @@ const previewImagem = document.getElementById("preview-imagem");
 
 imagemObra.addEventListener("input", () => {
   previewImagem.src = imagemObra.value;
+});
+
+const formEditar = document.getElementById("form-editar");
+
+formEditar.addEventListener("submit", (evento) => {
+  evento.preventDefault();
+
+  const popupEditar = document.getElementById("popup-editar");
+  const id = popupEditar.dataset.id;
+
+  const titulo = document.getElementById("editar-titulo");
+  const tipo = document.getElementById("editar-tipo");
+  const status = document.getElementById("editar-status");
+  const imagem = document.getElementById("editar-imagem");
+
+  fetch(`/obras/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      title: titulo.value,
+      tipo: tipo.value,
+      status: status.value,
+      imagem: imagem.value,
+    }),
+  });
 });

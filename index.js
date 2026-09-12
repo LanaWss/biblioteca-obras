@@ -72,16 +72,25 @@ app.put("/obras/:id", (req, res) => {
   const obra = req.body;
 
   const atualizar = db.prepare(`
-        UPDATE obras
-        SET title = ?
-        WHERE id = ?
-    `);
+    UPDATE obras
+    SET title = ?, tipo = ?, status = ?, imagem = ?
+    WHERE id = ?
+  `);
 
-  atualizar.run(obra.title, id);
+  atualizar.run(
+    obra.title,
+    obra.tipo,
+    obra.status,
+    obra.imagem,
+    id
+  );
 
   res.json({
     id: id,
     title: obra.title,
+    tipo: obra.tipo,
+    status: obra.status,
+    imagem: obra.imagem,
   });
 });
 
