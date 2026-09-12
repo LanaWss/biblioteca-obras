@@ -8,6 +8,7 @@ app.use(express.static("public"));
 
 const db = new Database(process.env.DB_PATH || "obras.db");
 
+
 app.get("/obras", (req, res) => {
   const obras = db
     .prepare(
