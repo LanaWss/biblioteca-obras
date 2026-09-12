@@ -31,6 +31,17 @@ app.get("/obras", (req, res) => {
   res.json(obras);
 });
 
+app.get("/obras/:id", (req, res) => {
+  const id = req.params.id;
+
+  const obra = db.prepare(`
+    SELECT * FROM obras
+    WHERE id = ?
+  `).get(id);
+
+  res.json(obra);
+});
+
 app.post("/obras", (req, res) => {
   const obra = req.body;
 

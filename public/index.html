@@ -44,11 +44,49 @@
 
           <label for="imagem-obra">Imagem</label>
 
-          <input id="imagem-obra" type="url" required placeholder="URL da imagem" />
-          <img id="preview-imagem" src="" alt="Preview da obra">
+          <input
+            id="imagem-obra"
+            type="url"
+            required
+            placeholder="URL da imagem"
+          />
+          <img id="preview-imagem" src="" alt="Preview da obra" />
 
-          
           <button type="submit">Criar</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="popup-editar">
+      <div>
+        <h2>Editar obra</h2>
+        <button id="fechar-popup-editar">X</button>
+
+        <form id="form-editar" autocomplete="off">
+          <label for="editar-titulo">Nome:</label>
+          <input id="editar-titulo" type="text" required />
+
+          <label for="editar-tipo">Tipo</label>
+          <select id="editar-tipo" required>
+            <option value="">Selecione</option>
+            <option value="anime">Anime</option>
+            <option value="manga">Mangá</option>
+          </select>
+
+          <label for="editar-status">Status</label>
+          <select id="editar-status" required>
+            <option value="">Selecione</option>
+            <option value="completa">Completa</option>
+            <option value="hiato">Em hiato</option>
+            <option value="lancando">Lançando</option>
+          </select>
+
+          <label for="editar-imagem">Imagem</label>
+          <input id="editar-imagem" type="url" required />
+
+          <img id="preview-imagem-editar" src="" alt="Preview da obra" />
+
+          <button type="submit">Salvar</button>
         </form>
       </div>
     </div>

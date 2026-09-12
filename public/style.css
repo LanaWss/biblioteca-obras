@@ -83,6 +83,33 @@ button {
     max-width: 400px;
 }
 
+#popup-editar {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+#popup-editar > div {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+}
+
+#preview-imagem-editar {
+  display: block;
+  width: 100%;
+  max-width: 350px;
+  max-height: 250px;
+  object-fit: contain;
+  margin: 10px auto;
+}
+
 #preview-imagem {
     display: block;
     width: 100%;

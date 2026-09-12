@@ -33,20 +33,20 @@ document.addEventListener("click", (evento) => {
   if (evento.target.matches("button[data-id]")) {
     const id = evento.target.dataset.id;
 
-    const novoTitulo = prompt("Digite o novo título:");
+    fetch(`/obras/${id}`)
+      .then((resposta) => resposta.json())
+      .then((obra) => {
+        const popupEditar = document.getElementById("popup-editar");
 
-    fetch(`/obras/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title: tituloObra.value,
-        tipo: tipoObra.value,
-        status: statusObra.value,
-        imagem: imagemObra.value,
-      }),
-    });
+        document.getElementById("editar-titulo").value = obra.title;
+        document.getElementById("editar-tipo").value = obra.tipo;
+        document.getElementById("editar-status").value = obra.status;
+        document.getElementById("editar-imagem").value = obra.imagem;
+
+        document.getElementById("preview-imagem-editar").src = obra.imagem;
+
+        popupEditar.style.display = "flex";
+      });
   }
 
   if (evento.target.matches("button[data-delete-id]")) {
