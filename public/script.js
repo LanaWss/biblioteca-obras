@@ -150,5 +150,7 @@ formEditar.addEventListener("submit", (evento) => {
       status: status.value,
       imagem: imagem.value,
     }),
+  }).then(() => {
+    carregarObras();
   });
 });
