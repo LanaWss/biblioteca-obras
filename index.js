@@ -8,6 +8,16 @@ app.use(express.static("public"));
 
 const db = new Database(process.env.DB_PATH || "obras.db");
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS obras (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    done INTEGER NOT NULL DEFAULT 0,
+    tipo TEXT,
+    status TEXT,
+    imagem TEXT
+  );
+`);
 
 app.get("/obras", (req, res) => {
   const obras = db
