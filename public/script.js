@@ -56,6 +56,8 @@ document.addEventListener("click", (evento) => {
 
     fetch(`/obras/${id}`, {
       method: "DELETE",
+    }).then(() => {
+      carregarObras();
     });
   }
 
@@ -71,6 +73,8 @@ document.addEventListener("click", (evento) => {
       body: JSON.stringify({
         done: doneAtual === 0 ? 1 : 0,
       }),
+    }).then(() => {
+      carregarObras();
     });
   }
 });
@@ -128,6 +132,13 @@ imagemObra.addEventListener("input", () => {
 
 const formEditar = document.getElementById("form-editar");
 
+const fecharPopupEditar = document.getElementById("fechar-popup-editar");
+
+fecharPopupEditar.addEventListener("click", () => {
+  const popupEditar = document.getElementById("popup-editar");
+  popupEditar.style.display = "none";
+});
+
 formEditar.addEventListener("submit", (evento) => {
   evento.preventDefault();
 
@@ -152,5 +163,6 @@ formEditar.addEventListener("submit", (evento) => {
     }),
   }).then(() => {
     carregarObras();
+    popupEditar.style.display = "none";
   });
 });

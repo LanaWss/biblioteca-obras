@@ -15,7 +15,9 @@ db.exec(`
     done INTEGER NOT NULL DEFAULT 0,
     tipo TEXT,
     status TEXT,
-    imagem TEXT
+    imagem TEXT,
+    temporadas TEXT,
+    capitulos INTEGER
   );
 `);
 
