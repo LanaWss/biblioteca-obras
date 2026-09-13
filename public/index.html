@@ -33,6 +33,43 @@
             <option value="manga">Mangá</option>
           </select>
 
+          <div id="campos-anime" style="display: none">
+            <label>Temporadas</label>
+
+            <div id="lista-temporadas">
+              <div class="temporada">
+                <input
+                  type="number"
+                  value="1"
+                  min="1"
+                  placeholder="Temporada"
+                />
+
+                <input type="number" min="1" placeholder="Episódios" />
+              </div>
+            </div>
+
+            <button type="button" id="adicionar-temporada">
+              + Adicionar temporada
+            </button>
+          </div>
+
+          <div id="campos-manga" style="display: none">
+            <label>Volumes</label>
+
+            <div id="lista-volumes">
+              <div class="volume">
+                <input type="number" value="1" min="1" placeholder="Volume" />
+
+                <input type="number" min="0" placeholder="Capítulos" />
+              </div>
+            </div>
+
+            <button type="button" id="adicionar-volume">
+              + Adicionar volume
+            </button>
+          </div>
+
           <label for="status-obra">Status</label>
 
           <select id="status-obra" required>
