@@ -3,132 +3,144 @@
   <head>
     <title>Biblioteca de Obras</title>
     <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
   </head>
   <body>
-    <h1>Minhas Obras</h1>
-    <p>Esta é a página principal da sua biblioteca de obras.</p>
+    <header>
+      <h1>Minhas Obras</h1>
+      <p>Esta é a página principal da sua biblioteca de obras.</p>
 
-    <div class="barra-ferramentas">
-      <label class="campo-busca" for="buscar-obras">
-        <span>Buscar</span>
-        <input
-          id="buscar-obras"
-          type="search"
-          placeholder="Buscar obra pelo nome"
-          autocomplete="off"
-        />
-      </label>
-      <button id="abrir-filtros" type="button">Filtro</button>
-      <button id="botao-criar" type="button">Criar obra</button>
-    </div>
-
-    <div id="popup-filtros">
-      <div>
-        <h2>Filtros</h2>
-        <label for="filtro-tipo">Tipo</label>
-        <select id="filtro-tipo">
-          <option value="">Todos</option>
-          <option value="anime">Anime</option>
-          <option value="manga">Mangá</option>
-        </select>
-
-        <label for="filtro-status">Status</label>
-        <select id="filtro-status">
-          <option value="">Todos</option>
-          <option value="completa">Completa</option>
-          <option value="hiato">Em hiato</option>
-          <option value="lancando">Lançando</option>
-        </select>
-
-        <button id="limpar-filtros" type="button">Limpar filtros</button>
-        <button id="fechar-filtros" type="button">Fechar</button>
-      </div>
-    </div>
-
-    <div id="popup-criar">
-      <div>
-        <h2>Criar obra</h2>
-
-        <button id="fechar-popup">X</button>
-
-        <form id="form-criar" autocomplete="off">
-          <label for="titulo-obra">Nome: </label>
-
+      <div class="barra-ferramentas">
+        <label class="campo-busca" for="buscar-obras">
+          <span class="icone-busca">🔍</span>
           <input
-            id="titulo-obra"
-            type="text"
-            placeholder="Nome da obra"
-            required
+            id="buscar-obras"
+            type="search"
+            placeholder="Buscar obra pelo nome"
+            autocomplete="off"
           />
+        </label>
+        <button id="abrir-filtros" type="button">
+          <i class="fa-solid fa-filter"></i> Filtro
+        </button>
 
-          <label for="tipo-obra">Tipo</label>
+        <button id="botao-criar" type="button">
+          <i class="fa-solid fa-plus"></i> Criar obra
+        </button>
+      </div>
 
-          <select id="tipo-obra" required>
-            <option value="">Selecione</option>
+      <div id="popup-filtros">
+        <div>
+          <h2>Filtros</h2>
+          <label for="filtro-tipo">Tipo</label>
+          <select id="filtro-tipo">
+            <option value="">Todos</option>
             <option value="anime">Anime</option>
             <option value="manga">Mangá</option>
           </select>
 
-          <div id="campos-anime" style="display: none">
-            <label id="editar-label-conteudo">Temporadas</label>
-
-            <div id="lista-temporadas">
-              <div class="temporada">
-                <input
-                  type="number"
-                  value="1"
-                  min="1"
-                  placeholder="Temporada"
-                />
-
-                <input type="number" min="1" placeholder="Episódios" />
-              </div>
-            </div>
-
-            <button type="button" id="adicionar-temporada">
-              + Adicionar temporada
-            </button>
-          </div>
-
-          <div id="campos-manga" style="display: none">
-            <label>Volumes</label>
-
-            <div id="lista-volumes">
-              <div class="volume">
-                <input type="number" value="1" min="1" placeholder="Volume" />
-
-                <input type="number" min="0" placeholder="Capítulos" />
-              </div>
-            </div>
-
-            <button type="button" id="adicionar-volume">
-              + Adicionar volume
-            </button>
-          </div>
-
-          <label for="status-obra">Status</label>
-
-          <select id="status-obra" required>
-            <option value="">Selecione</option>
+          <label for="filtro-status">Status</label>
+          <select id="filtro-status">
+            <option value="">Todos</option>
             <option value="completa">Completa</option>
             <option value="hiato">Em hiato</option>
             <option value="lancando">Lançando</option>
           </select>
 
-          <label for="imagem-obra">Imagem</label>
-
-          <input
-            id="imagem-obra"
-            type="url"
-            required
-            placeholder="URL da imagem"
-          />
-          <img id="preview-imagem" src="" alt="Preview da obra" />
-
-          <button type="submit">Criar</button>
-        </form>
+          <button id="limpar-filtros" type="button">Limpar filtros</button>
+          <button id="fechar-filtros" type="button">Fechar</button>
+        </div>
       </div>
-    </div>
+
+      <div id="popup-criar">
+        <div>
+          <h2>Criar obra</h2>
+
+          <button id="fechar-popup">X</button>
+
+          <form id="form-criar" autocomplete="off">
+            <label for="titulo-obra">Nome: </label>
+
+            <input
+              id="titulo-obra"
+              type="text"
+              placeholder="Nome da obra"
+              required
+            />
+
+            <label for="tipo-obra">Tipo</label>
+
+            <select id="tipo-obra" required>
+              <option value="">Selecione</option>
+              <option value="anime">Anime</option>
+              <option value="manga">Mangá</option>
+            </select>
+
+            <div id="campos-anime" style="display: none">
+              <div id="lista-temporadas">
+                <div class="temporada">
+                  <label>
+                    Temporada
+                    <input type="number" value="1" min="1" />
+                  </label>
+                  <label>
+                    Episódios
+                    <input type="number" min="1" />
+                  </label>
+                </div>
+              </div>
+
+              <button type="button" id="adicionar-temporada">
+                + Adicionar temporada
+              </button>
+            </div>
+
+            <div id="campos-manga" style="display: none">
+              <div id="lista-volumes">
+                <div class="volume">
+                  <label>
+                    Volume
+                    <input type="number" value="1" min="1" />
+                  </label>
+                  <label>
+                    Capítulos
+                    <input type="number" min="0" />
+                  </label>
+                </div>
+              </div>
+
+              <button type="button" id="adicionar-volume">
+                + Adicionar volume
+              </button>
+            </div>
+
+            <label for="status-obra">Status</label>
+
+            <select id="status-obra" required>
+              <option value="">Selecione</option>
+              <option value="completa">Completa</option>
+              <option value="hiato">Em hiato</option>
+              <option value="lancando">Lançando</option>
+            </select>
+
+            <label for="imagem-obra">Imagem</label>
+
+            <input
+              id="imagem-obra"
+              type="url"
+              required
+              placeholder="URL da imagem"
+            />
+            <img id="preview-imagem" src="" alt="Preview da obra" hidden />
+
+            <button type="submit">Criar</button>
+          </form>
+        </div>
+      </div>
+    </header>
 
     <div id="popup-editar">
       <div>
@@ -147,13 +159,16 @@
           </select>
 
           <div id="editar-campos-anime" style="display: none">
-            <label>Temporadas</label>
-
             <div id="editar-lista-temporadas">
               <div class="temporada">
-                <input type="number" min="1" placeholder="Temporada" />
-
-                <input type="number" min="0" placeholder="Episódios" />
+                <label>
+                  Temporada
+                  <input type="number" min="1" />
+                </label>
+                <label>
+                  Episódios
+                  <input type="number" min="0" />
+                </label>
               </div>
             </div>
 
@@ -163,13 +178,16 @@
           </div>
 
           <div id="editar-campos-manga" style="display: none">
-            <label>Volumes</label>
-
             <div id="editar-lista-volumes">
               <div class="volume">
-                <input type="number" min="1" placeholder="Volume" />
-
-                <input type="number" min="0" placeholder="Capítulos" />
+                <label>
+                  Volume
+                  <input type="number" min="1" />
+                </label>
+                <label>
+                  Capítulos
+                  <input type="number" min="0" />
+                </label>
               </div>
             </div>
 
@@ -189,7 +207,7 @@
           <label for="editar-imagem">Imagem</label>
           <input id="editar-imagem" type="url" required />
 
-          <img id="preview-imagem-editar" src="" alt="Preview da obra" />
+          <img id="preview-imagem-editar" src="" alt="Preview da obra" hidden />
 
           <button type="submit">Salvar</button>
         </form>
