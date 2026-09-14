@@ -8,7 +8,43 @@
     <h1>Minhas Obras</h1>
     <p>Esta é a página principal da sua biblioteca de obras.</p>
 
-    <button id="botao-criar">Criar obra</button>
+    <div class="barra-ferramentas">
+      <label class="campo-busca" for="buscar-obras">
+        <span>Buscar</span>
+        <input
+          id="buscar-obras"
+          type="search"
+          placeholder="Buscar obra pelo nome"
+          autocomplete="off"
+        />
+      </label>
+      <button id="abrir-filtros" type="button">Filtro</button>
+      <button id="botao-criar" type="button">Criar obra</button>
+    </div>
+
+    <div id="popup-filtros">
+      <div>
+        <h2>Filtros</h2>
+        <label for="filtro-tipo">Tipo</label>
+        <select id="filtro-tipo">
+          <option value="">Todos</option>
+          <option value="anime">Anime</option>
+          <option value="manga">Mangá</option>
+        </select>
+
+        <label for="filtro-status">Status</label>
+        <select id="filtro-status">
+          <option value="">Todos</option>
+          <option value="completa">Completa</option>
+          <option value="hiato">Em hiato</option>
+          <option value="lancando">Lançando</option>
+        </select>
+
+        <button id="limpar-filtros" type="button">Limpar filtros</button>
+        <button id="fechar-filtros" type="button">Fechar</button>
+      </div>
+    </div>
+
     <div id="popup-criar">
       <div>
         <h2>Criar obra</h2>
@@ -34,7 +70,7 @@
           </select>
 
           <div id="campos-anime" style="display: none">
-            <label>Temporadas</label>
+            <label id="editar-label-conteudo">Temporadas</label>
 
             <div id="lista-temporadas">
               <div class="temporada">
@@ -110,6 +146,38 @@
             <option value="manga">Mangá</option>
           </select>
 
+          <div id="editar-campos-anime" style="display: none">
+            <label>Temporadas</label>
+
+            <div id="editar-lista-temporadas">
+              <div class="temporada">
+                <input type="number" min="1" placeholder="Temporada" />
+
+                <input type="number" min="0" placeholder="Episódios" />
+              </div>
+            </div>
+
+            <button type="button" id="editar-adicionar-temporada">
+              + Adicionar temporada
+            </button>
+          </div>
+
+          <div id="editar-campos-manga" style="display: none">
+            <label>Volumes</label>
+
+            <div id="editar-lista-volumes">
+              <div class="volume">
+                <input type="number" min="1" placeholder="Volume" />
+
+                <input type="number" min="0" placeholder="Capítulos" />
+              </div>
+            </div>
+
+            <button type="button" id="editar-adicionar-volume">
+              + Adicionar volume
+            </button>
+          </div>
+
           <label for="editar-status">Status</label>
           <select id="editar-status" required>
             <option value="">Selecione</option>
@@ -125,6 +193,14 @@
 
           <button type="submit">Salvar</button>
         </form>
+      </div>
+    </div>
+
+    <div id="popup-progresso">
+      <div>
+        <h2 id="titulo-progresso"></h2>
+        <button id="fechar-popup-progresso">X</button>
+        <div id="lista-progresso"></div>
       </div>
     </div>
 

@@ -21,6 +21,18 @@ db.exec(`
   );
 `);
 
+for (const coluna of [
+  "ALTER TABLE obras ADD COLUMN temporadas TEXT",
+  "ALTER TABLE obras ADD COLUMN capitulos INTEGER",
+  "ALTER TABLE obras ADD COLUMN volumes TEXT",
+]) {
+  try {
+    db.exec(coluna);
+  } catch (erro) {
+    // A coluna já existe
+  }
+}
+
 app.get("/obras", (req, res) => {
   const obras = db
     .prepare(
@@ -48,15 +60,26 @@ app.post("/obras", (req, res) => {
   const obra = req.body;
 
   const inserir = db.prepare(`
-    INSERT INTO obras (title, tipo, status, imagem)
-    VALUES (?, ?, ?, ?)
-`);
+    INSERT INTO obras (
+      title,
+      tipo,
+      status,
+      imagem,
+      temporadas,
+      capitulos,
+      volumes
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
 
   const resultado = inserir.run(
     obra.title,
     obra.tipo,
     obra.status,
     obra.imagem,
+    obra.temporadas ? JSON.stringify(obra.temporadas) : null,
+    obra.capitulos || null,
+    obra.volumes ? JSON.stringify(obra.volumes) : null
   );
 
   res.json({
@@ -65,9 +88,13 @@ app.post("/obras", (req, res) => {
     tipo: obra.tipo,
     status: obra.status,
     imagem: obra.imagem,
+    temporadas: obra.temporadas || null,
+    capitulos: obra.capitulos || null,
+    volumes: obra.volumes || null,
     done: 0,
   });
 });
+
 
 app.put("/obras/:id", (req, res) => {
   const id = req.params.id;
@@ -75,7 +102,14 @@ app.put("/obras/:id", (req, res) => {
 
   const atualizar = db.prepare(`
     UPDATE obras
-    SET title = ?, tipo = ?, status = ?, imagem = ?
+    SET
+      title = ?,
+      tipo = ?,
+      status = ?,
+      imagem = ?,
+      temporadas = ?,
+      capitulos = ?,
+      volumes = ?
     WHERE id = ?
   `);
 
@@ -84,6 +118,9 @@ app.put("/obras/:id", (req, res) => {
     obra.tipo,
     obra.status,
     obra.imagem,
+    obra.temporadas ? JSON.stringify(obra.temporadas) : null,
+    obra.capitulos || null,
+    obra.volumes ? JSON.stringify(obra.volumes) : null,
     id
   );
 
@@ -93,24 +130,46 @@ app.put("/obras/:id", (req, res) => {
     tipo: obra.tipo,
     status: obra.status,
     imagem: obra.imagem,
+    temporadas: obra.temporadas || null,
+    capitulos: obra.capitulos || null,
+    volumes: obra.volumes || null,
   });
 });
+
 
 app.patch("/obras/:id", (req, res) => {
   const id = req.params.id;
   const obra = req.body;
 
-  const atualizar = db.prepare(`
-        UPDATE obras
-        SET done = ?
-        WHERE id = ?
+  if (obra.temporadas !== undefined || obra.volumes !== undefined) {
+    const atualizarProgresso = db.prepare(`
+      UPDATE obras
+      SET temporadas = ?, volumes = ?
+      WHERE id = ?
     `);
 
-  atualizar.run(obra.done, id);
+    atualizarProgresso.run(
+      obra.temporadas !== undefined ? JSON.stringify(obra.temporadas) : null,
+      obra.volumes !== undefined ? JSON.stringify(obra.volumes) : null,
+      id,
+    );
+  }
+
+  if (obra.done !== undefined) {
+    const atualizarConclusao = db.prepare(`
+      UPDATE obras
+      SET done = ?
+      WHERE id = ?
+    `);
+
+    atualizarConclusao.run(obra.done, id);
+  }
 
   res.json({
     id: id,
     done: obra.done,
+    temporadas: obra.temporadas,
+    volumes: obra.volumes,
   });
 });
 
