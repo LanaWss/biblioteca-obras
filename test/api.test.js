@@ -113,6 +113,53 @@ test("PUT /obras/:id deve editar uma obra", async () => {
   assert.strictEqual(obra.status, "completa");
 });
 
+test("PUT /obras/:id deve preservar o progresso ao editar o link", async () => {
+  const criada = await criarObra({
+    title: "Obra com progresso",
+    tipo: "anime",
+    status: "lancando",
+    imagem: "https://exemplo.com/imagem.jpg",
+    temporadas: [
+      {
+        numero: 1,
+        episodios: 12,
+        vistos: [1, 2, 3],
+      },
+    ],
+  });
+
+  await fetch(`http://localhost:3000/obras/${criada.id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      title: criada.title,
+      tipo: criada.tipo,
+      status: criada.status,
+      imagem: criada.imagem,
+      link_leitura: "https://exemplo.com/ler",
+      temporadas: [
+        {
+          numero: 1,
+          episodios: 12,
+        },
+      ],
+    }),
+  });
+
+  const respostaConsulta = await fetch(
+    `http://localhost:3000/obras/${criada.id}`,
+  );
+  const obraAtualizada = await respostaConsulta.json();
+
+  assert.deepStrictEqual(
+    JSON.parse(obraAtualizada.temporadas)[0].vistos,
+    [1, 2, 3],
+  );
+  assert.strictEqual(obraAtualizada.link_leitura, "https://exemplo.com/ler");
+});
+
 test("PATCH /obras/:id deve atualizar o progresso", async () => {
   const criada = await criarObra({
     title: "Obra para progresso",

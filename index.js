@@ -66,6 +66,37 @@ app.get("/obras/:id", (req, res) => {
   res.json(obra);
 });
 
+function preservarProgresso(itensNovos, conteudoAtual, quantidadeKey) {
+  if (!Array.isArray(itensNovos) || !conteudoAtual) {
+    return itensNovos;
+  }
+
+  let itensAtuais;
+
+  try {
+    itensAtuais = JSON.parse(conteudoAtual);
+  } catch (erro) {
+    return itensNovos;
+  }
+
+  return itensNovos.map((itemNovo) => {
+    const itemAtual = itensAtuais.find(
+      (item) => item.numero === itemNovo.numero,
+    );
+
+    if (!itemAtual || !Array.isArray(itemAtual.vistos)) {
+      return itemNovo;
+    }
+
+    return {
+      ...itemNovo,
+      vistos: itemAtual.vistos.filter(
+        (numero) => numero >= 1 && numero <= itemNovo[quantidadeKey],
+      ),
+    };
+  });
+}
+
 app.post("/obras", (req, res) => {
   const obra = req.body;
 
@@ -123,6 +154,26 @@ app.post("/obras", (req, res) => {
 app.put("/obras/:id", (req, res) => {
   const id = req.params.id;
   const obra = req.body;
+  const obraAtual = db
+    .prepare("SELECT tipo, temporadas, volumes FROM obras WHERE id = ?")
+    .get(id);
+
+  const temporadas =
+    obra.tipo === "anime"
+      ? preservarProgresso(
+          obra.temporadas,
+          obraAtual?.tipo === "anime" ? obraAtual.temporadas : null,
+          "episodios",
+        )
+      : null;
+  const volumes =
+    obra.tipo === "manga"
+      ? preservarProgresso(
+          obra.volumes,
+          obraAtual?.tipo === "manga" ? obraAtual.volumes : null,
+          "capitulos",
+        )
+      : null;
 
   const atualizar = db.prepare(`
     UPDATE obras
@@ -148,9 +199,9 @@ app.put("/obras/:id", (req, res) => {
     obra.imagem_arquivo || null,
     obra.imagem_preferencia || "url",
     obra.link_leitura ? String(obra.link_leitura).trim() : null,
-    obra.temporadas ? JSON.stringify(obra.temporadas) : null,
+    temporadas ? JSON.stringify(temporadas) : null,
     obra.capitulos || null,
-    obra.volumes ? JSON.stringify(obra.volumes) : null,
+    volumes ? JSON.stringify(volumes) : null,
     id,
   );
 
@@ -169,9 +220,9 @@ app.put("/obras/:id", (req, res) => {
     imagem_arquivo: obra.imagem_arquivo || null,
     imagem_preferencia: obra.imagem_preferencia || "url",
     link_leitura: obra.link_leitura ? String(obra.link_leitura).trim() : null,
-    temporadas: obra.temporadas || null,
+    temporadas: temporadas || null,
     capitulos: obra.capitulos || null,
-    volumes: obra.volumes || null,
+    volumes: volumes || null,
   });
 });
 
