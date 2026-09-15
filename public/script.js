@@ -77,6 +77,44 @@ function calcularProgresso(obra) {
   };
 }
 
+function obterImagemPreferida(obra) {
+  const imagens = {
+    url: obra.imagem,
+    arquivo: obra.imagem_arquivo,
+  };
+
+  const preferida = obra.imagem_preferencia || "url";
+  const alternativa = preferida === "url" ? "arquivo" : "url";
+
+  return {
+    principal: imagens[preferida] || imagens[alternativa] || "",
+    fallback: imagens[preferida] ? imagens[alternativa] || "" : "",
+  };
+}
+
+function lerArquivoComoDataUrl(arquivo) {
+  if (!arquivo) {
+    return Promise.resolve("");
+  }
+
+  return new Promise((resolve, reject) => {
+    const leitor = new FileReader();
+
+    leitor.onload = () => resolve(leitor.result);
+    leitor.onerror = () => reject(new Error("Não foi possível ler a imagem."));
+    leitor.readAsDataURL(arquivo);
+  });
+}
+
+function validarImagem(url, arquivoDataUrl) {
+  if (!url && !arquivoDataUrl) {
+    alert("Informe uma URL ou escolha uma imagem do dispositivo.");
+    return false;
+  }
+
+  return true;
+}
+
 function ajustarCorDoTexto(card, imagemUrl) {
   const imagem = new Image();
 
@@ -140,6 +178,48 @@ function ajustarCorDoTexto(card, imagemUrl) {
   };
 
   imagem.src = imagemUrl;
+}
+
+function configurarImagemCard(card, obra) {
+  const imagem = card.querySelector(".imagem-obra");
+  const aviso = card.querySelector(".aviso-imagem-card");
+  const imagens = obterImagemPreferida(obra);
+
+  card.style.setProperty(
+    "--imagem-obra",
+    imagens.principal ? `url("${imagens.principal}")` : "none",
+  );
+
+  if (!imagem || !imagens.principal) {
+    return;
+  }
+
+  const usarFallback = () => {
+    if (imagens.fallback && imagem.src !== imagens.fallback) {
+      imagem.src = imagens.fallback;
+      card.style.setProperty(
+        "--imagem-obra",
+        `url("${imagens.fallback}")`,
+      );
+      ajustarCorDoTexto(card, imagens.fallback);
+      aviso.textContent = "A URL da imagem falhou. Imagem do dispositivo exibida.";
+      aviso.hidden = false;
+      return;
+    }
+
+    imagem.hidden = true;
+    card.classList.add("imagem-indisponivel");
+    aviso.textContent = "Não foi possível carregar a imagem.";
+    aviso.hidden = false;
+  };
+
+  imagem.addEventListener("load", () => {
+    imagem.hidden = false;
+    card.classList.remove("imagem-indisponivel");
+    ajustarCorDoTexto(card, imagem.currentSrc || imagem.src);
+  });
+  imagem.addEventListener("error", usarFallback);
+  imagem.src = imagens.principal;
 }
 
 async function salvarProgresso() {
@@ -269,7 +349,11 @@ function carregarObras() {
 
         const progresso = calcularProgresso(obra);
 
-        const statusExibido = obra.status;
+        const statusExibido = {
+          completa: "Completa",
+          hiato: "Em hiato",
+          lancando: "Lançando",
+        }[obra.status];
 
         if (obra.tipo === "anime") {
           const temporadas = lerConteudoObra(obra.temporadas);
@@ -309,15 +393,28 @@ function carregarObras() {
           `;
         }
 
-        const imagem = obra.imagem
-          ? `<img src="${obra.imagem}" alt="${obra.title}">`
+        const imagens = obterImagemPreferida(obra);
+        const linkLeitura = String(obra.link_leitura || "").trim();
+        const imagem = imagens.principal
+          ? `<img class="imagem-obra" src="${imagens.principal}" alt="${obra.title}">`
+          : "";
+        const botaoLeitura = linkLeitura
+          ? `
+              <a
+                class="botao-ler"
+                href="${linkLeitura}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i class="fa-solid fa-book-open"></i> Ir ler
+              </a>
+            `
           : "";
 
         lista.innerHTML += `
           <div
             class="cards"
             data-card-id="${obra.id}"
-            style="--imagem-obra: url('${obra.imagem}')"
           >
 
             <div class="titulo-card">
@@ -325,9 +422,7 @@ function carregarObras() {
               <h2>${obra.title}</h2>
 
               <span
-                class="status-card status-${
-                  obra.status
-                }"
+                class="status-card status-${obra.status}"
               >
                 ${statusExibido}
               </span>
@@ -335,6 +430,7 @@ function carregarObras() {
             </div>
 
             ${imagem}
+            <p class="aviso-imagem-card" hidden role="status"></p>
 
             <div class="progresso-card">
 
@@ -363,6 +459,8 @@ function carregarObras() {
 
             <div class="botoes-card">
 
+  ${botaoLeitura}
+
   <button data-id="${obra.id}">
     <i class="fa-solid fa-pen"></i> Editar
   </button>
@@ -382,8 +480,8 @@ function carregarObras() {
 
         const card = lista.querySelector(`[data-card-id="${obra.id}"]`);
 
-        if (card && obra.imagem) {
-          ajustarCorDoTexto(card, obra.imagem);
+        if (card) {
+          configurarImagemCard(card, obra);
         }
       });
     });
@@ -438,7 +536,13 @@ document.addEventListener("click", (evento) => {
 
         document.getElementById("editar-status").value = obra.status;
 
-        document.getElementById("editar-imagem").value = obra.imagem;
+        document.getElementById("editar-imagem").value = obra.imagem || "";
+        document.getElementById("editar-preferencia-imagem").value =
+          obra.imagem_preferencia || "url";
+        document.getElementById("editar-link-leitura").value =
+          obra.link_leitura || "";
+        popupEditar.dataset.imagemArquivo = obra.imagem_arquivo || "";
+        document.getElementById("editar-arquivo-imagem").value = "";
 
         const editarCamposAnime = document.getElementById(
           "editar-campos-anime",
@@ -552,9 +656,10 @@ document.addEventListener("click", (evento) => {
           "preview-imagem-editar",
         );
 
-        previewImagemEditar.src = obra.imagem || "";
+        previewImagemEditar.src = obterImagemPreferida(obra).principal;
 
-        previewImagemEditar.hidden = !obra.imagem;
+        previewImagemEditar.hidden = !obterImagemPreferida(obra).principal;
+        document.getElementById("aviso-imagem-editar").hidden = true;
 
         popupEditar.style.display = "flex";
       });
@@ -756,7 +861,7 @@ fecharPopup.addEventListener("click", () => {
 
 const formCriar = document.getElementById("form-criar");
 
-formCriar.addEventListener("submit", (evento) => {
+formCriar.addEventListener("submit", async (evento) => {
   evento.preventDefault();
 
   const tituloObra = document.getElementById("titulo-obra");
@@ -764,6 +869,41 @@ formCriar.addEventListener("submit", (evento) => {
   const statusObra = document.getElementById("status-obra");
 
   const imagemObra = document.getElementById("imagem-obra");
+
+  const arquivoImagemObra = document.getElementById("arquivo-imagem-obra");
+
+  const linkLeituraObra = document.getElementById("link-leitura-obra");
+
+  imagemObra.value = imagemObra.value.trim();
+
+  if (imagemObra.value && !imagemObra.checkValidity()) {
+    alert("Informe uma URL válida para a imagem.");
+    imagemObra.focus();
+    return;
+  }
+
+  if (linkLeituraObra.value && !linkLeituraObra.checkValidity()) {
+    alert("Informe um link válido para ler a obra.");
+    linkLeituraObra.focus();
+    return;
+  }
+
+  let imagemArquivo = "";
+
+  try {
+    imagemArquivo = await lerArquivoComoDataUrl(arquivoImagemObra.files[0]);
+  } catch (erro) {
+    alert(erro.message);
+    return;
+  }
+
+  if (!validarImagem(imagemObra.value, imagemArquivo)) {
+    return;
+  }
+
+  const preferenciaImagem = document.getElementById(
+    "preferencia-imagem-obra",
+  ).value;
 
   if (tipoObra.value === "anime") {
     const temporadas = listaTemporadas.querySelectorAll(".temporada");
@@ -897,6 +1037,12 @@ formCriar.addEventListener("submit", (evento) => {
 
       imagem: imagemObra.value,
 
+      imagem_arquivo: imagemArquivo || null,
+
+      imagem_preferencia: preferenciaImagem,
+
+      link_leitura: linkLeituraObra.value.trim() || null,
+
       temporadas: temporadas,
 
       volumes: volumes,
@@ -911,6 +1057,12 @@ formCriar.addEventListener("submit", (evento) => {
     statusObra.value = "";
 
     imagemObra.value = "";
+
+    arquivoImagemObra.value = "";
+
+    document.getElementById("preferencia-imagem-obra").value = "url";
+
+    linkLeituraObra.value = "";
 
     previewImagem.src = "";
 
@@ -984,10 +1136,35 @@ previewImagem.addEventListener("error", () => {
   previewImagem.hidden = true;
 });
 
+document.getElementById("arquivo-imagem-obra").addEventListener("change", async (evento) => {
+  const arquivo = evento.target.files[0];
+
+  if (!arquivo) {
+    return;
+  }
+
+  previewImagem.src = await lerArquivoComoDataUrl(arquivo);
+  previewImagem.hidden = false;
+});
+
 document
   .getElementById("preview-imagem-editar")
   .addEventListener("error", (evento) => {
     evento.target.hidden = true;
+  });
+
+document
+  .getElementById("editar-arquivo-imagem")
+  .addEventListener("change", async (evento) => {
+    const arquivo = evento.target.files[0];
+
+    if (!arquivo) {
+      return;
+    }
+
+    const preview = document.getElementById("preview-imagem-editar");
+    preview.src = await lerArquivoComoDataUrl(arquivo);
+    preview.hidden = false;
   });
 
 const formEditar = document.getElementById("form-editar");
@@ -1142,7 +1319,7 @@ editarAdicionarVolume.addEventListener("click", () => {
   editarListaVolumes.appendChild(novoVolume);
 });
 
-formEditar.addEventListener("submit", (evento) => {
+formEditar.addEventListener("submit", async (evento) => {
   evento.preventDefault();
 
   const popupEditar = document.getElementById("popup-editar");
@@ -1157,13 +1334,44 @@ formEditar.addEventListener("submit", (evento) => {
 
   const imagem = document.getElementById("editar-imagem");
 
+  const arquivoImagem = document.getElementById("editar-arquivo-imagem");
+
+  const preferenciaImagem = document.getElementById(
+    "editar-preferencia-imagem",
+  );
+
+  const linkLeitura = document.getElementById("editar-link-leitura");
+
   imagem.value = imagem.value.trim();
 
-  if (!imagem.value || !imagem.checkValidity()) {
+  if (imagem.value && !imagem.checkValidity()) {
     alert("Informe uma URL válida para a imagem.");
 
     imagem.focus();
 
+    return;
+  }
+
+  if (linkLeitura.value && !linkLeitura.checkValidity()) {
+    alert("Informe um link válido para ler a obra.");
+    linkLeitura.focus();
+    return;
+  }
+
+  let imagemArquivo = popupEditar.dataset.imagemArquivo || "";
+
+  try {
+    const novoArquivo = await lerArquivoComoDataUrl(arquivoImagem.files[0]);
+
+    if (novoArquivo) {
+      imagemArquivo = novoArquivo;
+    }
+  } catch (erro) {
+    alert(erro.message);
+    return;
+  }
+
+  if (!validarImagem(imagem.value, imagemArquivo)) {
     return;
   }
 
@@ -1238,6 +1446,12 @@ formEditar.addEventListener("submit", (evento) => {
       status: status.value,
 
       imagem: imagem.value,
+
+      imagem_arquivo: imagemArquivo || null,
+
+      imagem_preferencia: preferenciaImagem.value,
+
+      link_leitura: linkLeitura.value.trim() || null,
 
       temporadas: tipo.value === "anime" ? temporadas : null,
 

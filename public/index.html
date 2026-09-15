@@ -131,10 +131,24 @@
             <input
               id="imagem-obra"
               type="url"
-              required
-              placeholder="URL da imagem"
+              placeholder="URL da imagem (opcional)"
             />
+            <label for="arquivo-imagem-obra">Ou imagem do dispositivo</label>
+            <input id="arquivo-imagem-obra" type="file" accept="image/*" />
+            <label for="preferencia-imagem-obra">Imagem preferida</label>
+            <select id="preferencia-imagem-obra">
+              <option value="url">URL</option>
+              <option value="arquivo">Imagem do dispositivo</option>
+            </select>
             <img id="preview-imagem" src="" alt="Preview da obra" hidden />
+            <p id="aviso-imagem-obra" class="aviso-form" role="status"></p>
+
+            <label for="link-leitura-obra">Link para ler (opcional)</label>
+            <input
+              id="link-leitura-obra"
+              type="url"
+              placeholder="https://site.com/obra"
+            />
 
             <button type="submit">Criar</button>
           </form>
@@ -205,9 +219,24 @@
           </select>
 
           <label for="editar-imagem">Imagem</label>
-          <input id="editar-imagem" type="url" required />
+          <input id="editar-imagem" type="url" placeholder="URL da imagem (opcional)" />
+          <label for="editar-arquivo-imagem">Ou imagem do dispositivo</label>
+          <input id="editar-arquivo-imagem" type="file" accept="image/*" />
+          <label for="editar-preferencia-imagem">Imagem preferida</label>
+          <select id="editar-preferencia-imagem">
+            <option value="url">URL</option>
+            <option value="arquivo">Imagem do dispositivo</option>
+          </select>
 
           <img id="preview-imagem-editar" src="" alt="Preview da obra" hidden />
+          <p id="aviso-imagem-editar" class="aviso-form" role="status"></p>
+
+          <label for="editar-link-leitura">Link para ler (opcional)</label>
+          <input
+            id="editar-link-leitura"
+            type="url"
+            placeholder="https://site.com/obra"
+          />
 
           <button type="submit">Salvar</button>
         </form>
@@ -224,6 +253,6 @@
 
     <div id="lista-obras"></div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=3"></script>
   </body>
 </html>

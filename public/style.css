@@ -1,5 +1,6 @@
 :root {
     font-family: Arial, sans-serif;
+    font-size: 16px;
     margin: 20px;
     --primary-color: #ffef0e;
     --secundary-color: #175d69;
@@ -86,8 +87,8 @@ button {
 }
 
 .botoes-card {
-    display: flex;
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
     width: 100%;
 }
@@ -112,8 +113,16 @@ button {
     color: white;
 }
 
+.cards.texto-claro > * {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
 .cards.texto-escuro {
     color: #111;
+}
+
+.cards.texto-escuro > * {
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
 }
 
 .cards {
@@ -129,7 +138,7 @@ button {
     align-content: auto;
     position: relative;
     width: 100%;
-    max-width: 300px;
+    max-width: 360px;
     break-inside: avoid;
     margin-bottom: 30px;
     display: flex;
@@ -144,11 +153,20 @@ button {
     background-image: var(--imagem-obra);
     background-size: cover;
     background-position: center;
-    filter: blur(25px) saturate(60%);
-    opacity: 0.95;
+    filter: blur(30px) saturate(45%);
+    opacity: 0.3;
     transform: scale(1.15);
     z-index: 0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.cards::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(12, 18, 35, 0.38);
+    z-index: 0;
+    pointer-events: none;
 }
 
 .cards > * {
@@ -196,13 +214,61 @@ button {
     font-size: 13px;
 }
 
+.botao-ler {
+    display: flex;
+    flex: 1 1 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 6px;
+    color: var(--primary-color);
+    background-color: var(--secundary-color);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.botao-ler:hover {
+    transform: scale(1.03);
+}
+
+.aviso-imagem-card,
+.aviso-form {
+    color: #8a2d12;
+    font-size: 12px;
+    font-weight: bold;
+    text-shadow: none;
+}
+
+.aviso-imagem-card {
+    margin: 0;
+    padding: 4px 8px;
+    background: rgba(255, 245, 220, 0.9);
+    border-radius: 6px;
+}
+
 .cards img {
     display: block;
     width: 100%;
-    max-height: 220px;
+    height: 240px;
     object-fit: contain;
+    background: rgba(8, 12, 24, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 14px;
     margin: 8px auto 12px;
+}
+
+.cards.imagem-indisponivel::after {
+    content: "Imagem indisponível";
+    display: block;
+    width: 100%;
+    padding: 26px 10px;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 14px;
+    font-size: 14px;
+    text-align: center;
 }
 
 .progresso-card {
@@ -465,8 +531,38 @@ button {
 }
 
 @media (max-width: 600px) {
+    :root {
+        font-size: 18px;
+    }
+
+    body {
+        margin: 10px;
+    }
+
+    header {
+        padding: 16px 12px;
+    }
+
+    header h1 {
+        font-size: 28px;
+    }
+
     .cards {
-        padding: 5px;
-        margin: 5px 0;
+        max-width: none;
+        padding: 12px;
+        margin: 8px 0 20px;
+    }
+
+    .cards img {
+        max-height: 280px;
+    }
+
+    .botoes-card button,
+    .botao-ler {
+        min-height: 44px;
+        min-width: 0;
+        padding-left: 3px;
+        padding-right: 3px;
+        font-size: 12px;
     }
 }
