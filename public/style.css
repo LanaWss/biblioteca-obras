@@ -350,6 +350,7 @@ button {
 
 #popup-progresso > div {
     background-color: white;
+    color: #1f2937;
     padding: 20px;
     border-radius: 10px;
     width: 90%;
@@ -421,6 +422,7 @@ button {
     align-items: center;
     gap: 5px;
     font-size: 14px;
+    color: #1f2937;
 }
 
 #preview-imagem-editar {

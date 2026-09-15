@@ -23,14 +23,8 @@ function obterObrasFiltradas() {
 
     const tipoCombina = !filtroTipo.value || obra.tipo === filtroTipo.value;
 
-    const progresso = calcularProgresso(obra);
-
-    const completa =
-      progresso.total > 0 && progresso.vistos === progresso.total;
-
-    const status = completa ? "completa" : obra.status;
-
-    const statusCombina = !filtroStatus.value || status === filtroStatus.value;
+    const statusCombina =
+      !filtroStatus.value || obra.status === filtroStatus.value;
 
     return nomeCombina && tipoCombina && statusCombina;
   });
@@ -94,22 +88,44 @@ function ajustarCorDoTexto(card, imagemUrl) {
 
       const contexto = canvas.getContext("2d");
 
-      canvas.width = 1;
-      canvas.height = 1;
+      const tamanhoAmostra = 8;
 
-      contexto.drawImage(imagem, 0, 0, 1, 1);
+      canvas.width = tamanhoAmostra;
+      canvas.height = tamanhoAmostra;
+      contexto.drawImage(imagem, 0, 0, tamanhoAmostra, tamanhoAmostra);
 
-      const pixel = contexto.getImageData(0, 0, 1, 1).data;
+      const pixels = contexto.getImageData(
+        0,
+        0,
+        tamanhoAmostra,
+        tamanhoAmostra,
+      ).data;
 
-      const brilho = (pixel[0] * 299 + pixel[1] * 587 + pixel[2] * 114) / 1000;
+      let luminanciaTotal = 0;
+      let pesoTotal = 0;
 
-      if (brilho > 150) {
-        card.classList.add("texto-escuro");
-        card.classList.remove("texto-claro");
-      } else {
-        card.classList.add("texto-claro");
-        card.classList.remove("texto-escuro");
+      for (let indice = 0; indice < pixels.length; indice += 4) {
+        const alpha = pixels[indice + 3] / 255;
+        const vermelho = pixels[indice] / 255;
+        const verde = pixels[indice + 1] / 255;
+        const azul = pixels[indice + 2] / 255;
+
+        const luminancia =
+          0.2126 * vermelho ** 2.2 +
+          0.7152 * verde ** 2.2 +
+          0.0722 * azul ** 2.2;
+
+        luminanciaTotal += luminancia * alpha;
+        pesoTotal += alpha;
       }
+
+      const luminanciaMedia = pesoTotal ? luminanciaTotal / pesoTotal : 0;
+      const contrasteComPreto = (luminanciaMedia + 0.05) / 0.05;
+      const contrasteComBranco = 1.05 / (luminanciaMedia + 0.05);
+      const textoEscuro = contrasteComPreto >= contrasteComBranco;
+
+      card.classList.toggle("texto-escuro", textoEscuro);
+      card.classList.toggle("texto-claro", !textoEscuro);
     } catch (erro) {
       console.log("Não foi possível analisar o brilho da imagem.");
 
@@ -126,10 +142,10 @@ function ajustarCorDoTexto(card, imagemUrl) {
   imagem.src = imagemUrl;
 }
 
-function salvarProgresso() {
+async function salvarProgresso() {
   const obra = obraProgressoAtual;
 
-  return fetch(`/obras/${obra.id}`, {
+  const resposta = await fetch(`/obras/${obra.id}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -138,7 +154,13 @@ function salvarProgresso() {
       temporadas: obra.temporadas,
       volumes: obra.volumes,
     }),
-  }).then(() => carregarObras());
+  });
+
+  if (!resposta.ok) {
+    throw new Error("Não foi possível salvar o progresso.");
+  }
+
+  await carregarObras();
 }
 
 function renderizarProgresso() {
@@ -233,7 +255,7 @@ function abrirPopupProgresso(id) {
 }
 
 function carregarObras() {
-  fetch("/obras")
+  return fetch("/obras")
     .then((resposta) => resposta.json())
     .then((obras) => {
       obrasCarregadas = obras;
@@ -247,10 +269,7 @@ function carregarObras() {
 
         const progresso = calcularProgresso(obra);
 
-        const obraCompleta =
-          progresso.total > 0 && progresso.vistos === progresso.total;
-
-        const statusExibido = obraCompleta ? "Completa" : obra.status;
+        const statusExibido = obra.status;
 
         if (obra.tipo === "anime") {
           const temporadas = lerConteudoObra(obra.temporadas);
@@ -307,7 +326,7 @@ function carregarObras() {
 
               <span
                 class="status-card status-${
-                  obraCompleta ? "completa" : obra.status
+                  obra.status
                 }"
               >
                 ${statusExibido}

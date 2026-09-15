@@ -141,18 +141,26 @@ app.patch("/obras/:id", (req, res) => {
   const id = req.params.id;
   const obra = req.body;
 
-  if (obra.temporadas !== undefined || obra.volumes !== undefined) {
-    const atualizarProgresso = db.prepare(`
-      UPDATE obras
-      SET temporadas = ?, volumes = ?
-      WHERE id = ?
-    `);
+  const campos = [];
+  const valores = [];
 
-    atualizarProgresso.run(
-      obra.temporadas !== undefined ? JSON.stringify(obra.temporadas) : null,
-      obra.volumes !== undefined ? JSON.stringify(obra.volumes) : null,
-      id,
-    );
+  if (obra.temporadas !== undefined) {
+    campos.push("temporadas = ?");
+    valores.push(JSON.stringify(obra.temporadas));
+  }
+
+  if (obra.volumes !== undefined) {
+    campos.push("volumes = ?");
+    valores.push(JSON.stringify(obra.volumes));
+  }
+
+  if (campos.length > 0) {
+    valores.push(id);
+    db.prepare(`
+      UPDATE obras
+      SET ${campos.join(", ")}
+      WHERE id = ?
+    `).run(...valores);
   }
 
   if (obra.done !== undefined) {
