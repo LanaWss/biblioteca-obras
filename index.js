@@ -79,20 +79,27 @@ function preservarProgresso(itensNovos, conteudoAtual, quantidadeKey) {
     return itensNovos;
   }
 
-  return itensNovos.map((itemNovo) => {
-    const itemAtual = itensAtuais.find(
-      (item) => item.numero === itemNovo.numero,
-    );
+  return itensNovos.map((itemNovo, indice) => {
+    const itemAtual =
+      itensAtuais.find((item) => item.numero === itemNovo.numero) ||
+      itensAtuais[indice];
 
     if (!itemAtual || !Array.isArray(itemAtual.vistos)) {
-      return itemNovo;
+      return {
+        ...itemNovo,
+        vistos: Array.isArray(itemNovo.vistos) ? itemNovo.vistos : [],
+      };
     }
 
     return {
       ...itemNovo,
-      vistos: itemAtual.vistos.filter(
-        (numero) => numero >= 1 && numero <= itemNovo[quantidadeKey],
-      ),
+      vistos: itemAtual.vistos.filter((numero) => {
+        if (quantidadeKey === "capitulos") {
+          return numero >= itemNovo.inicio && numero <= itemNovo.fim;
+        }
+
+        return numero >= 1 && numero <= itemNovo[quantidadeKey];
+      }),
     };
   });
 }
@@ -166,6 +173,7 @@ app.put("/obras/:id", (req, res) => {
           "episodios",
         )
       : null;
+      
   const volumes =
     obra.tipo === "manga"
       ? preservarProgresso(

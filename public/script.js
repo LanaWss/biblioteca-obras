@@ -43,14 +43,27 @@ function lerConteudoObra(valor) {
 }
 
 function prepararProgresso(itens, quantidadeKey) {
-  return itens.map((item) => ({
-    ...item,
-    vistos: Array.isArray(item.vistos)
-      ? item.vistos.filter(
-          (numero) => numero >= 1 && numero <= item[quantidadeKey],
-        )
-      : [],
-  }));
+  return itens.map((item) => {
+    if (quantidadeKey === "capitulos") {
+      return {
+        ...item,
+        vistos: Array.isArray(item.vistos)
+          ? item.vistos.filter(
+              (numero) => numero >= item.inicio && numero <= item.fim,
+            )
+          : [],
+      };
+    }
+
+    return {
+      ...item,
+      vistos: Array.isArray(item.vistos)
+        ? item.vistos.filter(
+            (numero) => numero >= 1 && numero <= item[quantidadeKey],
+          )
+        : [],
+    };
+  });
 }
 
 function calcularProgresso(obra) {
@@ -59,14 +72,16 @@ function calcularProgresso(obra) {
       ? lerConteudoObra(obra.temporadas)
       : lerConteudoObra(obra.volumes);
 
-  const quantidadeKey = obra.tipo === "anime" ? "episodios" : "capitulos";
-
   let total = 0;
 
   let vistos = 0;
 
   itens.forEach((item) => {
-    total += item[quantidadeKey] || 0;
+    if (obra.tipo === "manga") {
+      total += item.fim - item.inicio + 1;
+    } else {
+      total += item.episodios || 0;
+    }
 
     vistos += Array.isArray(item.vistos) ? item.vistos.length : 0;
   });
@@ -197,12 +212,10 @@ function configurarImagemCard(card, obra) {
   const usarFallback = () => {
     if (imagens.fallback && imagem.src !== imagens.fallback) {
       imagem.src = imagens.fallback;
-      card.style.setProperty(
-        "--imagem-obra",
-        `url("${imagens.fallback}")`,
-      );
+      card.style.setProperty("--imagem-obra", `url("${imagens.fallback}")`);
       ajustarCorDoTexto(card, imagens.fallback);
-      aviso.textContent = "A URL da imagem falhou. Imagem do dispositivo exibida.";
+      aviso.textContent =
+        "A URL da imagem falhou. Imagem do dispositivo exibida.";
       aviso.hidden = false;
       return;
     }
@@ -258,28 +271,31 @@ function renderizarProgresso() {
 
   listaProgresso.innerHTML = itens
     .map((item, indice) => {
-      const todosMarcados = item.vistos.length === item[quantidadeKey];
+      const inicio = obra.tipo === "manga" ? item.inicio : 1;
 
-      const itensHtml = Array.from(
-        { length: item[quantidadeKey] },
-        (_, numero) => {
-          const numeroItem = numero + 1;
+      const fim = obra.tipo === "manga" ? item.fim : item[quantidadeKey];
 
-          const marcado = item.vistos.includes(numeroItem);
+      const totalItens = fim - inicio + 1;
 
-          return `
-            <label class="item-progresso">
-              <input
-                type="checkbox"
-                data-progresso-item="${indice}"
-                data-numero-item="${numeroItem}"
-                ${marcado ? "checked" : ""}
-              >
-              ${itemLabel} ${numeroItem}
-            </label>
-          `;
-        },
-      ).join("");
+      const todosMarcados = item.vistos.length === totalItens;
+
+      const itensHtml = Array.from({ length: totalItens }, (_, numero) => {
+        const numeroItem = inicio + numero;
+
+        const marcado = item.vistos.includes(numeroItem);
+
+        return `
+      <label class="item-progresso">
+        <input
+          type="checkbox"
+          data-progresso-item="${indice}"
+          data-numero-item="${numeroItem}"
+          ${marcado ? "checked" : ""}
+        >
+        ${itemLabel} ${numeroItem}
+      </label>
+    `;
+      }).join("");
 
       return `
         <section class="grupo-progresso">
@@ -384,9 +400,9 @@ function carregarObras() {
               .map(
                 (volume) => `
                   <p>
-                    Volume ${volume.numero} —
-                    ${volume.capitulos} capítulos
-                  </p>
+  Volume ${volume.numero} —
+  capítulos ${volume.inicio}–${volume.fim}
+</p>
                 `,
               )
               .join("")}
@@ -406,7 +422,7 @@ function carregarObras() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <i class="fa-solid fa-book-open"></i> Ir ler
+                <i class="fa-solid fa-book-open"></i>Ler
               </a>
             `
           : "";
@@ -593,6 +609,7 @@ document.addEventListener("click", (evento) => {
             const linha = document.createElement("div");
 
             linha.classList.add("temporada");
+            linha.dataset.vistos = JSON.stringify(temporada.vistos || []);
 
             linha.innerHTML = `
               <label>
@@ -627,26 +644,36 @@ document.addEventListener("click", (evento) => {
             const linha = document.createElement("div");
 
             linha.classList.add("volume");
+            linha.dataset.vistos = JSON.stringify(volume.vistos || []);
 
             linha.innerHTML = `
-              <label>
-                Volume
-                <input
-                  type="number"
-                  min="1"
-                  value="${volume.numero}"
-                >
-              </label>
+  <label>
+    Volume
+    <input
+      type="number"
+      min="1"
+      value="${volume.numero}"
+    >
+  </label>
 
-              <label>
-                Capítulos
-                <input
-                  type="number"
-                  min="0"
-                  value="${volume.capitulos}"
-                >
-              </label>
-            `;
+  <label>
+    Começa no capítulo
+    <input
+      type="number"
+      min="1"
+      value="${volume.inicio}"
+    >
+  </label>
+
+  <label>
+    Termina no capítulo
+    <input
+      type="number"
+      min="1"
+      value="${volume.fim}"
+    >
+  </label>
+`;
 
             editarListaVolumes.appendChild(linha);
           });
@@ -686,20 +713,19 @@ document.addEventListener("click", (evento) => {
 
     const itens = obra.tipo === "anime" ? obra.temporadas : obra.volumes;
 
-    const quantidadeKey = obra.tipo === "anime" ? "episodios" : "capitulos";
-
     const item = itens[indice];
 
-    const todosMarcados = item.vistos.length === item[quantidadeKey];
+    const inicio = obra.tipo === "manga" ? item.inicio : 1;
+
+    const fim = obra.tipo === "manga" ? item.fim : item.episodios;
+
+    const totalItens = fim - inicio + 1;
+
+    const todosMarcados = item.vistos.length === totalItens;
 
     item.vistos = todosMarcados
       ? []
-      : Array.from(
-          {
-            length: item[quantidadeKey],
-          },
-          (_, numero) => numero + 1,
-        );
+      : Array.from({ length: totalItens }, (_, numero) => inicio + numero);
 
     renderizarProgresso();
 
@@ -814,8 +840,12 @@ adicionarVolume.addEventListener("click", () => {
 
   const campos = ultimoVolume.querySelectorAll("input");
 
-  if (campos[0].value === "" || campos[1].value === "") {
-    alert("Preencha o volume e a quantidade de capítulos.");
+  if (
+    campos[0].value === "" ||
+    campos[1].value === "" ||
+    campos[2].value === ""
+  ) {
+    alert("Preencha o volume e o início e fim dos capítulos.");
 
     return;
   }
@@ -825,22 +855,30 @@ adicionarVolume.addEventListener("click", () => {
   novoVolume.classList.add("volume");
 
   novoVolume.innerHTML = `
-      <label>
-        Volume
-        <input
-          type="number"
-          min="1"
-        >
-      </label>
+    <label>
+      Volume
+      <input
+        type="number"
+        min="1"
+      >
+    </label>
 
-      <label>
-        Capítulos
-        <input
-          type="number"
-          min="0"
-        >
-      </label>
-    `;
+    <label>
+      Começa no capítulo
+      <input
+        type="number"
+        min="1"
+      >
+    </label>
+
+    <label>
+      Termina no capítulo
+      <input
+        type="number"
+        min="1"
+      >
+    </label>
+  `;
 
   listaVolumes.appendChild(novoVolume);
 });
@@ -863,6 +901,12 @@ const formCriar = document.getElementById("form-criar");
 
 formCriar.addEventListener("submit", async (evento) => {
   evento.preventDefault();
+
+  const botaoCriar = evento.currentTarget.querySelector(
+    'button[type="submit"]',
+  );
+
+  botaoCriar.disabled = true;
 
   const tituloObra = document.getElementById("titulo-obra");
 
@@ -916,24 +960,12 @@ formCriar.addEventListener("submit", async (evento) => {
       return;
     }
 
-    if (temporadas.length === 1) {
-      alert("Clique em Adicionar temporada para incluir a primeira temporada.");
-
-      return;
-    }
-
     for (let i = 1; i < temporadas.length; i++) {
       const campos = temporadas[i].querySelectorAll("input");
 
       const numero = campos[0].value;
 
       const episodios = campos[1].value;
-
-      if (i === temporadas.length - 1 && (numero !== "" || episodios !== "")) {
-        alert("Clique em Adicionar temporada para incluir esta temporada.");
-
-        return;
-      }
 
       if (numero !== "" || episodios !== "") {
         if (numero === "" || episodios === "") {
@@ -950,14 +982,12 @@ formCriar.addEventListener("submit", async (evento) => {
 
     const primeiro = volumes[0].querySelectorAll("input");
 
-    if (primeiro[0].value === "" || primeiro[1].value === "") {
+    if (
+      primeiro[0].value === "" ||
+      primeiro[1].value === "" ||
+      primeiro[2].value === ""
+    ) {
       alert("Preencha o primeiro volume.");
-
-      return;
-    }
-
-    if (volumes.length === 1) {
-      alert("Clique em Adicionar volume para incluir o primeiro volume.");
 
       return;
     }
@@ -967,17 +997,19 @@ formCriar.addEventListener("submit", async (evento) => {
 
       const numero = campos[0].value;
 
-      const capitulos = campos[1].value;
+      const inicio = campos[1].value;
 
-      if (i === volumes.length - 1 && (numero !== "" || capitulos !== "")) {
-        alert("Clique em Adicionar volume para incluir este volume.");
+      const fim = campos[2].value;
 
-        return;
-      }
+      if (numero !== "" || inicio !== "" || fim !== "") {
+        if (numero === "" || inicio === "" || fim === "") {
+          alert("Preencha o volume e o início e fim dos capítulos.");
 
-      if (numero !== "" || capitulos !== "") {
-        if (numero === "" || capitulos === "") {
-          alert("Preencha o volume e a quantidade de capítulos.");
+          return;
+        }
+
+        if (Number(inicio) > Number(fim)) {
+          alert("O início do capítulo não pode ser maior que o fim.");
 
           return;
         }
@@ -1011,17 +1043,26 @@ formCriar.addEventListener("submit", async (evento) => {
     linhas.forEach((linha) => {
       const campos = linha.querySelectorAll("input");
 
-      if (campos[0].value !== "" && campos[1].value !== "") {
+      if (
+        campos[0].value !== "" &&
+        campos[1].value !== "" &&
+        campos[2].value !== ""
+      ) {
         volumes.push({
           numero: Number(campos[0].value),
 
-          capitulos: Number(campos[1].value),
+          inicio: Number(campos[1].value),
+
+          fim: Number(campos[2].value),
+
+          vistos: [],
         });
       }
     });
   }
 
-  fetch("/obras", {
+  try {
+    const resposta = await fetch("/obras", {
     method: "POST",
 
     headers: {
@@ -1047,8 +1088,14 @@ formCriar.addEventListener("submit", async (evento) => {
 
       volumes: volumes,
     }),
-  }).then(() => {
-    carregarObras();
+    });
+
+    if (!resposta.ok) {
+      const resultado = await resposta.json().catch(() => ({}));
+      throw new Error(resultado.erro || "Não foi possível criar a obra.");
+    }
+
+    await carregarObras();
 
     tituloObra.value = "";
 
@@ -1092,34 +1139,47 @@ formCriar.addEventListener("submit", async (evento) => {
       `;
 
     listaVolumes.innerHTML = `
-        <div class="volume">
+  <div class="volume">
 
-          <label>
-            Volume
-            <input
-              type="number"
-              value="1"
-              min="1"
-            >
-          </label>
+    <label>
+      Volume
+      <input
+        type="number"
+        value="1"
+        min="1"
+      >
+    </label>
 
-          <label>
-            Capítulos
-            <input
-              type="number"
-              min="0"
-            >
-          </label>
+    <label>
+      Começa no capítulo
+      <input
+        type="number"
+        value="1"
+        min="1"
+      >
+    </label>
 
-        </div>
-      `;
+    <label>
+      Termina no capítulo
+      <input
+        type="number"
+        min="1"
+      >
+    </label>
+
+  </div>
+`;
 
     camposAnime.style.display = "none";
 
     camposManga.style.display = "none";
 
     popupCriar.style.display = "none";
-  });
+  } catch (erro) {
+    alert(erro.message || "Não foi possível criar a obra.");
+  } finally {
+    botaoCriar.disabled = false;
+  }
 });
 
 const imagemObra = document.getElementById("imagem-obra");
@@ -1136,16 +1196,18 @@ previewImagem.addEventListener("error", () => {
   previewImagem.hidden = true;
 });
 
-document.getElementById("arquivo-imagem-obra").addEventListener("change", async (evento) => {
-  const arquivo = evento.target.files[0];
+document
+  .getElementById("arquivo-imagem-obra")
+  .addEventListener("change", async (evento) => {
+    const arquivo = evento.target.files[0];
 
-  if (!arquivo) {
-    return;
-  }
+    if (!arquivo) {
+      return;
+    }
 
-  previewImagem.src = await lerArquivoComoDataUrl(arquivo);
-  previewImagem.hidden = false;
-});
+    previewImagem.src = await lerArquivoComoDataUrl(arquivo);
+    previewImagem.hidden = false;
+  });
 
 document
   .getElementById("preview-imagem-editar")
@@ -1262,34 +1324,34 @@ editarAdicionarVolume.addEventListener("click", () => {
 
   if (!ultimoVolume) {
     editarListaVolumes.innerHTML = `
-        <div class="volume">
+    <div class="volume">
+      <label>
+        Volume
+        <input type="number" min="1">
+      </label>
 
-          <label>
-            Volume
-            <input
-              type="number"
-              min="1"
-            >
-          </label>
+      <label>
+        Começa no capítulo
+        <input type="number" min="1">
+      </label>
 
-          <label>
-            Capítulos
-            <input
-              type="number"
-              min="0"
-            >
-          </label>
-
-        </div>
-      `;
-
+      <label>
+        Termina no capítulo
+        <input type="number" min="1">
+      </label>
+    </div>
+  `;
     return;
   }
 
   const campos = ultimoVolume.querySelectorAll("input");
 
-  if (campos[0].value === "" || campos[1].value === "") {
-    alert("Preencha o volume e a quantidade de capítulos.");
+  if (
+    campos[0].value === "" ||
+    campos[1].value === "" ||
+    campos[2].value === ""
+  ) {
+    alert("Preencha o volume e o início e fim dos capítulos.");
 
     return;
   }
@@ -1299,23 +1361,30 @@ editarAdicionarVolume.addEventListener("click", () => {
   novoVolume.classList.add("volume");
 
   novoVolume.innerHTML = `
-      <label>
-        Volume
-        <input
-          type="number"
-          min="1"
-        >
-      </label>
+  <label>
+    Volume
+    <input
+      type="number"
+      min="1"
+    >
+  </label>
 
-      <label>
-        Capítulos
-        <input
-          type="number"
-          min="0"
-        >
-      </label>
-    `;
+  <label>
+    Começa no capítulo
+    <input
+      type="number"
+      min="1"
+    >
+  </label>
 
+  <label>
+    Termina no capítulo
+    <input
+      type="number"
+      min="1"
+    >
+  </label>
+`;
   editarListaVolumes.appendChild(novoVolume);
 });
 
@@ -1400,6 +1469,8 @@ formEditar.addEventListener("submit", async (evento) => {
       numero: Number(numero),
 
       episodios: Number(episodios),
+
+      vistos: JSON.parse(linha.dataset.vistos || "[]"),
     });
   }
 
@@ -1412,14 +1483,22 @@ formEditar.addEventListener("submit", async (evento) => {
 
     const numero = campos[0].value;
 
-    const capitulos = campos[1].value;
+    const inicio = campos[1].value;
 
-    if (numero === "" && capitulos === "") {
+    const fim = campos[2].value;
+
+    if (numero === "" && inicio === "" && fim === "") {
       continue;
     }
 
-    if (numero === "" || capitulos === "") {
-      alert("Preencha o volume e a quantidade de capítulos.");
+    if (numero === "" || inicio === "" || fim === "") {
+      alert("Preencha o volume e o início e fim dos capítulos.");
+
+      return;
+    }
+
+    if (Number(inicio) > Number(fim)) {
+      alert("O início do capítulo não pode ser maior que o fim.");
 
       return;
     }
@@ -1427,7 +1506,11 @@ formEditar.addEventListener("submit", async (evento) => {
     volumes.push({
       numero: Number(numero),
 
-      capitulos: Number(capitulos),
+      inicio: Number(inicio),
+
+      fim: Number(fim),
+
+      vistos: JSON.parse(linha.dataset.vistos || "[]"),
     });
   }
 

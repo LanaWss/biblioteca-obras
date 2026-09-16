@@ -7,6 +7,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     />
+    <link rel="icon" href="icone.png" />
   </head>
   <body>
     <header>
@@ -105,9 +106,15 @@
                     Volume
                     <input type="number" value="1" min="1" />
                   </label>
+
                   <label>
-                    Capítulos
-                    <input type="number" min="0" />
+                    Começa no capítulo
+                    <input type="number" value="1" min="1" />
+                  </label>
+
+                  <label>
+                    Termina no capítulo
+                    <input type="number" min="1" />
                   </label>
                 </div>
               </div>
@@ -219,7 +226,11 @@
           </select>
 
           <label for="editar-imagem">Imagem</label>
-          <input id="editar-imagem" type="url" placeholder="URL da imagem (opcional)" />
+          <input
+            id="editar-imagem"
+            type="url"
+            placeholder="URL da imagem (opcional)"
+          />
           <label for="editar-arquivo-imagem">Ou imagem do dispositivo</label>
           <input id="editar-arquivo-imagem" type="file" accept="image/*" />
           <label for="editar-preferencia-imagem">Imagem preferida</label>
@@ -253,6 +264,6 @@
 
     <div id="lista-obras"></div>
 
-    <script src="script.js?v=3"></script>
+    <script src="script.js?v=4"></script>
   </body>
 </html>
