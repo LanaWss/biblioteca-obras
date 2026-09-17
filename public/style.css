@@ -217,6 +217,11 @@ button {
     font-size: 13px;
 }
 
+.botao-mais-volumes {
+    width: 100%;
+    margin: 0;
+}
+
 .botao-ler {
     display: flex;
     flex: 1 1 100%;
