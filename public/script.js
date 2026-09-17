@@ -8,6 +8,8 @@ const filtroTipo = document.getElementById("filtro-tipo");
 
 const filtroStatus = document.getElementById("filtro-status");
 
+const filtroProgresso = document.getElementById("filtro-progresso");
+
 function normalizarTexto(valor) {
   return valor
     .toLocaleLowerCase("pt-BR")
@@ -26,7 +28,16 @@ function obterObrasFiltradas() {
     const statusCombina =
       !filtroStatus.value || obra.status === filtroStatus.value;
 
-    return nomeCombina && tipoCombina && statusCombina;
+    const progresso = calcularProgresso(obra);
+    const progressoCombina =
+      !filtroProgresso.value ||
+      (filtroProgresso.value === "completo" &&
+        progresso.total > 0 &&
+        progresso.vistos === progresso.total) ||
+      (filtroProgresso.value === "pendente" &&
+        progresso.vistos < progresso.total);
+
+    return nomeCombina && tipoCombina && statusCombina && progressoCombina;
   });
 }
 
@@ -280,25 +291,30 @@ function configurarImagemCard(card, obra) {
   imagem.src = imagens.principal;
 }
 
-async function salvarProgresso() {
-  const obra = obraProgressoAtual;
+let filaSalvamentoProgresso = Promise.resolve();
 
-  const resposta = await fetch(`/obras/${obra.id}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      temporadas: obra.temporadas,
-      volumes: obra.volumes,
-    }),
+function salvarProgresso() {
+  filaSalvamentoProgresso = filaSalvamentoProgresso.then(async () => {
+    const obra = obraProgressoAtual;
+    const resposta = await fetch(`/obras/${obra.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        temporadas: obra.temporadas,
+        volumes: obra.volumes,
+      }),
+    });
+
+    if (!resposta.ok) {
+      throw new Error("Não foi possível salvar o progresso.");
+    }
+
+    await carregarObras();
   });
 
-  if (!resposta.ok) {
-    throw new Error("Não foi possível salvar o progresso.");
-  }
-
-  await carregarObras();
+  return filaSalvamentoProgresso;
 }
 
 function renderizarProgresso() {
@@ -588,6 +604,10 @@ filtroStatus.addEventListener("change", () => {
   carregarObras();
 });
 
+filtroProgresso.addEventListener("change", () => {
+  carregarObras();
+});
+
 document.getElementById("abrir-filtros").addEventListener("click", () => {
   document.getElementById("popup-filtros").style.display = "flex";
 });
@@ -602,6 +622,8 @@ document.getElementById("limpar-filtros").addEventListener("click", () => {
   filtroTipo.value = "";
 
   filtroStatus.value = "";
+
+  filtroProgresso.value = "";
 
   carregarObras();
 });
@@ -813,7 +835,8 @@ document.addEventListener("click", (evento) => {
 
     const totalItens = fim - inicio + 1;
 
-    const todosMarcados = item.vistos.length === totalItens;
+    const todosMarcados =
+      obterNumerosVistosValidos(item, inicio, fim).size === totalItens;
 
     item.vistos = todosMarcados
       ? []
