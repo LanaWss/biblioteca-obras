@@ -89,8 +89,31 @@ function calcularProgresso(obra) {
       ? lerConteudoObra(obra.temporadas)
       : lerConteudoObra(obra.volumes);
 
-  let total = 0;
+  if (obra.tipo === "manga") {
+    const fimDaObra = itens.reduce((maiorFim, item) => {
+      const maiorVisto = Math.max(
+        ...(Array.isArray(item.vistos) ? item.vistos.map(Number) : []),
+        0,
+      );
 
+      return Math.max(maiorFim, Number(item.fim) || 0, maiorVisto);
+    }, 0);
+
+    const capitulosVistos = new Set();
+
+    itens.forEach((item) => {
+      obterNumerosVistosValidos(item, 1, fimDaObra).forEach((numero) => {
+        capitulosVistos.add(numero);
+      });
+    });
+
+    return {
+      vistos: capitulosVistos.size,
+      total: fimDaObra,
+    };
+  }
+
+  let total = 0;
   let vistos = 0;
 
   itens.forEach((item) => {
