@@ -74,6 +74,15 @@ function obterNumerosVistosValidos(item, inicio, fim) {
   );
 }
 
+function obterFimComProgresso(item, inicio, fim) {
+  const maiorVisto = Math.max(
+    fim,
+    ...(Array.isArray(item.vistos) ? item.vistos.map(Number) : []),
+  );
+
+  return Math.max(inicio - 1, maiorVisto);
+}
+
 function calcularProgresso(obra) {
   const itens =
     obra.tipo === "anime"
@@ -86,8 +95,9 @@ function calcularProgresso(obra) {
 
   itens.forEach((item) => {
     const inicio = obra.tipo === "manga" ? Number(item.inicio) : 1;
-    const fim =
+    let fim =
       obra.tipo === "manga" ? Number(item.fim) : Number(item.episodios || 0);
+    fim = obterFimComProgresso(item, inicio, fim);
 
     if (obra.tipo === "manga") {
       total += Math.max(0, fim - inicio + 1);
@@ -282,7 +292,11 @@ function renderizarProgresso() {
   const grupoLabel = obra.tipo === "anime" ? "Temporada" : "Volume";
   const todosItens = itens.every((item) => {
     const inicio = obra.tipo === "manga" ? Number(item.inicio) : 1;
-    const fim = obra.tipo === "manga" ? Number(item.fim) : Number(item.episodios);
+    const fim = obterFimComProgresso(
+      item,
+      inicio,
+      obra.tipo === "manga" ? Number(item.fim) : Number(item.episodios),
+    );
 
     return obterNumerosVistosValidos(item, inicio, fim).size === fim - inicio + 1;
   });
@@ -294,7 +308,11 @@ function renderizarProgresso() {
     .map((item, indice) => {
       const inicio = obra.tipo === "manga" ? item.inicio : 1;
 
-      const fim = obra.tipo === "manga" ? item.fim : item[quantidadeKey];
+      const fim = obterFimComProgresso(
+        item,
+        inicio,
+        obra.tipo === "manga" ? Number(item.fim) : Number(item[quantidadeKey]),
+      );
 
       const totalItens = fim - inicio + 1;
 
@@ -563,6 +581,14 @@ document.getElementById("limpar-filtros").addEventListener("click", () => {
   filtroStatus.value = "";
 
   carregarObras();
+});
+
+document.querySelectorAll("#popup-filtros, #popup-criar, #popup-editar, #popup-progresso").forEach((popup) => {
+  popup.addEventListener("click", (evento) => {
+    if (evento.target === popup) {
+      popup.style.display = "none";
+    }
+  });
 });
 
 document.addEventListener("click", (evento) => {
