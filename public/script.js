@@ -396,16 +396,24 @@ function carregarObras() {
           conteudo = `
             <h3><i class="fa-solid fa-book"></i> Volumes</h3>
 
-            ${volumes
-              .map(
-                (volume) => `
-                  <p>
-  Volume ${volume.numero} —
-  capítulos ${volume.inicio}–${volume.fim}
-</p>
-                `,
-              )
-              .join("")}
+            <div class="lista-volumes-card">
+              ${volumes
+                .map(
+                  (volume, indice) => `
+                    <p ${indice > 0 ? 'hidden data-volume-extra="true"' : ""}>
+                      Volume ${volume.numero} —
+                      capítulos ${volume.inicio}–${volume.fim}
+                    </p>
+                  `,
+                )
+                .join("")}
+            </div>
+
+            ${volumes.length > 1
+              ? `<button type="button" class="botao-mais-volumes" data-volumes-expandidos="false">
+                  Ler mais
+                </button>`
+              : ""}
           `;
         }
 
@@ -706,6 +714,19 @@ document.addEventListener("click", (evento) => {
     abrirPopupProgresso(evento.target.dataset.progressId);
   }
 
+  if (evento.target.matches("button[data-volumes-expandidos]")) {
+    const botao = evento.target;
+    const card = botao.closest(".cards");
+    const mostrar = botao.dataset.volumesExpandidos !== "true";
+
+    card.querySelectorAll("[data-volume-extra]").forEach((volume) => {
+      volume.hidden = !mostrar;
+    });
+
+    botao.dataset.volumesExpandidos = String(mostrar);
+    botao.textContent = mostrar ? "Mostrar menos" : "Ler mais";
+  }
+
   if (evento.target.matches("button[data-marcar-todos]")) {
     const indice = Number(evento.target.dataset.marcarTodos);
 
@@ -854,12 +875,16 @@ adicionarVolume.addEventListener("click", () => {
 
   novoVolume.classList.add("volume");
 
+  const proximoNumero = Number(campos[0].value) + 1;
+  const proximoInicio = Number(campos[2].value) + 1;
+
   novoVolume.innerHTML = `
     <label>
       Volume
       <input
         type="number"
         min="1"
+        value="${proximoNumero}"
       >
     </label>
 
@@ -868,6 +893,7 @@ adicionarVolume.addEventListener("click", () => {
       <input
         type="number"
         min="1"
+        value="${proximoInicio}"
       >
     </label>
 
@@ -1327,12 +1353,12 @@ editarAdicionarVolume.addEventListener("click", () => {
     <div class="volume">
       <label>
         Volume
-        <input type="number" min="1">
+        <input type="number" min="1" value="1">
       </label>
 
       <label>
         Começa no capítulo
-        <input type="number" min="1">
+        <input type="number" min="1" value="1">
       </label>
 
       <label>
@@ -1360,12 +1386,16 @@ editarAdicionarVolume.addEventListener("click", () => {
 
   novoVolume.classList.add("volume");
 
+  const proximoNumero = Number(campos[0].value) + 1;
+  const proximoInicio = Number(campos[2].value) + 1;
+
   novoVolume.innerHTML = `
   <label>
     Volume
     <input
       type="number"
       min="1"
+      value="${proximoNumero}"
     >
   </label>
 
@@ -1374,6 +1404,7 @@ editarAdicionarVolume.addEventListener("click", () => {
     <input
       type="number"
       min="1"
+      value="${proximoInicio}"
     >
   </label>
 
