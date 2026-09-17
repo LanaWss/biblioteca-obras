@@ -34,7 +34,9 @@
       </div>
 
       <div id="popup-filtros">
-        <div>
+        <div class="popup-shell">
+          <button id="fechar-filtros" class="popup-fechar" type="button">X</button>
+          <div>
           <h2>Filtros</h2>
           <label for="filtro-tipo">Tipo</label>
           <select id="filtro-tipo">
@@ -52,15 +54,15 @@
           </select>
 
           <button id="limpar-filtros" type="button">Limpar filtros</button>
-          <button id="fechar-filtros" type="button">Fechar</button>
+          </div>
         </div>
       </div>
 
       <div id="popup-criar">
-        <div>
+        <div class="popup-shell">
+          <button id="fechar-popup" class="popup-fechar" type="button">X</button>
+          <div>
           <h2>Criar obra</h2>
-
-          <button id="fechar-popup">X</button>
 
           <form id="form-criar" autocomplete="off">
             <label for="titulo-obra">Nome: </label>
@@ -159,14 +161,16 @@
 
             <button type="submit">Criar</button>
           </form>
+          </div>
         </div>
       </div>
     </header>
 
     <div id="popup-editar">
-      <div>
+      <div class="popup-shell">
+        <button id="fechar-popup-editar" class="popup-fechar" type="button">X</button>
+        <div>
         <h2>Editar obra</h2>
-        <button id="fechar-popup-editar">X</button>
 
         <form id="form-editar" autocomplete="off">
           <label for="editar-titulo">Nome:</label>
@@ -251,15 +255,18 @@
 
           <button type="submit">Salvar</button>
         </form>
+        </div>
       </div>
     </div>
 
     <div id="popup-progresso">
-      <button id="fechar-popup-progresso" type="button">X</button>
-      <div>
+      <div class="popup-shell">
+        <button id="fechar-popup-progresso" class="popup-fechar" type="button">X</button>
+        <div>
         <h2 id="titulo-progresso"></h2>
         <button id="marcar-toda-obra" type="button"></button>
         <div id="lista-progresso"></div>
+        </div>
       </div>
     </div>
 

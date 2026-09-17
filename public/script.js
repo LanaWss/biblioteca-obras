@@ -803,7 +803,7 @@ document.addEventListener("click", (evento) => {
   }
 });
 
-document.addEventListener("change", (evento) => {
+document.addEventListener("change", async (evento) => {
   if (!evento.target.matches("input[data-progresso-item]")) {
     return;
   }
@@ -828,7 +828,7 @@ document.addEventListener("change", (evento) => {
 
   renderizarProgresso();
 
-  salvarProgresso();
+  await salvarProgresso();
 });
 
 const tipoObra = document.getElementById("tipo-obra");
