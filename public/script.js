@@ -300,6 +300,7 @@ function salvarProgresso() {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
       body: JSON.stringify({
         temporadas: obra.temporadas,
@@ -337,11 +338,15 @@ function renderizarProgresso() {
       obra.tipo === "manga" ? Number(item.fim) : Number(item.episodios),
     );
 
-    return obterNumerosVistosValidos(item, inicio, fim).size === fim - inicio + 1;
+    return (
+      obterNumerosVistosValidos(item, inicio, fim).size === fim - inicio + 1
+    );
   });
 
   const botaoTodaObra = document.getElementById("marcar-toda-obra");
-  botaoTodaObra.textContent = todosItens ? "Desmarcar toda a obra" : "Marcar toda a obra";
+  botaoTodaObra.textContent = todosItens
+    ? "Desmarcar toda a obra"
+    : "Marcar toda a obra";
 
   listaProgresso.innerHTML = itens
     .map((item, indice) => {
@@ -430,7 +435,17 @@ function abrirPopupProgresso(id) {
 }
 
 function carregarObras() {
-  return fetch("/obras")
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    window.location.href = "/login.html";
+  }
+
+  fetch("/obras", {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  })
     .then((resposta) => resposta.json())
     .then((obras) => {
       obrasCarregadas = obras;
@@ -488,11 +503,13 @@ function carregarObras() {
                 .join("")}
             </div>
 
-            ${volumes.length > 1
-              ? `<button type="button" class="botao-mais-volumes" data-volumes-expandidos="false">
+            ${
+              volumes.length > 1
+                ? `<button type="button" class="botao-mais-volumes" data-volumes-expandidos="false">
                   Ler mais
                 </button>`
-              : ""}
+                : ""
+            }
           `;
         }
 
@@ -628,13 +645,17 @@ document.getElementById("limpar-filtros").addEventListener("click", () => {
   carregarObras();
 });
 
-document.querySelectorAll("#popup-filtros, #popup-criar, #popup-editar, #popup-progresso").forEach((popup) => {
-  popup.addEventListener("click", (evento) => {
-    if (evento.target === popup) {
-      popup.style.display = "none";
-    }
+document
+  .querySelectorAll(
+    "#popup-filtros, #popup-criar, #popup-editar, #popup-progresso",
+  )
+  .forEach((popup) => {
+    popup.addEventListener("click", (evento) => {
+      if (evento.target === popup) {
+        popup.style.display = "none";
+      }
+    });
   });
-});
 
 document.addEventListener("click", (evento) => {
   if (evento.target.matches("button[data-id]")) {
@@ -854,7 +875,9 @@ document.addEventListener("click", (evento) => {
       const inicio = obra.tipo === "manga" ? item.inicio : 1;
       const fim = obra.tipo === "manga" ? item.fim : item.episodios;
 
-      return obterNumerosVistosValidos(item, inicio, fim).size === fim - inicio + 1;
+      return (
+        obterNumerosVistosValidos(item, inicio, fim).size === fim - inicio + 1
+      );
     });
 
     itens.forEach((item) => {
@@ -863,7 +886,10 @@ document.addEventListener("click", (evento) => {
 
       item.vistos = todosMarcados
         ? []
-        : Array.from({ length: fim - inicio + 1 }, (_, numero) => inicio + numero);
+        : Array.from(
+            { length: fim - inicio + 1 },
+            (_, numero) => inicio + numero,
+          );
     });
 
     renderizarProgresso();
@@ -1206,31 +1232,32 @@ formCriar.addEventListener("submit", async (evento) => {
 
   try {
     const resposta = await fetch("/obras", {
-    method: "POST",
+      method: "POST",
 
-    headers: {
-      "Content-Type": "application/json",
-    },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
 
-    body: JSON.stringify({
-      title: tituloObra.value,
+      body: JSON.stringify({
+        title: tituloObra.value,
 
-      tipo: tipoObra.value,
+        tipo: tipoObra.value,
 
-      status: statusObra.value,
+        status: statusObra.value,
 
-      imagem: imagemObra.value,
+        imagem: imagemObra.value,
 
-      imagem_arquivo: imagemArquivo || null,
+        imagem_arquivo: imagemArquivo || null,
 
-      imagem_preferencia: preferenciaImagem,
+        imagem_preferencia: preferenciaImagem,
 
-      link_leitura: linkLeituraObra.value.trim() || null,
+        link_leitura: linkLeituraObra.value.trim() || null,
 
-      temporadas: temporadas,
+        temporadas: temporadas,
 
-      volumes: volumes,
-    }),
+        volumes: volumes,
+      }),
     });
 
     if (!resposta.ok) {
@@ -1667,6 +1694,7 @@ formEditar.addEventListener("submit", async (evento) => {
 
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
 
     body: JSON.stringify({
@@ -1693,4 +1721,10 @@ formEditar.addEventListener("submit", async (evento) => {
 
     popupEditar.style.display = "none";
   });
+});
+
+document.getElementById("botao-sair").addEventListener("click", () => {
+    localStorage.removeItem("token");
+
+    window.location.href = "/login.html";
 });

@@ -3,6 +3,46 @@ const assert = require("node:assert");
 
 const { app } = require("../index");
 
+let tokenTeste;
+
+test.before(async () => {
+  const email = `teste${Date.now()}@teste.com`;
+
+  await fetch("http://localhost:3000/usuarios", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      nome: "Usuario Teste",
+      email,
+      senha: "123456",
+    }),
+  });
+
+  const resposta = await fetch("http://localhost:3000/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      senha: "123456",
+    }),
+  });
+
+  const resultado = await resposta.json();
+
+  tokenTeste = resultado.token;
+});
+
+function headersComToken() {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${tokenTeste}`,
+  };
+}
+
 async function criarObra(dados) {
   const resposta = await fetch("http://localhost:3000/obras", {
     method: "POST",
@@ -231,4 +271,81 @@ test("DELETE /obras/:id deve apagar uma obra", async () => {
 
   assert.strictEqual(respostaDelete.status, 200);
   assert.strictEqual(resultado.mensagem, "Obra apagada");
+});
+
+test("Tabela usuarios deve existir", async () => {
+  const Database = require("better-sqlite3");
+
+  const db = new Database(process.env.DB_PATH || "obras.db");
+
+  const tabela = db
+    .prepare(`
+      SELECT name
+      FROM sqlite_master
+      WHERE type = 'table'
+      AND name = 'usuarios'
+    `)
+    .get();
+
+  assert.ok(tabela);
+  assert.strictEqual(tabela.name, "usuarios");
+
+  db.close();
+});
+
+test("POST /usuarios deve criar um usuário", async () => {
+  const emailTeste = `usuario${Date.now()}@teste.com`
+
+  const resposta = await fetch("http://localhost:3000/usuarios", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      nome: "Usuario de teste",
+      email: emailTeste,
+      senha: "123456",
+    }),
+  });
+
+  const usuario = await resposta.json();
+
+  assert.strictEqual(resposta.status, 200);
+  assert.strictEqual(usuario.nome, "Usuario de teste");
+  assert.strictEqual(usuario.email, emailTeste);
+  assert.ok(usuario.id);
+});
+
+test("POST /login deve fazer login", async () => {
+  const emailTeste = `login${Date.now()}@teste.com`;
+
+  await fetch("http://localhost:3000/usuarios", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      nome: "Usuario Login",
+      email: emailTeste,
+      senha: "123456",
+    }),
+  });
+
+  const resposta = await fetch("http://localhost:3000/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: emailTeste,
+      senha: "123456",
+    }),
+  });
+
+  const usuario = await resposta.json();
+
+  assert.strictEqual(resposta.status, 200);
+  assert.ok(usuario.id);
+  assert.strictEqual(usuario.nome, "Usuario Login");
+  assert.strictEqual(usuario.email, emailTeste);
 });

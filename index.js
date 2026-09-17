@@ -1,10 +1,36 @@
 const express = require("express");
 const Database = require("better-sqlite3");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static("public"));
+
+function verificarToken(req, res, next) {
+  const autorizacao = req.headers.authorization;
+
+  if (!autorizacao) {
+    return res.status(401).json({
+      erro: "Token não informado",
+    });
+  }
+
+  const token = autorizacao.split(" ")[1];
+
+  try {
+    const usuario = jwt.verify(token, "chave-secreta");
+
+    req.usuario = usuario;
+
+    next();
+  } catch (erro) {
+    return res.status(401).json({
+      erro: "Token inválido",
+    });
+  }
+}
 
 const db = new Database(process.env.DB_PATH || "obras.db");
 
@@ -13,6 +39,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     done INTEGER NOT NULL DEFAULT 0,
+    usuario_id INTEGER,
     tipo TEXT,
     status TEXT,
     imagem TEXT,
@@ -39,29 +66,123 @@ for (const coluna of [
   }
 }
 
-app.get("/obras", (req, res) => {
-  const obras = db
+db.exec(`
+  CREATE TABLE IF NOT EXISTS usuarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    senha TEXT NOT NULL
+  );
+`);
+
+app.post("/usuarios", async (req, res) => {
+  const { nome, email, senha } = req.body;
+
+  if (!nome || !email || !senha) {
+    return res.status(400).json({
+      erro: "Nome, email e senha são obrigatórios",
+    });
+  }
+
+  try {
+    const inserir = db.prepare(`
+      INSERT INTO usuarios (nome, email, senha)
+      VALUES (?, ?, ?)
+    `);
+
+    const senhaHash = await bcrypt.hash(senha, 10);
+
+    const resultado = inserir.run(nome, email, senhaHash);
+
+    res.json({
+      id: resultado.lastInsertRowid,
+      nome,
+      email,
+    });
+  } catch (erro) {
+    if (erro.code === "SQLITE_CONSTRAINT_UNIQUE") {
+      return res.status(400).json({
+        erro: "Este email já está cadastrado",
+      });
+    }
+
+    res.status(500).json({
+      erro: "Erro ao criar usuário",
+    });
+  }
+});
+
+app.post("/login", async (req, res) => {
+  const { email, senha } = req.body;
+
+  if (!email || !senha) {
+    return res.status(400).json({
+      erro: "Email e senha são obrigatórios",
+    });
+  }
+
+  const usuario = db
     .prepare(
       `
-        SELECT * FROM obras
+      SELECT *
+      FROM usuarios
+      WHERE email = ?
     `,
     )
-    .all();
+    .get(email);
+
+  if (!usuario) {
+    return res.status(401).json({
+      erro: "Email ou senha incorretos",
+    });
+  }
+
+  const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
+
+  if (!senhaCorreta) {
+    return res.status(401).json({
+      erro: "Email ou senha incorretos",
+    });
+  }
+
+  const token = jwt.sign(
+    {
+      id: usuario.id,
+    },
+    "chave-secreta",
+  );
+
+  res.json({
+    token,
+    id: usuario.id,
+    nome: usuario.nome,
+    email: usuario.email,
+  });
+});
+
+app.get("/obras", verificarToken, (req, res) => {
+  const obras = db
+    .prepare(`
+      SELECT *
+      FROM obras
+      WHERE usuario_id = ?
+    `)
+    .all(req.usuario.id);
 
   res.json(obras);
 });
 
-app.get("/obras/:id", (req, res) => {
+app.get("/obras/:id", verificarToken, (req, res) => {
   const id = req.params.id;
 
   const obra = db
     .prepare(
       `
     SELECT * FROM obras
-    WHERE id = ?
+    WHERE id = ? AND usuario_id = ?
   `,
     )
-    .get(id);
+    .get(id, req.usuario.id);
 
   res.json(obra);
 });
@@ -104,7 +225,7 @@ function preservarProgresso(itensNovos, conteudoAtual, quantidadeKey) {
   });
 }
 
-app.post("/obras", (req, res) => {
+app.post("/obras", verificarToken, (req, res) => {
   const obra = req.body;
 
   if (!obra.title) {
@@ -116,6 +237,7 @@ app.post("/obras", (req, res) => {
   const inserir = db.prepare(`
     INSERT INTO obras (
       title,
+      usuario_id,
       tipo,
       status,
       imagem,
@@ -126,11 +248,12 @@ app.post("/obras", (req, res) => {
       capitulos,
       volumes
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const resultado = inserir.run(
     obra.title,
+    req.usuario.id,
     obra.tipo,
     obra.status,
     obra.imagem,
@@ -158,12 +281,12 @@ app.post("/obras", (req, res) => {
   });
 });
 
-app.put("/obras/:id", (req, res) => {
+app.put("/obras/:id", verificarToken, (req, res) => {
   const id = req.params.id;
   const obra = req.body;
   const obraAtual = db
-    .prepare("SELECT tipo, temporadas, volumes FROM obras WHERE id = ?")
-    .get(id);
+    .prepare("SELECT tipo, temporadas, volumes FROM obras WHERE id = ? AND usuario_id = ?")
+    .get(id, req.usuario.id);
 
   const temporadas =
     obra.tipo === "anime"
@@ -173,7 +296,7 @@ app.put("/obras/:id", (req, res) => {
           "episodios",
         )
       : null;
-      
+
   const volumes =
     obra.tipo === "manga"
       ? preservarProgresso(
@@ -196,7 +319,7 @@ app.put("/obras/:id", (req, res) => {
       temporadas = ?,
       capitulos = ?,
       volumes = ?
-    WHERE id = ?
+    WHERE id = ? AND usuario_id = ?
   `);
 
   const resultado = atualizar.run(
@@ -211,6 +334,7 @@ app.put("/obras/:id", (req, res) => {
     obra.capitulos || null,
     volumes ? JSON.stringify(volumes) : null,
     id,
+    req.usuario.id,
   );
 
   if (resultado.changes === 0) {
@@ -234,7 +358,7 @@ app.put("/obras/:id", (req, res) => {
   });
 });
 
-app.patch("/obras/:id", (req, res) => {
+app.patch("/obras/:id", verificarToken, (req, res) => {
   const id = Number(req.params.id);
   const obra = req.body;
 
@@ -252,12 +376,12 @@ app.patch("/obras/:id", (req, res) => {
   }
 
   if (campos.length > 0) {
-    valores.push(id);
+    valores.push(id, req.usuario.id);
     db.prepare(
       `
       UPDATE obras
       SET ${campos.join(", ")}
-      WHERE id = ?
+      WHERE id = ? AND usuario_id = ?
     `,
     ).run(...valores);
   }
@@ -266,7 +390,7 @@ app.patch("/obras/:id", (req, res) => {
     const atualizarConclusao = db.prepare(`
       UPDATE obras
       SET done = ?
-      WHERE id = ?
+      WHERE id = ? AND usuario_id = ?
     `);
 
     atualizarConclusao.run(obra.done, id);
@@ -280,12 +404,12 @@ app.patch("/obras/:id", (req, res) => {
   });
 });
 
-app.delete("/obras/:id", (req, res) => {
+app.delete("/obras/:id", verificarToken, (req, res) => {
   const id = req.params.id;
 
   const apagar = db.prepare(`
         DELETE FROM obras
-        WHERE id = ?
+        WHERE id = ? AND usuario_id = ?
     `);
 
   apagar.run(id);
