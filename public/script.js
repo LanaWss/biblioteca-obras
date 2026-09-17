@@ -66,6 +66,14 @@ function prepararProgresso(itens, quantidadeKey) {
   });
 }
 
+function obterNumerosVistosValidos(item, inicio, fim) {
+  return new Set(
+    (Array.isArray(item.vistos) ? item.vistos : [])
+      .map(Number)
+      .filter((numero) => numero >= inicio && numero <= fim),
+  );
+}
+
 function calcularProgresso(obra) {
   const itens =
     obra.tipo === "anime"
@@ -77,13 +85,17 @@ function calcularProgresso(obra) {
   let vistos = 0;
 
   itens.forEach((item) => {
+    const inicio = obra.tipo === "manga" ? Number(item.inicio) : 1;
+    const fim =
+      obra.tipo === "manga" ? Number(item.fim) : Number(item.episodios || 0);
+
     if (obra.tipo === "manga") {
-      total += item.fim - item.inicio + 1;
+      total += Math.max(0, fim - inicio + 1);
     } else {
-      total += item.episodios || 0;
+      total += Math.max(0, fim);
     }
 
-    vistos += Array.isArray(item.vistos) ? item.vistos.length : 0;
+    vistos += obterNumerosVistosValidos(item, inicio, fim).size;
   });
 
   return {
@@ -268,6 +280,15 @@ function renderizarProgresso() {
   const itemLabel = obra.tipo === "anime" ? "Episódio" : "Capítulo";
 
   const grupoLabel = obra.tipo === "anime" ? "Temporada" : "Volume";
+  const todosItens = itens.every((item) => {
+    const inicio = obra.tipo === "manga" ? Number(item.inicio) : 1;
+    const fim = obra.tipo === "manga" ? Number(item.fim) : Number(item.episodios);
+
+    return obterNumerosVistosValidos(item, inicio, fim).size === fim - inicio + 1;
+  });
+
+  const botaoTodaObra = document.getElementById("marcar-toda-obra");
+  botaoTodaObra.textContent = todosItens ? "Desmarcar toda a obra" : "Marcar toda a obra";
 
   listaProgresso.innerHTML = itens
     .map((item, indice) => {
@@ -277,12 +298,13 @@ function renderizarProgresso() {
 
       const totalItens = fim - inicio + 1;
 
-      const todosMarcados = item.vistos.length === totalItens;
+      const vistosValidos = obterNumerosVistosValidos(item, inicio, fim);
+      const todosMarcados = vistosValidos.size === totalItens;
 
       const itensHtml = Array.from({ length: totalItens }, (_, numero) => {
         const numeroItem = inicio + numero;
 
-        const marcado = item.vistos.includes(numeroItem);
+        const marcado = vistosValidos.has(numeroItem);
 
         return `
       <label class="item-progresso">
@@ -750,6 +772,29 @@ document.addEventListener("click", (evento) => {
 
     renderizarProgresso();
 
+    salvarProgresso();
+  }
+
+  if (evento.target.matches("#marcar-toda-obra")) {
+    const obra = obraProgressoAtual;
+    const itens = obra.tipo === "anime" ? obra.temporadas : obra.volumes;
+    const todosMarcados = itens.every((item) => {
+      const inicio = obra.tipo === "manga" ? item.inicio : 1;
+      const fim = obra.tipo === "manga" ? item.fim : item.episodios;
+
+      return obterNumerosVistosValidos(item, inicio, fim).size === fim - inicio + 1;
+    });
+
+    itens.forEach((item) => {
+      const inicio = obra.tipo === "manga" ? item.inicio : 1;
+      const fim = obra.tipo === "manga" ? item.fim : item.episodios;
+
+      item.vistos = todosMarcados
+        ? []
+        : Array.from({ length: fim - inicio + 1 }, (_, numero) => inicio + numero);
+    });
+
+    renderizarProgresso();
     salvarProgresso();
   }
 
