@@ -434,9 +434,21 @@ function renderizarProgresso() {
 }
 
 function abrirPopupProgresso(id) {
+  const obraDaLista = obrasCarregadas.find(
+    (obra) => String(obra.id) === String(id),
+  );
+
   fetch(`/obras/${id}`)
     .then((resposta) => resposta.json())
-    .then((obra) => {
+    .then((obraRecebida) => {
+      const obra =
+        obraRecebida && obraRecebida.title ? obraRecebida : obraDaLista;
+
+      if (!obra) {
+        alert("Não foi possível carregar o progresso desta obra.");
+        return;
+      }
+
       obra.temporadas = prepararProgresso(
         lerConteudoObra(obra.temporadas),
         "episodios",
