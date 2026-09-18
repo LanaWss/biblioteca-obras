@@ -46,9 +46,7 @@ function headersComToken() {
 async function criarObra(dados) {
   const resposta = await fetch("http://localhost:3000/obras", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: headersComToken(),
     body: JSON.stringify(dados),
   });
 
@@ -65,6 +63,9 @@ test("GET /obras/:id deve retornar uma obra", async () => {
 
   const respostaConsulta = await fetch(
     `http://localhost:3000/obras/${criada.id}`,
+    {
+      headers: headersComToken(),
+    },
   );
 
   const obra = await respostaConsulta.json();
@@ -79,9 +80,7 @@ test("GET /obras/:id deve retornar uma obra", async () => {
 test("POST /obras deve criar uma obra", async () => {
   const resposta = await fetch("http://localhost:3000/obras", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: headersComToken(),
     body: JSON.stringify({
       title: "Obra de teste",
       tipo: "anime",
@@ -106,9 +105,7 @@ test("POST /obras deve criar uma obra", async () => {
 test("POST /obras deve retornar erro quando o nome não for informado", async () => {
   const resposta = await fetch("http://localhost:3000/obras", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: headersComToken(),
     body: JSON.stringify({
       tipo: "anime",
       status: "lancando",
@@ -133,9 +130,7 @@ test("PUT /obras/:id deve editar uma obra", async () => {
     `http://localhost:3000/obras/${criada.id}`,
     {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: headersComToken(),
       body: JSON.stringify({
         title: "Obra editada",
         tipo: "manga",
@@ -170,9 +165,7 @@ test("PUT /obras/:id deve preservar o progresso ao editar o link", async () => {
 
   await fetch(`http://localhost:3000/obras/${criada.id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: headersComToken(),
     body: JSON.stringify({
       title: criada.title,
       tipo: criada.tipo,
@@ -190,14 +183,22 @@ test("PUT /obras/:id deve preservar o progresso ao editar o link", async () => {
 
   const respostaConsulta = await fetch(
     `http://localhost:3000/obras/${criada.id}`,
+    {
+      headers: headersComToken(),
+    },
   );
+
   const obraAtualizada = await respostaConsulta.json();
 
   assert.deepStrictEqual(
     JSON.parse(obraAtualizada.temporadas)[0].vistos,
     [1, 2, 3],
   );
-  assert.strictEqual(obraAtualizada.link_leitura, "https://exemplo.com/ler");
+
+  assert.strictEqual(
+    obraAtualizada.link_leitura,
+    "https://exemplo.com/ler",
+  );
 });
 
 test("PATCH /obras/:id deve atualizar o progresso", async () => {
@@ -218,9 +219,7 @@ test("PATCH /obras/:id deve atualizar o progresso", async () => {
     `http://localhost:3000/obras/${criada.id}`,
     {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: headersComToken(),
       body: JSON.stringify({
         temporadas: [
           {
@@ -240,6 +239,9 @@ test("PATCH /obras/:id deve atualizar o progresso", async () => {
 
   const respostaConsulta = await fetch(
     `http://localhost:3000/obras/${criada.id}`,
+    {
+      headers: headersComToken(),
+    },
   );
 
   const obraAtualizada = await respostaConsulta.json();
@@ -264,6 +266,7 @@ test("DELETE /obras/:id deve apagar uma obra", async () => {
     `http://localhost:3000/obras/${criada.id}`,
     {
       method: "DELETE",
+      headers: headersComToken(),
     },
   );
 
@@ -294,7 +297,7 @@ test("Tabela usuarios deve existir", async () => {
 });
 
 test("POST /usuarios deve criar um usuário", async () => {
-  const emailTeste = `usuario${Date.now()}@teste.com`
+  const emailTeste = `usuario${Date.now()}@teste.com`;
 
   const resposta = await fetch("http://localhost:3000/usuarios", {
     method: "POST",

@@ -52,6 +52,7 @@ db.exec(`
 `);
 
 for (const coluna of [
+  "ALTER TABLE obras ADD COLUMN usuario_id INTEGER",
   "ALTER TABLE obras ADD COLUMN temporadas TEXT",
   "ALTER TABLE obras ADD COLUMN capitulos INTEGER",
   "ALTER TABLE obras ADD COLUMN volumes TEXT",
@@ -185,6 +186,16 @@ app.get("/obras/:id", verificarToken, (req, res) => {
     .get(id, req.usuario.id);
 
   res.json(obra);
+});
+
+app.post("/obras/migrar-legadas", verificarToken, (req, res) => {
+  const resultado = db
+    .prepare("UPDATE obras SET usuario_id = ? WHERE usuario_id IS NULL")
+    .run(req.usuario.id);
+
+  res.json({
+    obrasImportadas: resultado.changes,
+  });
 });
 
 function preservarProgresso(itensNovos, conteudoAtual, quantidadeKey) {
@@ -412,7 +423,7 @@ app.delete("/obras/:id", verificarToken, (req, res) => {
         WHERE id = ? AND usuario_id = ?
     `);
 
-  apagar.run(id);
+  apagar.run(id, req.usuario.id);
 
   res.json({
     mensagem: "Obra apagada",
