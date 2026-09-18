@@ -682,8 +682,10 @@ document
   });
 
 document.addEventListener("click", (evento) => {
-  if (evento.target.matches("button[data-id]")) {
-    const id = evento.target.dataset.id;
+  const botaoEditar = evento.target.closest("button[data-id]");
+
+  if (botaoEditar) {
+    const id = botaoEditar.dataset.id;
 
     fetch(`/obras/${id}`)
       .then((resposta) => resposta.json())
@@ -692,11 +694,11 @@ document.addEventListener("click", (evento) => {
 
         popupEditar.dataset.id = id;
 
-        document.getElementById("editar-titulo").value = obra.title;
+        document.getElementById("editar-titulo").value = obra.title || "";
 
-        document.getElementById("editar-tipo").value = obra.tipo;
+        document.getElementById("editar-tipo").value = obra.tipo || "";
 
-        document.getElementById("editar-status").value = obra.status;
+        document.getElementById("editar-status").value = obra.status || "";
 
         document.getElementById("editar-imagem").value = obra.imagem || "";
         document.getElementById("editar-preferencia-imagem").value =
@@ -1471,6 +1473,10 @@ editarAdicionarTemporada.addEventListener("click", () => {
               type="number"
               min="0"
             >
+          </label>
+          <label>
+            Começa no episódio
+            <input type="number" min="1" value="1">
           </label>
 
         </div>
