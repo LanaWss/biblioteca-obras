@@ -1144,12 +1144,14 @@ formCriar.addEventListener("submit", async (evento) => {
   if (imagemObra.value && !imagemObra.checkValidity()) {
     alert("Informe uma URL válida para a imagem.");
     imagemObra.focus();
+    botaoCriar.disabled = false;
     return;
   }
 
   if (linkLeituraObra.value && !linkLeituraObra.checkValidity()) {
     alert("Informe um link válido para ler a obra.");
     linkLeituraObra.focus();
+    botaoCriar.disabled = false;
     return;
   }
 
@@ -1159,6 +1161,7 @@ formCriar.addEventListener("submit", async (evento) => {
     imagemArquivo = await lerArquivoComoDataUrl(arquivoImagemObra.files[0]);
   } catch (erro) {
     alert(erro.message);
+    botaoCriar.disabled = false;
     return;
   }
 
@@ -1174,6 +1177,7 @@ formCriar.addEventListener("submit", async (evento) => {
     if (primeira[0].value === "" || primeira[1].value === "") {
       alert("Preencha a primeira temporada.");
 
+      botaoCriar.disabled = false;
       return;
     }
 
@@ -1189,6 +1193,7 @@ formCriar.addEventListener("submit", async (evento) => {
         if (numero === "" || episodios === "" || inicio === "") {
           alert("Preencha a temporada e a quantidade de episódios.");
 
+          botaoCriar.disabled = false;
           return;
         }
       }
@@ -1207,6 +1212,7 @@ formCriar.addEventListener("submit", async (evento) => {
     ) {
       alert("Preencha o primeiro volume.");
 
+      botaoCriar.disabled = false;
       return;
     }
 
@@ -1223,12 +1229,14 @@ formCriar.addEventListener("submit", async (evento) => {
         if (numero === "" || inicio === "" || fim === "") {
           alert("Preencha o volume e o início e fim dos capítulos.");
 
+          botaoCriar.disabled = false;
           return;
         }
 
         if (Number(inicio) > Number(fim)) {
           alert("O início do capítulo não pode ser maior que o fim.");
 
+          botaoCriar.disabled = false;
           return;
         }
       }
@@ -1278,6 +1286,12 @@ formCriar.addEventListener("submit", async (evento) => {
         });
       }
     });
+
+    if (volumes.length === 0) {
+      alert("Envie pelo menos um volume completo antes de criar a obra.");
+      botaoCriar.disabled = false;
+      return;
+    }
   }
 
   try {
