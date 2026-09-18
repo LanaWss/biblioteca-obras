@@ -683,7 +683,7 @@ document.getElementById("limpar-filtros").addEventListener("click", () => {
 
 document
   .querySelectorAll(
-    "#popup-filtros, #popup-criar, #popup-editar, #popup-progresso",
+    "#popup-filtros, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao",
   )
   .forEach((popup) => {
     popup.addEventListener("click", (evento) => {
@@ -868,14 +868,18 @@ document.addEventListener("click", (evento) => {
       });
   }
 
-  if (evento.target.matches("button[data-delete-id]")) {
-    const id = evento.target.dataset.deleteId;
+  const botaoExcluir = evento.target.closest("button[data-delete-id]");
 
-    fetch(`/obras/${id}`, {
-      method: "DELETE",
-    }).then(() => {
-      carregarObras();
-    });
+  if (botaoExcluir) {
+    const popupExclusao = document.getElementById("popup-confirmar-exclusao");
+    const obra = obrasCarregadas.find(
+      (item) => String(item.id) === String(botaoExcluir.dataset.deleteId),
+    );
+
+    popupExclusao.dataset.id = botaoExcluir.dataset.deleteId;
+    document.getElementById("nome-obra-exclusao").textContent = obra?.title || "";
+    popupExclusao.hidden = false;
+    popupExclusao.style.display = "flex";
   }
 
   if (evento.target.matches("button[data-progress-id]")) {
@@ -1777,4 +1781,30 @@ document.getElementById("botao-sair").addEventListener("click", () => {
     localStorage.removeItem("token");
 
     window.location.href = "/login.html";
+});
+
+const popupExclusao = document.getElementById("popup-confirmar-exclusao");
+
+document.getElementById("cancelar-exclusao").addEventListener("click", () => {
+  popupExclusao.hidden = true;
+  popupExclusao.style.display = "none";
+});
+
+document.getElementById("confirmar-exclusao").addEventListener("click", async () => {
+  const id = popupExclusao.dataset.id;
+  const resposta = await fetch(`/obras/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+
+  if (!resposta.ok) {
+    alert("Não foi possível excluir a obra.");
+    return;
+  }
+
+  popupExclusao.hidden = true;
+  popupExclusao.style.display = "none";
+  await carregarObras();
 });

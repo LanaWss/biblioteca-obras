@@ -898,3 +898,58 @@ button {
     0%, 100% { opacity: 0; }
     15%, 80% { opacity: 1; }
 }
+
+.popup-confirmacao {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.popup-confirmacao-conteudo {
+    width: min(100%, 380px);
+    padding: 25px;
+    border-radius: 12px;
+    color: #1f2937;
+    background: white;
+    text-align: center;
+}
+
+.popup-confirmacao-conteudo h2 {
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+
+#nome-obra-exclusao {
+    min-height: 20px;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.botoes-confirmacao {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.botoes-confirmacao button {
+    min-width: 80px;
+    padding: 10px 18px;
+    border: 0;
+    border-radius: 6px;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+#confirmar-exclusao {
+    background: #b33a32;
+}
+
+#cancelar-exclusao {
+    background: #58717a;
+}
