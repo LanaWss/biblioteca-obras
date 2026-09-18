@@ -686,10 +686,21 @@ document.addEventListener("click", (evento) => {
 
   if (botaoEditar) {
     const id = botaoEditar.dataset.id;
+    const obraDaLista = obrasCarregadas.find(
+      (obra) => String(obra.id) === String(id),
+    );
 
     fetch(`/obras/${id}`)
       .then((resposta) => resposta.json())
-      .then((obra) => {
+      .then((obraRecebida) => {
+        const obra =
+          obraRecebida && obraRecebida.title ? obraRecebida : obraDaLista;
+
+        if (!obra) {
+          alert("Não foi possível carregar os dados desta obra.");
+          return;
+        }
+
         const popupEditar = document.getElementById("popup-editar");
 
         popupEditar.dataset.id = id;
@@ -752,7 +763,7 @@ document.addEventListener("click", (evento) => {
 
           editarCamposManga.style.display = "none";
 
-          const temporadas = obra.temporadas ? JSON.parse(obra.temporadas) : [];
+          const temporadas = lerConteudoObra(obra.temporadas);
 
           temporadas.forEach((temporada) => {
             const linha = document.createElement("div");
@@ -791,7 +802,7 @@ document.addEventListener("click", (evento) => {
 
           editarCamposManga.style.display = "block";
 
-          const volumes = obra.volumes ? JSON.parse(obra.volumes) : [];
+          const volumes = lerConteudoObra(obra.volumes);
 
           volumes.forEach((volume) => {
             const linha = document.createElement("div");
