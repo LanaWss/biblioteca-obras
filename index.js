@@ -230,7 +230,8 @@ function preservarProgresso(itensNovos, conteudoAtual, quantidadeKey) {
           return numero >= itemNovo.inicio && numero <= itemNovo.fim;
         }
 
-        return numero >= 1 && numero <= itemNovo[quantidadeKey];
+        const inicio = quantidadeKey === "episodios" ? Number(itemNovo.inicio) || 1 : 1;
+        return numero >= inicio && numero < inicio + itemNovo[quantidadeKey];
       }),
     };
   });

@@ -10,6 +10,9 @@
     <link rel="icon" href="icone.png" />
   </head>
   <body>
+    <div id="boas-vindas" class="boas-vindas" hidden>
+      <p>Olá, <strong id="nome-boas-vindas"></strong></p>
+    </div>
     <header>
       <h1>Minhas Obras</h1>
       <p>Esta é a página principal da sua biblioteca de obras.</p>
@@ -102,11 +105,17 @@
                     Episódios
                     <input type="number" min="1" />
                   </label>
+                  <label>
+                    Começa no episódio
+                    <input type="number" min="1" value="1" />
+                  </label>
                 </div>
               </div>
 
+              <p class="aviso-form">Preencha a temporada e clique em Enviar temporada para cadastrar a próxima.</p>
+
               <button type="button" id="adicionar-temporada">
-                + Adicionar temporada
+                + Enviar temporada
               </button>
             </div>
 
@@ -131,7 +140,7 @@
               </div>
 
               <button type="button" id="adicionar-volume">
-                + Adicionar volume
+                + Enviar volume
               </button>
             </div>
 
@@ -203,11 +212,15 @@
                   Episódios
                   <input type="number" min="0" />
                 </label>
+                <label>
+                  Começa no episódio
+                  <input type="number" min="1" value="1" />
+                </label>
               </div>
             </div>
 
             <button type="button" id="editar-adicionar-temporada">
-              + Adicionar temporada
+              + Enviar temporada
             </button>
           </div>
 
@@ -226,7 +239,7 @@
             </div>
 
             <button type="button" id="editar-adicionar-volume">
-              + Adicionar volume
+                + Enviar volume
             </button>
           </div>
 

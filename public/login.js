@@ -89,6 +89,8 @@ formulario.addEventListener("submit", async (evento) => {
     }
 
     localStorage.setItem("token", resultado.token);
+    localStorage.setItem("nomeUsuario", resultado.nome || "");
+    sessionStorage.setItem("mostrarBoasVindas", "true");
     window.location.replace("/");
   } catch (erro) {
     mostrarMensagem("Não foi possível conectar ao servidor. Tente novamente.");
@@ -149,6 +151,8 @@ formCadastro.addEventListener("submit", async (evento) => {
     }
 
     localStorage.setItem("token", resultadoLogin.token);
+    localStorage.setItem("nomeUsuario", resultadoLogin.nome || nome);
+    sessionStorage.setItem("mostrarBoasVindas", "true");
 
     await fetch("/obras/migrar-legadas", {
       method: "POST",
