@@ -11,7 +11,7 @@
   </head>
   <body>
     <div id="mensagem"></div>
-    
+
     <div id="boas-vindas" class="boas-vindas" hidden>
       <p>Olá, <strong id="nome-boas-vindas"></strong></p>
     </div>
@@ -94,7 +94,33 @@
                 required
               />
 
-              <label for="tipo-obra">Tipo <span class="obrigatorio">*</span></label>
+              <div class="campo-titulos-alternativos">
+                <label for="titulo-alternativo"> Títulos alternativos </label>
+
+                <div class="linha-titulo-alternativo">
+                  <input
+                    type="text"
+                    id="titulo-alternativo"
+                    placeholder="Digite um título alternativo"
+                  />
+
+                  <button type="button" id="adicionar-titulo-alternativo">
+                    Adicionar
+                  </button>
+                </div>
+
+                <div id="lista-titulos-alternativos"></div>
+
+                <label for="titulo-exibicao"> Título mostrado no card </label>
+
+                <select id="titulo-exibicao">
+                  <option value="principal">Título principal</option>
+                </select>
+              </div>
+
+              <label for="tipo-obra"
+                >Tipo <span class="obrigatorio">*</span></label
+              >
 
               <select id="tipo-obra" required>
                 <option value="">Selecione</option>
@@ -150,7 +176,9 @@
                 </button>
               </div>
 
-              <label for="status-obra">Status <span class="obrigatorio">*</span></label>
+              <label for="status-obra"
+                >Status <span class="obrigatorio">*</span></label
+              >
 
               <select id="status-obra" required>
                 <option value="">Selecione</option>

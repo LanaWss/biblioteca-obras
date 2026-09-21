@@ -1159,7 +1159,10 @@ adicionarVolume.addEventListener("click", () => {
   }
 
   if (Number(inicio) > Number(fim)) {
-    mostrarMensagem("O capítulo inicial não pode ser maior que o final.", "erro");
+    mostrarMensagem(
+      "O capítulo inicial não pode ser maior que o final.",
+      "erro",
+    );
     return;
   }
 
@@ -1216,6 +1219,72 @@ fecharPopup.addEventListener("click", () => {
 });
 
 const formCriar = document.getElementById("form-criar");
+
+let titulosAlternativos = [];
+
+const campoTituloAlternativo = document.getElementById("titulo-alternativo");
+const botaoAdicionarTituloAlternativo = document.getElementById(
+  "adicionar-titulo-alternativo",
+);
+const listaTitulosAlternativos = document.getElementById(
+  "lista-titulos-alternativos",
+);
+const selectTituloExibicao = document.getElementById("titulo-exibicao");
+
+botaoAdicionarTituloAlternativo.addEventListener("click", () => {
+  const titulo = campoTituloAlternativo.value.trim();
+
+  if (!titulo) {
+    mostrarMensagem("Digite um título alternativo.", "aviso");
+    return;
+  }
+
+  titulosAlternativos.push(titulo);
+
+  campoTituloAlternativo.value = "";
+
+  renderizarTitulosAlternativos();
+});
+
+function renderizarTitulosAlternativos() {
+  const selecaoAtual = selectTituloExibicao.value || "principal";
+
+  listaTitulosAlternativos.innerHTML = "";
+
+  selectTituloExibicao.innerHTML = `
+    <option value="principal">Título principal</option>
+  `;
+
+  titulosAlternativos.forEach((titulo, indice) => {
+    const item = document.createElement("div");
+
+    const texto = document.createElement("span");
+    texto.textContent = titulo;
+
+    const botaoRemover = document.createElement("button");
+    botaoRemover.type = "button";
+    botaoRemover.textContent = "×";
+
+    botaoRemover.addEventListener("click", () => {
+      titulosAlternativos.splice(indice, 1);
+      renderizarTitulosAlternativos();
+    });
+
+    item.append(texto, botaoRemover);
+
+    listaTitulosAlternativos.appendChild(item);
+
+    const opcao = document.createElement("option");
+    opcao.value = titulo;
+    opcao.textContent = titulo;
+
+    selectTituloExibicao.appendChild(opcao);
+  });
+
+  selectTituloExibicao.value = titulosAlternativos.includes(selecaoAtual)
+    ? selecaoAtual
+    : "principal";
+}
 
 formCriar.addEventListener("submit", async (evento) => {
   evento.preventDefault();
@@ -1480,6 +1549,10 @@ formCriar.addEventListener("submit", async (evento) => {
         temporadas: temporadas,
 
         volumes: volumes,
+
+        titulos_alternativos: titulosAlternativos,
+
+        titulo_exibicao: selectTituloExibicao.value,
       }),
     });
 

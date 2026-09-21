@@ -33,8 +33,7 @@ function tratarErro(erro, req, res, next) {
   }
 
   const status = erro instanceof ErroAplicacao ? erro.status : 500;
-  const mensagem =
-    status >= 500 ? "Erro interno do servidor" : erro.message;
+  const mensagem = status >= 500 ? "Erro interno do servidor" : erro.message;
 
   if (status >= 500) {
     console.error(erro);
@@ -63,8 +62,7 @@ function verificarToken(req, res, next) {
   }
 }
 
-const caminhoBanco =
-  process.env.DB_PATH || path.join(__dirname, "obras.db");
+const caminhoBanco = process.env.DB_PATH || path.join(__dirname, "obras.db");
 const db = new Database(caminhoBanco);
 
 db.exec(`
@@ -85,6 +83,8 @@ db.exec(`
 `);
 
 for (const coluna of [
+  "ALTER TABLE obras ADD COLUMN titulos_alternativos TEXT DEFAULT '[]'",
+  "ALTER TABLE obras ADD COLUMN titulo_exibicao TEXT DEFAULT 'principal'",
   "ALTER TABLE obras ADD COLUMN usuario_id INTEGER",
   "ALTER TABLE obras ADD COLUMN temporadas TEXT",
   "ALTER TABLE obras ADD COLUMN capitulos INTEGER",
@@ -208,9 +208,9 @@ app.post("/login", async (req, res) => {
     return responderErro(res, 401, "Email ou senha incorretos");
   }
 
-  db.prepare(
-    "UPDATE obras SET usuario_id = ? WHERE usuario_id IS NULL",
-  ).run(usuario.id);
+  db.prepare("UPDATE obras SET usuario_id = ? WHERE usuario_id IS NULL").run(
+    usuario.id,
+  );
 
   const token = jwt.sign(
     {
@@ -229,11 +229,13 @@ app.post("/login", async (req, res) => {
 
 app.get("/obras", verificarToken, (req, res) => {
   const obras = db
-    .prepare(`
+    .prepare(
+      `
       SELECT *
       FROM obras
       WHERE usuario_id = ?
-    `)
+    `,
+    )
     .all(req.usuario.id);
 
   res.json(obras);
@@ -300,7 +302,8 @@ function preservarProgresso(itensNovos, conteudoAtual, quantidadeKey) {
           return numero >= itemNovo.inicio && numero <= itemNovo.fim;
         }
 
-        const inicio = quantidadeKey === "episodios" ? Number(itemNovo.inicio) || 1 : 1;
+        const inicio =
+          quantidadeKey === "episodios" ? Number(itemNovo.inicio) || 1 : 1;
         return numero >= inicio && numero < inicio + itemNovo[quantidadeKey];
       }),
     };
@@ -326,9 +329,11 @@ app.post("/obras", verificarToken, (req, res) => {
       link_leitura,
       temporadas,
       capitulos,
-      volumes
+      volumes,
+      titulos_alternativos,
+      titulo_exibicao
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const resultado = inserir.run(
@@ -343,6 +348,10 @@ app.post("/obras", verificarToken, (req, res) => {
     obra.temporadas ? JSON.stringify(obra.temporadas) : null,
     obra.capitulos || null,
     obra.volumes ? JSON.stringify(obra.volumes) : null,
+    obra.titulos_alternativos
+      ? JSON.stringify(obra.titulos_alternativos)
+      : "[]",
+    obra.titulo_exibicao || "principal",
   );
 
   res.json({
@@ -357,6 +366,10 @@ app.post("/obras", verificarToken, (req, res) => {
     temporadas: obra.temporadas || null,
     capitulos: obra.capitulos || null,
     volumes: obra.volumes || null,
+    titulos_alternativos: Array.isArray(obras.titulos_alternativos)
+      ? obra.titulos_alternativos
+      : [],
+    titulo_exibicao: obra.titulo_exibicao || "principal",
     done: 0,
   });
 });
@@ -365,7 +378,9 @@ app.put("/obras/:id", verificarToken, (req, res) => {
   const id = req.params.id;
   const obra = req.body;
   const obraAtual = db
-    .prepare("SELECT tipo, temporadas, volumes FROM obras WHERE id = ? AND usuario_id = ?")
+    .prepare(
+      "SELECT tipo, temporadas, volumes FROM obras WHERE id = ? AND usuario_id = ?",
+    )
     .get(id, req.usuario.id);
 
   const temporadas =
@@ -398,7 +413,9 @@ app.put("/obras/:id", verificarToken, (req, res) => {
       link_leitura = ?,
       temporadas = ?,
       capitulos = ?,
-      volumes = ?
+      volumes = ?,
+      titulos_alternativos = ?,
+      titulo_exibicao = ?
     WHERE id = ? AND usuario_id = ?
   `);
 
@@ -413,6 +430,10 @@ app.put("/obras/:id", verificarToken, (req, res) => {
     temporadas ? JSON.stringify(temporadas) : null,
     obra.capitulos || null,
     volumes ? JSON.stringify(volumes) : null,
+    Array.isArray(obra.titulos_alternativos)
+      ? JSON.stringify(obra.titulos_alternativos)
+      : "[]",
+    obra.titulo_exibicao || "principal",
     id,
     req.usuario.id,
   );
@@ -433,6 +454,10 @@ app.put("/obras/:id", verificarToken, (req, res) => {
     temporadas: temporadas || null,
     capitulos: obra.capitulos || null,
     volumes: volumes || null,
+    titulos_alternativos: Array.isArray(obra.titulos_alternativos)
+      ? obra.titulos_alternativos
+      : [],
+    titulo_exibicao: obra.titulo_exibicao || "principal",
   });
 });
 
@@ -455,13 +480,15 @@ app.patch("/obras/:id", verificarToken, (req, res) => {
 
   if (campos.length > 0) {
     valores.push(id, req.usuario.id);
-    const resultado = db.prepare(
-      `
+    const resultado = db
+      .prepare(
+        `
       UPDATE obras
       SET ${campos.join(", ")}
       WHERE id = ? AND usuario_id = ?
     `,
-    ).run(...valores);
+      )
+      .run(...valores);
 
     if (resultado.changes === 0) {
       return responderErro(res, 404, "Obra não encontrada");
