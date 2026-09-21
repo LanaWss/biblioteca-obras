@@ -17,6 +17,7 @@ test.before(async () => {
       nome: "Usuario Teste",
       email,
       senha: "123456",
+      aceitouTermos: true,
     }),
   });
 
@@ -293,7 +294,39 @@ test("Tabela usuarios deve existir", async () => {
   assert.ok(tabela);
   assert.strictEqual(tabela.name, "usuarios");
 
+  const colunas = db
+    .prepare("PRAGMA table_info(usuarios)")
+    .all()
+    .map((coluna) => coluna.name);
+
+  assert.ok(colunas.includes("termos_aceitos"));
+  assert.ok(colunas.includes("versao_termos"));
+  assert.ok(colunas.includes("versao_privacidade"));
+  assert.ok(colunas.includes("data_aceite"));
+
   db.close();
+});
+
+test("POST /usuarios deve exigir aceite dos documentos", async () => {
+  const resposta = await fetch("http://localhost:3000/usuarios", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      nome: "Usuario sem aceite",
+      email: `sem-aceite${Date.now()}@teste.com`,
+      senha: "123456",
+    }),
+  });
+
+  const resultado = await resposta.json();
+
+  assert.strictEqual(resposta.status, 400);
+  assert.strictEqual(
+    resultado.erro,
+    "Você precisa aceitar os Termos de Serviço e a Política de Privacidade.",
+  );
 });
 
 test("POST /usuarios deve criar um usuário", async () => {
@@ -308,6 +341,7 @@ test("POST /usuarios deve criar um usuário", async () => {
       nome: "Usuario de teste",
       email: emailTeste,
       senha: "123456",
+      aceitouTermos: true,
     }),
   });
 
@@ -331,6 +365,7 @@ test("POST /login deve fazer login", async () => {
       nome: "Usuario Login",
       email: emailTeste,
       senha: "123456",
+      aceitouTermos: true,
     }),
   });
 

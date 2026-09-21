@@ -6,6 +6,9 @@ const path = require("path");
 
 const app = express();
 
+const VERSAO_TERMOS = "1.0";
+const VERSAO_PRIVACIDADE = "1.0";
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static("public"));
 
@@ -102,26 +105,67 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nome TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
-    senha TEXT NOT NULL
+    senha TEXT NOT NULL,
+    termos_aceitos INTEGER NOT NULL DEFAULT 0,
+    versao_termos TEXT,
+    versao_privacidade TEXT,
+    data_aceite TEXT
   );
 `);
 
+for (const coluna of [
+  "ALTER TABLE usuarios ADD COLUMN termos_aceitos INTEGER NOT NULL DEFAULT 0",
+  "ALTER TABLE usuarios ADD COLUMN versao_termos TEXT",
+  "ALTER TABLE usuarios ADD COLUMN versao_privacidade TEXT",
+  "ALTER TABLE usuarios ADD COLUMN data_aceite TEXT",
+]) {
+  try {
+    db.exec(coluna);
+  } catch (erro) {
+    // A coluna já existe
+  }
+}
+
 app.post("/usuarios", async (req, res) => {
-  const { nome, email, senha } = req.body;
+  const { nome, email, senha, aceitouTermos } = req.body;
 
   if (!nome || !email || !senha) {
     return responderErro(res, 400, "Nome, email e senha são obrigatórios");
   }
 
+  if (aceitouTermos !== true) {
+    return responderErro(
+      res,
+      400,
+      "Você precisa aceitar os Termos de Serviço e a Política de Privacidade.",
+    );
+  }
+
   try {
     const inserir = db.prepare(`
-      INSERT INTO usuarios (nome, email, senha)
-      VALUES (?, ?, ?)
+      INSERT INTO usuarios (
+        nome,
+        email,
+        senha,
+        termos_aceitos,
+        versao_termos,
+        versao_privacidade,
+        data_aceite
+      )
+      VALUES (?, ?, ?, 1, ?, ?, ?)
     `);
 
     const senhaHash = await bcrypt.hash(senha, 10);
+    const dataAceite = new Date().toISOString();
 
-    const resultado = inserir.run(nome, email, senhaHash);
+    const resultado = inserir.run(
+      nome,
+      email,
+      senhaHash,
+      VERSAO_TERMOS,
+      VERSAO_PRIVACIDADE,
+      dataAceite,
+    );
 
     res.json({
       id: resultado.lastInsertRowid,

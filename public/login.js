@@ -106,11 +106,18 @@ formCadastro.addEventListener("submit", async (evento) => {
   const email = document.getElementById("email-cadastro").value.trim();
   const senha = document.getElementById("senha-cadastro").value;
   const confirmarSenha = document.getElementById("confirmar-senha").value;
+  const aceiteDocumentos = document.getElementById("aceite-documentos");
   const botaoCadastro = document.getElementById("botao-cadastrar");
 
   mensagem.classList.remove("visivel");
 
   if (!formCadastro.checkValidity()) {
+    if (!aceiteDocumentos.checked) {
+      mostrarMensagem("Você precisa aceitar os Termos de Serviço e a Política de Privacidade.");
+      aceiteDocumentos.focus();
+      return;
+    }
+
     mostrarMensagem("Preencha todos os campos e use uma senha com pelo menos 6 caracteres.");
     return;
   }
@@ -127,7 +134,7 @@ formCadastro.addEventListener("submit", async (evento) => {
     const cadastro = await fetch("/usuarios", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome, email, senha }),
+      body: JSON.stringify({ nome, email, senha, aceitouTermos: true }),
     });
     const resultadoCadastro = await cadastro.json();
 

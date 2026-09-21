@@ -283,6 +283,29 @@ body {
     text-align: center;
 }
 
+.login-rodape a,
+.aceite-documentos a {
+    color: #2d7180;
+    text-decoration: underline;
+}
+
+.aceite-documentos {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    color: #69717b;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.aceite-documentos input {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+}
+
 .botao-alternar {
     align-self: center;
     margin: 18px 0 0;
@@ -301,6 +324,98 @@ body {
 .form-cadastro[hidden],
 #form-login[hidden] {
     display: none;
+}
+
+.pagina-documento {
+    margin: 0;
+    padding: 32px 20px;
+    color: #17263a;
+    background: #f4f0e8;
+    text-align: left;
+    font-family: Georgia, "Times New Roman", serif;
+}
+
+.documento-shell {
+    width: min(100%, 860px);
+    margin: 0 auto;
+    padding: clamp(28px, 5vw, 56px);
+    border: 1px solid rgba(23, 38, 58, 0.12);
+    border-radius: 8px;
+    background: #fffdf8;
+    box-shadow: 0 24px 60px rgba(23, 38, 58, 0.14);
+}
+
+.documento-voltar {
+    display: inline-block;
+    margin-bottom: 34px;
+    color: #2d7180;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.documento-cabecalho {
+    padding-bottom: 26px;
+    border-bottom: 1px solid rgba(23, 38, 58, 0.12);
+}
+
+.documento-cabecalho h1 {
+    margin: 12px 0 10px;
+    color: #17263a;
+    font-size: clamp(30px, 5vw, 46px);
+    font-weight: 400;
+    line-height: 1.1;
+}
+
+.documento-cabecalho p {
+    color: #69717b;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.documento-conteudo {
+    color: #344356;
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+.documento-conteudo section {
+    margin-top: 28px;
+}
+
+.documento-conteudo h2 {
+    margin-bottom: 8px;
+    color: #17263a;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.documento-conteudo p + p {
+    margin-top: 10px;
+}
+
+.documento-atualizacao {
+    margin-top: 34px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(23, 38, 58, 0.12);
+    color: #69717b;
+    font-size: 13px;
+}
+
+@media (max-width: 680px) {
+    .pagina-documento {
+        padding: 0;
+    }
+
+    .documento-shell {
+        min-height: 100vh;
+        border: 0;
+        border-radius: 0;
+        padding: 28px 22px 40px;
+    }
 }
 
 @keyframes girar {

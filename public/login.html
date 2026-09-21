@@ -71,6 +71,10 @@
                     <label for="confirmar-senha">Confirmar senha</label>
                     <input id="confirmar-senha" type="password" placeholder="Repita sua senha" autocomplete="new-password" minlength="6" required>
                 </div>
+                <label class="aceite-documentos" for="aceite-documentos">
+                    <input id="aceite-documentos" type="checkbox" required>
+                    <span>Li e aceito os <a href="/termos.html" target="_blank" rel="noopener noreferrer">Termos de Serviço</a> e a <a href="/privacidade.html" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>.</span>
+                </label>
                 <button type="submit" id="botao-cadastrar" class="botao-entrar">
                     <span class="texto-botao">Criar minha conta</span>
                     <span class="carregando-botao" aria-hidden="true"></span>
@@ -79,7 +83,12 @@
 
             <button type="button" id="alternar-cadastro" class="botao-alternar">Ainda não tenho uma conta</button>
 
-            <p class="login-rodape">Seu acesso é pessoal e protegido.</p>
+            <p class="login-rodape">
+                Seu acesso é pessoal e protegido.<br>
+                <a href="/termos.html">Termos de Serviço</a>
+                <span aria-hidden="true">·</span>
+                <a href="/privacidade.html">Política de Privacidade</a>
+            </p>
         </section>
     </main>
 
