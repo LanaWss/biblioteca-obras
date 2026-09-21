@@ -10,6 +10,8 @@
     <link rel="icon" href="icone.png" />
   </head>
   <body>
+    <div id="mensagem"></div>
+    
     <div id="boas-vindas" class="boas-vindas" hidden>
       <p>Olá, <strong id="nome-boas-vindas"></strong></p>
     </div>
@@ -40,70 +42,183 @@
 
       <div id="popup-filtros">
         <div class="popup-shell">
-          <button id="fechar-filtros" class="popup-fechar" type="button">X</button>
+          <button id="fechar-filtros" class="popup-fechar" type="button">
+            X
+          </button>
           <div>
-          <h2>Filtros</h2>
-          <label for="filtro-tipo">Tipo</label>
-          <select id="filtro-tipo">
-            <option value="">Todos</option>
-            <option value="anime">Anime</option>
-            <option value="manga">Mangá</option>
-          </select>
+            <h2>Filtros</h2>
+            <label for="filtro-tipo">Tipo</label>
+            <select id="filtro-tipo">
+              <option value="">Todos</option>
+              <option value="anime">Anime</option>
+              <option value="manga">Mangá</option>
+            </select>
 
-          <label for="filtro-status">Status</label>
-          <select id="filtro-status">
-            <option value="">Todos</option>
-            <option value="completa">Completa</option>
-            <option value="hiato">Em hiato</option>
-            <option value="lancando">Lançando</option>
-          </select>
+            <label for="filtro-status">Status</label>
+            <select id="filtro-status">
+              <option value="">Todos</option>
+              <option value="completa">Completa</option>
+              <option value="hiato">Em hiato</option>
+              <option value="lancando">Lançando</option>
+            </select>
 
-          <label for="filtro-progresso">Progresso</label>
-          <select id="filtro-progresso">
-            <option value="">Todos</option>
-            <option value="pendente">Falta ler</option>
-            <option value="completo">Leu tudo</option>
-          </select>
+            <label for="filtro-progresso">Progresso</label>
+            <select id="filtro-progresso">
+              <option value="">Todos</option>
+              <option value="pendente">Falta ler</option>
+              <option value="completo">Leu tudo</option>
+            </select>
 
-          <button id="limpar-filtros" type="button">Limpar filtros</button>
+            <button id="limpar-filtros" type="button">Limpar filtros</button>
           </div>
         </div>
       </div>
 
       <div id="popup-criar">
         <div class="popup-shell">
-          <button id="fechar-popup" class="popup-fechar" type="button">X</button>
+          <button id="fechar-popup" class="popup-fechar" type="button">
+            X
+          </button>
           <div>
-          <h2>Criar obra</h2>
+            <h2>Criar obra</h2>
 
-          <form id="form-criar" autocomplete="off">
-            <label for="titulo-obra">Nome: </label>
+            <form id="form-criar" autocomplete="off">
+              <label for="titulo-obra">
+                Nome da obra <span class="obrigatorio">*</span>
+              </label>
 
-            <input
-              id="titulo-obra"
-              type="text"
-              placeholder="Nome da obra"
-              required
-            />
+              <input
+                id="titulo-obra"
+                type="text"
+                placeholder="Nome da obra"
+                required
+              />
 
-            <label for="tipo-obra">Tipo</label>
+              <label for="tipo-obra">Tipo <span class="obrigatorio">*</span></label>
 
-            <select id="tipo-obra" required>
+              <select id="tipo-obra" required>
+                <option value="">Selecione</option>
+                <option value="anime">Anime</option>
+                <option value="manga">Mangá</option>
+              </select>
+
+              <div id="campos-anime" style="display: none">
+                <div id="lista-temporadas">
+                  <div class="temporada">
+                    <label>
+                      Temporada
+                      <input type="number" value="1" min="1" />
+                    </label>
+                    <label>
+                      Episódios
+                      <input type="number" min="1" />
+                    </label>
+                    <label>
+                      Começa no episódio
+                      <input type="number" min="1" value="1" />
+                    </label>
+                  </div>
+                </div>
+
+                <button type="button" id="adicionar-temporada">
+                  + Enviar temporada
+                </button>
+              </div>
+
+              <div id="campos-manga" style="display: none">
+                <div id="lista-volumes">
+                  <div class="volume">
+                    <label>
+                      Volume
+                      <input type="number" value="1" min="1" />
+                    </label>
+
+                    <label>
+                      Começa no capítulo
+                      <input type="number" value="1" min="1" />
+                    </label>
+
+                    <label>
+                      Termina no capítulo
+                      <input type="number" min="1" />
+                    </label>
+                  </div>
+                </div>
+
+                <button type="button" id="adicionar-volume">
+                  + Enviar volume
+                </button>
+              </div>
+
+              <label for="status-obra">Status <span class="obrigatorio">*</span></label>
+
+              <select id="status-obra" required>
+                <option value="">Selecione</option>
+                <option value="completa">Completa</option>
+                <option value="hiato">Em hiato</option>
+                <option value="lancando">Lançando</option>
+              </select>
+
+              <label for="imagem-obra">Imagem</label>
+
+              <input
+                id="imagem-obra"
+                type="url"
+                placeholder="URL da imagem (opcional)"
+              />
+              <label for="arquivo-imagem-obra">Ou imagem do dispositivo</label>
+              <input id="arquivo-imagem-obra" type="file" accept="image/*" />
+              <label for="preferencia-imagem-obra">Imagem preferida</label>
+              <select id="preferencia-imagem-obra">
+                <option value="url">URL</option>
+                <option value="arquivo">Imagem do dispositivo</option>
+              </select>
+              <img id="preview-imagem" src="" alt="Preview da obra" hidden />
+              <p id="aviso-imagem-obra" class="aviso-form" role="status"></p>
+
+              <label for="link-leitura-obra">Link para ler (opcional)</label>
+              <input
+                id="link-leitura-obra"
+                type="url"
+                placeholder="https://site.com/obra"
+              />
+
+              <button type="submit">Criar</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div id="popup-editar">
+      <div class="popup-shell">
+        <button id="fechar-popup-editar" class="popup-fechar" type="button">
+          X
+        </button>
+        <div>
+          <h2>Editar obra</h2>
+
+          <form id="form-editar" autocomplete="off">
+            <label for="editar-titulo">Nome:</label>
+            <input id="editar-titulo" type="text" required />
+
+            <label for="editar-tipo">Tipo</label>
+            <select id="editar-tipo" required>
               <option value="">Selecione</option>
               <option value="anime">Anime</option>
               <option value="manga">Mangá</option>
             </select>
 
-            <div id="campos-anime" style="display: none">
-              <div id="lista-temporadas">
+            <div id="editar-campos-anime" style="display: none">
+              <div id="editar-lista-temporadas">
                 <div class="temporada">
                   <label>
                     Temporada
-                    <input type="number" value="1" min="1" />
+                    <input type="number" min="1" />
                   </label>
                   <label>
                     Episódios
-                    <input type="number" min="1" />
+                    <input type="number" min="0" />
                   </label>
                   <label>
                     Começa no episódio
@@ -112,24 +227,22 @@
                 </div>
               </div>
 
-              <button type="button" id="adicionar-temporada">
+              <button type="button" id="editar-adicionar-temporada">
                 + Enviar temporada
               </button>
             </div>
 
-            <div id="campos-manga" style="display: none">
-              <div id="lista-volumes">
+            <div id="editar-campos-manga" style="display: none">
+              <div id="editar-lista-volumes">
                 <div class="volume">
                   <label>
                     Volume
-                    <input type="number" value="1" min="1" />
+                    <input type="number" min="1" />
                   </label>
-
                   <label>
                     Começa no capítulo
-                    <input type="number" value="1" min="1" />
+                    <input type="number" min="1" value="1" />
                   </label>
-
                   <label>
                     Termina no capítulo
                     <input type="number" min="1" />
@@ -137,165 +250,74 @@
                 </div>
               </div>
 
-              <button type="button" id="adicionar-volume">
+              <button type="button" id="editar-adicionar-volume">
                 + Enviar volume
               </button>
             </div>
 
-            <label for="status-obra">Status</label>
-
-            <select id="status-obra" required>
+            <label for="editar-status">Status</label>
+            <select id="editar-status" required>
               <option value="">Selecione</option>
               <option value="completa">Completa</option>
               <option value="hiato">Em hiato</option>
               <option value="lancando">Lançando</option>
             </select>
 
-            <label for="imagem-obra">Imagem</label>
-
+            <label for="editar-imagem">Imagem</label>
             <input
-              id="imagem-obra"
+              id="editar-imagem"
               type="url"
               placeholder="URL da imagem (opcional)"
             />
-            <label for="arquivo-imagem-obra">Ou imagem do dispositivo</label>
-            <input id="arquivo-imagem-obra" type="file" accept="image/*" />
-            <label for="preferencia-imagem-obra">Imagem preferida</label>
-            <select id="preferencia-imagem-obra">
+            <label for="editar-arquivo-imagem">Ou imagem do dispositivo</label>
+            <input id="editar-arquivo-imagem" type="file" accept="image/*" />
+            <label for="editar-preferencia-imagem">Imagem preferida</label>
+            <select id="editar-preferencia-imagem">
               <option value="url">URL</option>
               <option value="arquivo">Imagem do dispositivo</option>
             </select>
-            <img id="preview-imagem" src="" alt="Preview da obra" hidden />
-            <p id="aviso-imagem-obra" class="aviso-form" role="status"></p>
 
-            <label for="link-leitura-obra">Link para ler (opcional)</label>
+            <img
+              id="preview-imagem-editar"
+              src=""
+              alt="Preview da obra"
+              hidden
+            />
+            <p id="aviso-imagem-editar" class="aviso-form" role="status"></p>
+
+            <label for="editar-link-leitura">Link para ler</label>
             <input
-              id="link-leitura-obra"
+              id="editar-link-leitura"
               type="url"
               placeholder="https://site.com/obra"
             />
 
-            <button type="submit">Criar</button>
+            <button type="submit">Salvar</button>
           </form>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <div id="popup-editar">
-      <div class="popup-shell">
-        <button id="fechar-popup-editar" class="popup-fechar" type="button">X</button>
-        <div>
-        <h2>Editar obra</h2>
-
-        <form id="form-editar" autocomplete="off">
-          <label for="editar-titulo">Nome:</label>
-          <input id="editar-titulo" type="text" required />
-
-          <label for="editar-tipo">Tipo</label>
-          <select id="editar-tipo" required>
-            <option value="">Selecione</option>
-            <option value="anime">Anime</option>
-            <option value="manga">Mangá</option>
-          </select>
-
-          <div id="editar-campos-anime" style="display: none">
-            <div id="editar-lista-temporadas">
-              <div class="temporada">
-                <label>
-                  Temporada
-                  <input type="number" min="1" />
-                </label>
-                <label>
-                  Episódios
-                  <input type="number" min="0" />
-                </label>
-                <label>
-                  Começa no episódio
-                  <input type="number" min="1" value="1" />
-                </label>
-              </div>
-            </div>
-
-            <button type="button" id="editar-adicionar-temporada">
-              + Enviar temporada
-            </button>
-          </div>
-
-          <div id="editar-campos-manga" style="display: none">
-            <div id="editar-lista-volumes">
-              <div class="volume">
-                <label>
-                  Volume
-                  <input type="number" min="1" />
-                </label>
-                <label>
-                  Começa no capítulo
-                  <input type="number" min="1" value="1" />
-                </label>
-                <label>
-                  Termina no capítulo
-                  <input type="number" min="1" />
-                </label>
-              </div>
-            </div>
-
-            <button type="button" id="editar-adicionar-volume">
-                + Enviar volume
-            </button>
-          </div>
-
-          <label for="editar-status">Status</label>
-          <select id="editar-status" required>
-            <option value="">Selecione</option>
-            <option value="completa">Completa</option>
-            <option value="hiato">Em hiato</option>
-            <option value="lancando">Lançando</option>
-          </select>
-
-          <label for="editar-imagem">Imagem</label>
-          <input
-            id="editar-imagem"
-            type="url"
-            placeholder="URL da imagem (opcional)"
-          />
-          <label for="editar-arquivo-imagem">Ou imagem do dispositivo</label>
-          <input id="editar-arquivo-imagem" type="file" accept="image/*" />
-          <label for="editar-preferencia-imagem">Imagem preferida</label>
-          <select id="editar-preferencia-imagem">
-            <option value="url">URL</option>
-            <option value="arquivo">Imagem do dispositivo</option>
-          </select>
-
-          <img id="preview-imagem-editar" src="" alt="Preview da obra" hidden />
-          <p id="aviso-imagem-editar" class="aviso-form" role="status"></p>
-
-          <label for="editar-link-leitura">Link para ler (opcional)</label>
-          <input
-            id="editar-link-leitura"
-            type="url"
-            placeholder="https://site.com/obra"
-          />
-
-          <button type="submit">Salvar</button>
-        </form>
         </div>
       </div>
     </div>
 
     <div id="popup-progresso">
       <div class="popup-shell">
-        <button id="fechar-popup-progresso" class="popup-fechar" type="button">X</button>
+        <button id="fechar-popup-progresso" class="popup-fechar" type="button">
+          X
+        </button>
         <div>
-        <h2 id="titulo-progresso"></h2>
-        <button id="marcar-toda-obra" type="button"></button>
-        <div id="lista-progresso"></div>
+          <h2 id="titulo-progresso"></h2>
+          <button id="marcar-toda-obra" type="button"></button>
+          <div id="lista-progresso"></div>
         </div>
       </div>
     </div>
 
     <div id="popup-confirmar-exclusao" class="popup-confirmacao" hidden>
-      <div class="popup-confirmacao-conteudo" role="dialog" aria-modal="true" aria-labelledby="titulo-confirmar-exclusao">
+      <div
+        class="popup-confirmacao-conteudo"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-confirmar-exclusao"
+      >
         <h2 id="titulo-confirmar-exclusao">Tem certeza que deseja excluir?</h2>
         <p id="nome-obra-exclusao"></p>
         <div class="botoes-confirmacao">

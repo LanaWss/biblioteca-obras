@@ -2,19 +2,49 @@ const express = require("express");
 const Database = require("better-sqlite3");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const path = require("path");
 
 const app = express();
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static("public"));
 
+class ErroAplicacao extends Error {
+  constructor(mensagem, status = 500) {
+    super(mensagem);
+    this.status = status;
+  }
+}
+
+function responderErro(res, status, mensagem) {
+  return res.status(status).json({ erro: mensagem });
+}
+
+function tratarErro(erro, req, res, next) {
+  if (res.headersSent) {
+    return next(erro);
+  }
+
+  if (erro.type === "entity.parse.failed") {
+    return responderErro(res, 400, "JSON inválido");
+  }
+
+  const status = erro instanceof ErroAplicacao ? erro.status : 500;
+  const mensagem =
+    status >= 500 ? "Erro interno do servidor" : erro.message;
+
+  if (status >= 500) {
+    console.error(erro);
+  }
+
+  return responderErro(res, status, mensagem);
+}
+
 function verificarToken(req, res, next) {
   const autorizacao = req.headers.authorization;
 
   if (!autorizacao) {
-    return res.status(401).json({
-      erro: "Token não informado",
-    });
+    return responderErro(res, 401, "Token não informado");
   }
 
   const token = autorizacao.split(" ")[1];
@@ -26,13 +56,13 @@ function verificarToken(req, res, next) {
 
     next();
   } catch (erro) {
-    return res.status(401).json({
-      erro: "Token inválido",
-    });
+    return responderErro(res, 401, "Token inválido");
   }
 }
 
-const db = new Database(process.env.DB_PATH || "obras.db");
+const caminhoBanco =
+  process.env.DB_PATH || path.join(__dirname, "obras.db");
+const db = new Database(caminhoBanco);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS obras (
@@ -80,9 +110,7 @@ app.post("/usuarios", async (req, res) => {
   const { nome, email, senha } = req.body;
 
   if (!nome || !email || !senha) {
-    return res.status(400).json({
-      erro: "Nome, email e senha são obrigatórios",
-    });
+    return responderErro(res, 400, "Nome, email e senha são obrigatórios");
   }
 
   try {
@@ -102,14 +130,10 @@ app.post("/usuarios", async (req, res) => {
     });
   } catch (erro) {
     if (erro.code === "SQLITE_CONSTRAINT_UNIQUE") {
-      return res.status(400).json({
-        erro: "Este email já está cadastrado",
-      });
+      return responderErro(res, 400, "Este email já está cadastrado");
     }
 
-    res.status(500).json({
-      erro: "Erro ao criar usuário",
-    });
+    throw erro;
   }
 });
 
@@ -117,9 +141,7 @@ app.post("/login", async (req, res) => {
   const { email, senha } = req.body;
 
   if (!email || !senha) {
-    return res.status(400).json({
-      erro: "Email e senha são obrigatórios",
-    });
+    return responderErro(res, 400, "Email e senha são obrigatórios");
   }
 
   const usuario = db
@@ -133,18 +155,18 @@ app.post("/login", async (req, res) => {
     .get(email);
 
   if (!usuario) {
-    return res.status(401).json({
-      erro: "Email ou senha incorretos",
-    });
+    return responderErro(res, 401, "Email ou senha incorretos");
   }
 
   const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
 
   if (!senhaCorreta) {
-    return res.status(401).json({
-      erro: "Email ou senha incorretos",
-    });
+    return responderErro(res, 401, "Email ou senha incorretos");
   }
+
+  db.prepare(
+    "UPDATE obras SET usuario_id = ? WHERE usuario_id IS NULL",
+  ).run(usuario.id);
 
   const token = jwt.sign(
     {
@@ -184,6 +206,10 @@ app.get("/obras/:id", verificarToken, (req, res) => {
   `,
     )
     .get(id, req.usuario.id);
+
+  if (!obra) {
+    return responderErro(res, 404, "Obra não encontrada");
+  }
 
   res.json(obra);
 });
@@ -241,9 +267,7 @@ app.post("/obras", verificarToken, (req, res) => {
   const obra = req.body;
 
   if (!obra.title) {
-    return res.status(400).json({
-      erro: "O nome da obra é obrigatório",
-    });
+    return responderErro(res, 400, "O nome da obra é obrigatório");
   }
 
   const inserir = db.prepare(`
@@ -350,9 +374,7 @@ app.put("/obras/:id", verificarToken, (req, res) => {
   );
 
   if (resultado.changes === 0) {
-    return res.status(404).json({
-      erro: "Obra não encontrada",
-    });
+    return responderErro(res, 404, "Obra não encontrada");
   }
 
   res.json({
@@ -389,13 +411,17 @@ app.patch("/obras/:id", verificarToken, (req, res) => {
 
   if (campos.length > 0) {
     valores.push(id, req.usuario.id);
-    db.prepare(
+    const resultado = db.prepare(
       `
       UPDATE obras
       SET ${campos.join(", ")}
       WHERE id = ? AND usuario_id = ?
     `,
     ).run(...valores);
+
+    if (resultado.changes === 0) {
+      return responderErro(res, 404, "Obra não encontrada");
+    }
   }
 
   if (obra.done !== undefined) {
@@ -405,7 +431,11 @@ app.patch("/obras/:id", verificarToken, (req, res) => {
       WHERE id = ? AND usuario_id = ?
     `);
 
-    atualizarConclusao.run(obra.done, id);
+    const resultado = atualizarConclusao.run(obra.done, id, req.usuario.id);
+
+    if (resultado.changes === 0) {
+      return responderErro(res, 404, "Obra não encontrada");
+    }
   }
 
   res.json({
@@ -424,12 +454,18 @@ app.delete("/obras/:id", verificarToken, (req, res) => {
         WHERE id = ? AND usuario_id = ?
     `);
 
-  apagar.run(id, req.usuario.id);
+  const resultado = apagar.run(id, req.usuario.id);
+
+  if (resultado.changes === 0) {
+    return responderErro(res, 404, "Obra não encontrada");
+  }
 
   res.json({
     mensagem: "Obra apagada",
   });
 });
+
+app.use(tratarErro);
 
 const PORT = process.env.PORT || 3000;
 

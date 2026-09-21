@@ -4,6 +4,18 @@ let obrasCarregadas = [];
 
 const boasVindas = document.getElementById("boas-vindas");
 
+function mostrarMensagem(texto, tipo) {
+  const mensagem = document.getElementById("mensagem");
+
+  mensagem.textContent = texto;
+  mensagem.className = tipo;
+  mensagem.style.display = "block";
+
+  setTimeout(() => {
+    mensagem.style.display = "none";
+  }, 3000);
+}
+
 if (boasVindas && sessionStorage.getItem("mostrarBoasVindas") === "true") {
   document.getElementById("nome-boas-vindas").textContent =
     localStorage.getItem("nomeUsuario") || "usuário";
@@ -142,7 +154,8 @@ function calcularProgresso(obra) {
   let vistos = 0;
 
   itens.forEach((item) => {
-      const inicio = obra.tipo === "manga" ? Number(item.inicio) : obterInicioTemporada(item);
+    const inicio =
+      obra.tipo === "manga" ? Number(item.inicio) : obterInicioTemporada(item);
     let fim =
       obra.tipo === "manga"
         ? Number(item.fim)
@@ -164,9 +177,9 @@ function calcularProgresso(obra) {
   };
 }
 
-  function obterInicioTemporada(temporada) {
-    return Number(temporada.inicio) || 1;
-  }
+function obterInicioTemporada(temporada) {
+  return Number(temporada.inicio) || 1;
+}
 
 function obterImagemPreferida(obra) {
   const imagens = {
@@ -199,7 +212,10 @@ function lerArquivoComoDataUrl(arquivo) {
 
 function validarImagem(url, arquivoDataUrl) {
   if (!url && !arquivoDataUrl) {
-    alert("Informe uma URL ou escolha uma imagem do dispositivo.");
+    mostrarMensagem(
+      "Informe uma URL ou escolha uma imagem do dispositivo.",
+      "erro",
+    );
     return false;
   }
 
@@ -329,10 +345,19 @@ function salvarProgresso() {
     });
 
     if (!resposta.ok) {
-      throw new Error("Não foi possível salvar o progresso.");
+      const resultado = await resposta.json().catch(() => ({}));
+
+      mostrarMensagem(
+        resultado.erro || "Não foi possível salvar o progresso.",
+        "erro",
+      );
+
+      return;
     }
 
     await carregarObras();
+
+    mostrarMensagem("Progresso salvo com sucesso!", "sucesso");
   });
 
   return filaSalvamentoProgresso;
@@ -351,7 +376,8 @@ function renderizarProgresso() {
 
   const grupoLabel = obra.tipo === "anime" ? "Temporada" : "Volume";
   const todosItens = itens.every((item) => {
-    const inicio = obra.tipo === "manga" ? Number(item.inicio) : obterInicioTemporada(item);
+    const inicio =
+      obra.tipo === "manga" ? Number(item.inicio) : obterInicioTemporada(item);
     const fim = obterFimComProgresso(
       item,
       inicio,
@@ -372,7 +398,8 @@ function renderizarProgresso() {
 
   listaProgresso.innerHTML = itens
     .map((item, indice) => {
-      const inicio = obra.tipo === "manga" ? item.inicio : obterInicioTemporada(item);
+      const inicio =
+        obra.tipo === "manga" ? item.inicio : obterInicioTemporada(item);
 
       const fim = obterFimComProgresso(
         item,
@@ -445,7 +472,10 @@ function abrirPopupProgresso(id) {
         obraRecebida && obraRecebida.title ? obraRecebida : obraDaLista;
 
       if (!obra) {
-        alert("Não foi possível carregar o progresso desta obra.");
+        mostrarMensagem(
+          "Não foi possível carregar o progresso desta obra.",
+          "erro",
+        );
         return;
       }
 
@@ -475,14 +505,31 @@ function carregarObras() {
 
   if (!token) {
     window.location.href = "/login.html";
+    return;
   }
 
   fetch("/obras", {
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      Authorization: `Bearer ${token}`,
     },
   })
-    .then((resposta) => resposta.json())
+    .then(async (resposta) => {
+      const resultado = await resposta.json().catch(() => ({}));
+
+      if (!resposta.ok) {
+        const erro = new Error(
+          resultado.erro || "Não foi possível carregar as obras.",
+        );
+        erro.status = resposta.status;
+        throw erro;
+      }
+
+      if (!Array.isArray(resultado)) {
+        throw new Error("Resposta inválida ao carregar as obras.");
+      }
+
+      return resultado;
+    })
     .then((obras) => {
       obrasCarregadas = obras;
 
@@ -640,6 +687,15 @@ function carregarObras() {
           configurarImagemCard(card, obra);
         }
       });
+    })
+    .catch((erro) => {
+      if (erro.status === 401) {
+        localStorage.removeItem("token");
+        window.location.href = "/login.html";
+        return;
+      }
+
+      mostrarMensagem(erro.message, "erro");
     });
 }
 
@@ -709,7 +765,10 @@ document.addEventListener("click", (evento) => {
           obraRecebida && obraRecebida.title ? obraRecebida : obraDaLista;
 
         if (!obra) {
-          alert("Não foi possível carregar os dados desta obra.");
+          mostrarMensagem(
+            "Não foi possível carregar os dados desta obra.",
+            "erro",
+          );
           return;
         }
 
@@ -877,7 +936,8 @@ document.addEventListener("click", (evento) => {
     );
 
     popupExclusao.dataset.id = botaoExcluir.dataset.deleteId;
-    document.getElementById("nome-obra-exclusao").textContent = obra?.title || "";
+    document.getElementById("nome-obra-exclusao").textContent =
+      obra?.title || "";
     popupExclusao.hidden = false;
     popupExclusao.style.display = "flex";
   }
@@ -908,9 +968,13 @@ document.addEventListener("click", (evento) => {
 
     const item = itens[indice];
 
-    const inicio = obra.tipo === "manga" ? item.inicio : obterInicioTemporada(item);
+    const inicio =
+      obra.tipo === "manga" ? item.inicio : obterInicioTemporada(item);
 
-    const fim = obra.tipo === "manga" ? item.fim : obterInicioTemporada(item) + item.episodios - 1;
+    const fim =
+      obra.tipo === "manga"
+        ? item.fim
+        : obterInicioTemporada(item) + item.episodios - 1;
 
     const totalItens = fim - inicio + 1;
 
@@ -930,8 +994,12 @@ document.addEventListener("click", (evento) => {
     const obra = obraProgressoAtual;
     const itens = obra.tipo === "anime" ? obra.temporadas : obra.volumes;
     const todosMarcados = itens.every((item) => {
-      const inicio = obra.tipo === "manga" ? item.inicio : obterInicioTemporada(item);
-      const fim = obra.tipo === "manga" ? item.fim : obterInicioTemporada(item) + item.episodios - 1;
+      const inicio =
+        obra.tipo === "manga" ? item.inicio : obterInicioTemporada(item);
+      const fim =
+        obra.tipo === "manga"
+          ? item.fim
+          : obterInicioTemporada(item) + item.episodios - 1;
 
       return (
         obterNumerosVistosValidos(item, inicio, fim).size === fim - inicio + 1
@@ -939,8 +1007,12 @@ document.addEventListener("click", (evento) => {
     });
 
     itens.forEach((item) => {
-      const inicio = obra.tipo === "manga" ? item.inicio : obterInicioTemporada(item);
-      const fim = obra.tipo === "manga" ? item.fim : obterInicioTemporada(item) + item.episodios - 1;
+      const inicio =
+        obra.tipo === "manga" ? item.inicio : obterInicioTemporada(item);
+      const fim =
+        obra.tipo === "manga"
+          ? item.fim
+          : obterInicioTemporada(item) + item.episodios - 1;
 
       item.vistos = todosMarcados
         ? []
@@ -1024,9 +1096,28 @@ adicionarTemporada.addEventListener("click", () => {
 
   const campos = ultimaTemporada.querySelectorAll("input");
 
-  if (campos[0].value === "" || campos[1].value === "") {
-    alert("Preencha a temporada e a quantidade de episódios.");
+  if (Number(inicio) > Number(fim)) {
+    mostrarMensagem(
+      "O episódio inicial não pode ser maior que o final.",
+      "erro",
+    );
+    return;
+  }
 
+  if (campos[0].value === "" || campos[1].value === "") {
+    mostrarMensagem(
+      "Preencha a temporada e a quantidade de episódios.",
+      "erro",
+    );
+
+    return;
+  }
+
+  if (Number(inicio) > Number(fim)) {
+    mostrarMensagem(
+      "O episódio inicial não pode ser maior que o final.",
+      "erro",
+    );
     return;
   }
 
@@ -1058,6 +1149,16 @@ adicionarTemporada.addEventListener("click", () => {
 
   listaTemporadas.appendChild(novaTemporada);
 });
+
+if (!numero || !inicio || !fim) {
+  mostrarMensagem("Preencha todos os campos do volume.", "erro");
+  return;
+}
+
+if (Number(inicio) > Number(fim)) {
+  mostrarMensagem("O capítulo inicial não pode ser maior que o final.", "erro");
+  return;
+}
 
 adicionarVolume.addEventListener("click", () => {
   const volumes = listaVolumes.querySelectorAll(".volume");
@@ -1142,14 +1243,14 @@ formCriar.addEventListener("submit", async (evento) => {
   imagemObra.value = imagemObra.value.trim();
 
   if (imagemObra.value && !imagemObra.checkValidity()) {
-    alert("Informe uma URL válida para a imagem.");
+    mostrarMensagem("Informe uma URL válida para a imagem.", "erro");
     imagemObra.focus();
     botaoCriar.disabled = false;
     return;
   }
 
   if (linkLeituraObra.value && !linkLeituraObra.checkValidity()) {
-    alert("Informe um link válido para ler a obra.");
+    mostrarMensagem("Informe um link válido para ler a obra.", "erro");
     linkLeituraObra.focus();
     botaoCriar.disabled = false;
     return;
@@ -1160,7 +1261,7 @@ formCriar.addEventListener("submit", async (evento) => {
   try {
     imagemArquivo = await lerArquivoComoDataUrl(arquivoImagemObra.files[0]);
   } catch (erro) {
-    alert(erro.message);
+    mostrarMensagem(erro.message, "erro");
     botaoCriar.disabled = false;
     return;
   }
@@ -1173,9 +1274,26 @@ formCriar.addEventListener("submit", async (evento) => {
     const temporadas = listaTemporadas.querySelectorAll(".temporada");
 
     const primeira = temporadas[0].querySelectorAll("input");
+    const primeiraVazia = [...primeira].every((campo) => campo.value === "");
+    const primeiraIncompleta = [...primeira].some(
+      (campo) => campo.value === "",
+    );
 
-    if (primeira[0].value === "" || primeira[1].value === "") {
-      alert("Preencha a primeira temporada.");
+    if (!primeiraVazia && primeiraIncompleta) {
+      mostrarMensagem("Preencha a primeira temporada.", "erro");
+
+      botaoCriar.disabled = false;
+      return;
+    }
+
+    if (
+      !primeiraVazia &&
+      Number(primeira[2].value) > Number(primeira[1].value)
+    ) {
+      mostrarMensagem(
+        "O episódio inicial não pode ser maior que a quantidade de episódios.",
+        "erro",
+      );
 
       botaoCriar.disabled = false;
       return;
@@ -1191,7 +1309,19 @@ formCriar.addEventListener("submit", async (evento) => {
 
       if (numero !== "" || episodios !== "" || inicio !== "") {
         if (numero === "" || episodios === "" || inicio === "") {
-          alert("Preencha a temporada e a quantidade de episódios.");
+          mostrarMensagem(
+            "Preencha a temporada e a quantidade de episódios.",
+            "erro",
+          );
+
+          botaoCriar.disabled = false;
+          return;
+        }
+        if (Number(inicio) > Number(episodios)) {
+          mostrarMensagem(
+            "O episódio inicial não pode ser maior que a quantidade de episódios.",
+            "erro",
+          );
 
           botaoCriar.disabled = false;
           return;
@@ -1210,7 +1340,17 @@ formCriar.addEventListener("submit", async (evento) => {
       primeiro[1].value === "" ||
       primeiro[2].value === ""
     ) {
-      alert("Preencha o primeiro volume.");
+      mostrarMensagem("Preencha o primeiro volume.", "erro");
+
+      botaoCriar.disabled = false;
+      return;
+    }
+
+    if (Number(primeiro[1].value) > Number(primeiro[2].value)) {
+      mostrarMensagem(
+        "O início do capítulo não pode ser maior que o fim.",
+        "erro",
+      );
 
       botaoCriar.disabled = false;
       return;
@@ -1227,14 +1367,20 @@ formCriar.addEventListener("submit", async (evento) => {
 
       if (numero !== "" || inicio !== "" || fim !== "") {
         if (numero === "" || inicio === "" || fim === "") {
-          alert("Preencha o volume e o início e fim dos capítulos.");
+          mostrarMensagem(
+            "Preencha o volume e o início e fim dos capítulos.",
+            "erro",
+          );
 
           botaoCriar.disabled = false;
           return;
         }
 
         if (Number(inicio) > Number(fim)) {
-          alert("O início do capítulo não pode ser maior que o fim.");
+          mostrarMensagem(
+            "O início do capítulo não pode ser maior que o fim.",
+            "erro",
+          );
 
           botaoCriar.disabled = false;
           return;
@@ -1246,20 +1392,34 @@ formCriar.addEventListener("submit", async (evento) => {
   const temporadas = [];
 
   if (tipoObra.value === "anime") {
-    const linhas = listaTemporadas.querySelectorAll(".temporada");
+    const linhasTemporadas = listaTemporadas.querySelectorAll(".temporada");
+    for (let i = 0; i < linhasTemporadas.length; i++) {
+      const campos = linhasTemporadas[i].querySelectorAll("input");
 
-    linhas.forEach((linha) => {
-      const campos = linha.querySelectorAll("input");
+      const numero = campos[0].value;
+      const episodios = campos[1].value;
+      const inicio = campos[2].value;
 
-      if (campos[0].value !== "" && campos[1].value !== "") {
-        temporadas.push({
-          numero: Number(campos[0].value),
-
-          episodios: Number(campos[1].value),
-          inicio: Number(campos[2].value) || 1,
-        });
+      if (numero === "" && episodios === "" && inicio === "") {
+        continue;
       }
-    });
+
+      if (numero === "" || episodios === "" || inicio === "") {
+        mostrarMensagem("Preencha todos os campos da temporada.", "erro");
+
+        botaoCriar.disabled = false;
+        return;
+      }
+
+      const temporada = {
+        numero: Number(numero),
+        episodios: Number(episodios),
+        inicio: Number(inicio),
+        vistos: [],
+      };
+
+      temporadas.push(temporada);
+    }
   }
 
   const volumes = [];
@@ -1288,7 +1448,10 @@ formCriar.addEventListener("submit", async (evento) => {
     });
 
     if (volumes.length === 0) {
-      alert("Envie pelo menos um volume completo antes de criar a obra.");
+      mostrarMensagem(
+        "Envie pelo menos um volume completo antes de criar a obra.",
+        "erro",
+      );
       botaoCriar.disabled = false;
       return;
     }
@@ -1330,6 +1493,8 @@ formCriar.addEventListener("submit", async (evento) => {
     }
 
     await carregarObras();
+
+    mostrarMensagem("Obra criada com sucesso!", "sucesso");
 
     tituloObra.value = "";
 
@@ -1414,7 +1579,7 @@ formCriar.addEventListener("submit", async (evento) => {
 
     popupCriar.style.display = "none";
   } catch (erro) {
-    alert(erro.message || "Não foi possível criar a obra.");
+    mostrarMensagem(erro.message || "Não foi possível criar a obra.", "erro");
   } finally {
     botaoCriar.disabled = false;
   }
@@ -1529,7 +1694,10 @@ editarAdicionarTemporada.addEventListener("click", () => {
   const campos = ultimaTemporada.querySelectorAll("input");
 
   if (campos[0].value === "" || campos[1].value === "") {
-    alert("Preencha a temporada e a quantidade de episódios.");
+    mostrarMensagem(
+      "Preencha a temporada e a quantidade de episódios.",
+      "erro",
+    );
 
     return;
   }
@@ -1591,6 +1759,26 @@ editarAdicionarVolume.addEventListener("click", () => {
   }
 
   const campos = ultimoVolume.querySelectorAll("input");
+
+  if (
+    campos[0].value === "" ||
+    campos[1].value === "" ||
+    campos[2].value === ""
+  ) {
+    mostrarMensagem(
+      "Preencha o volume, o início e o fim dos capítulos.",
+      "erro",
+    );
+    return;
+  }
+
+  if (Number(campos[1].value) > Number(campos[2].value)) {
+    mostrarMensagem(
+      "O início do capítulo não pode ser maior que o fim.",
+      "erro",
+    );
+    return;
+  }
 
   const novoVolume = document.createElement("div");
 
@@ -1655,15 +1843,14 @@ formEditar.addEventListener("submit", async (evento) => {
   imagem.value = imagem.value.trim();
 
   if (imagem.value && !imagem.checkValidity()) {
-    alert("Informe uma URL válida para a imagem.");
-
+    mostrarMensagem("Informe uma URL válida para a imagem.", "erro");
     imagem.focus();
 
     return;
   }
 
   if (linkLeitura.value && !linkLeitura.checkValidity()) {
-    alert("Informe um link válido para ler a obra.");
+    mostrarMensagem("Informe um link válido para ler a obra.", "erro");
     linkLeitura.focus();
     return;
   }
@@ -1677,7 +1864,7 @@ formEditar.addEventListener("submit", async (evento) => {
       imagemArquivo = novoArquivo;
     }
   } catch (erro) {
-    alert(erro.message);
+    mostrarMensagem(erro.message, "erro");
     return;
   }
 
@@ -1702,7 +1889,10 @@ formEditar.addEventListener("submit", async (evento) => {
     }
 
     if (numero === "" || episodios === "" || inicio === "") {
-      alert("Preencha a temporada e a quantidade de episódios.");
+      mostrarMensagem(
+        "Preencha a temporada e a quantidade de episódios.",
+        "erro",
+      );
 
       return;
     }
@@ -1735,13 +1925,19 @@ formEditar.addEventListener("submit", async (evento) => {
     }
 
     if (numero === "" || inicio === "" || fim === "") {
-      alert("Preencha o volume e o início e fim dos capítulos.");
+      mostrarMensagem(
+        "Preencha o volume e o início e fim dos capítulos.",
+        "erro",
+      );
 
       return;
     }
 
     if (Number(inicio) > Number(fim)) {
-      alert("O início do capítulo não pode ser maior que o fim.");
+      mostrarMensagem(
+        "O início do capítulo não pode ser maior que o fim.",
+        "erro",
+      );
 
       return;
     }
@@ -1784,17 +1980,29 @@ formEditar.addEventListener("submit", async (evento) => {
 
       volumes: tipo.value === "manga" ? volumes : null,
     }),
-  }).then(() => {
-    carregarObras();
+  }).then(async (resposta) => {
+    if (!resposta.ok) {
+      const resultado = await resposta.json().catch(() => ({}));
 
+      mostrarMensagem(
+        resultado.erro || "Não foi possível editar a obra.",
+        "erro",
+      );
+
+      return;
+    }
+
+    await carregarObras();
     popupEditar.style.display = "none";
+
+    mostrarMensagem("Obra editada com sucesso!", "sucesso");
   });
 });
 
 document.getElementById("botao-sair").addEventListener("click", () => {
-    localStorage.removeItem("token");
+  localStorage.removeItem("token");
 
-    window.location.href = "/login.html";
+  window.location.href = "/login.html";
 });
 
 const popupExclusao = document.getElementById("popup-confirmar-exclusao");
@@ -1804,21 +2012,25 @@ document.getElementById("cancelar-exclusao").addEventListener("click", () => {
   popupExclusao.style.display = "none";
 });
 
-document.getElementById("confirmar-exclusao").addEventListener("click", async () => {
-  const id = popupExclusao.dataset.id;
-  const resposta = await fetch(`/obras/${id}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
+document
+  .getElementById("confirmar-exclusao")
+  .addEventListener("click", async () => {
+    const id = popupExclusao.dataset.id;
+    const resposta = await fetch(`/obras/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (!resposta.ok) {
+      mostrarMensagem("Não foi possível excluir a obra.", "erro");
+      return;
+    }
+
+    popupExclusao.hidden = true;
+    popupExclusao.style.display = "none";
+    await carregarObras();
+
+    mostrarMensagem("Obra excluída com sucesso!", "sucesso");
   });
-
-  if (!resposta.ok) {
-    alert("Não foi possível excluir a obra.");
-    return;
-  }
-
-  popupExclusao.hidden = true;
-  popupExclusao.style.display = "none";
-  await carregarObras();
-});

@@ -12,6 +12,10 @@
     box-sizing: border-box;
 }
 
+.obrigatorio {
+    color: red;
+}
+
 header {
     background-color: rgba(241, 217, 248, 0.5);
     color: #272020;
@@ -952,4 +956,34 @@ button {
 
 #cancelar-exclusao {
     background: #58717a;
+}
+
+#mensagem {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 99999999;
+
+    padding: 12px 20px;
+    min-width: 250px;
+    max-width: 90%;
+
+    text-align: center;
+    border-radius: 6px;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+#mensagem.erro {
+    color: red;
+}
+
+#mensagem.sucesso {
+    color: green;
+}
+
+#mensagem.aviso {
+    color: orange;
 }
