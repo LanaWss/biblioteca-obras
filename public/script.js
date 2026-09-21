@@ -1096,14 +1096,6 @@ adicionarTemporada.addEventListener("click", () => {
 
   const campos = ultimaTemporada.querySelectorAll("input");
 
-  if (Number(inicio) > Number(fim)) {
-    mostrarMensagem(
-      "O episódio inicial não pode ser maior que o final.",
-      "erro",
-    );
-    return;
-  }
-
   if (campos[0].value === "" || campos[1].value === "") {
     mostrarMensagem(
       "Preencha a temporada e a quantidade de episódios.",
@@ -1113,9 +1105,9 @@ adicionarTemporada.addEventListener("click", () => {
     return;
   }
 
-  if (Number(inicio) > Number(fim)) {
+  if (Number(campos[2].value) > Number(campos[1].value)) {
     mostrarMensagem(
-      "O episódio inicial não pode ser maior que o final.",
+      "O episódio inicial não pode ser maior que a quantidade de episódios.",
       "erro",
     );
     return;
@@ -1150,22 +1142,26 @@ adicionarTemporada.addEventListener("click", () => {
   listaTemporadas.appendChild(novaTemporada);
 });
 
-if (!numero || !inicio || !fim) {
-  mostrarMensagem("Preencha todos os campos do volume.", "erro");
-  return;
-}
-
-if (Number(inicio) > Number(fim)) {
-  mostrarMensagem("O capítulo inicial não pode ser maior que o final.", "erro");
-  return;
-}
-
 adicionarVolume.addEventListener("click", () => {
   const volumes = listaVolumes.querySelectorAll(".volume");
 
   const ultimoVolume = volumes[volumes.length - 1];
 
   const campos = ultimoVolume.querySelectorAll("input");
+
+  const numero = campos[0].value;
+  const inicio = campos[1].value;
+  const fim = campos[2].value;
+
+  if (!numero || !inicio || !fim) {
+    mostrarMensagem("Preencha todos os campos do volume.", "erro");
+    return;
+  }
+
+  if (Number(inicio) > Number(fim)) {
+    mostrarMensagem("O capítulo inicial não pode ser maior que o final.", "erro");
+    return;
+  }
 
   const novoVolume = document.createElement("div");
 
