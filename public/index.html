@@ -230,6 +230,34 @@
             <label for="editar-titulo">Nome:</label>
             <input id="editar-titulo" type="text" required />
 
+            <div class="campo-titulos-alternativos">
+              <label for="editar-titulo-alternativo">
+                Títulos alternativos
+              </label>
+
+              <div class="linha-titulo-alternativo">
+                <input
+                  type="text"
+                  id="editar-titulo-alternativo"
+                  placeholder="Digite um título alternativo"
+                />
+
+                <button type="button" id="editar-adicionar-titulo-alternativo">
+                  Adicionar
+                </button>
+              </div>
+
+              <div id="editar-lista-titulos-alternativos"></div>
+
+              <label for="editar-titulo-exibicao">
+                Título mostrado no card
+              </label>
+
+              <select id="editar-titulo-exibicao">
+                <option value="principal">Título principal</option>
+              </select>
+            </div>
+
             <label for="editar-tipo">Tipo</label>
             <select id="editar-tipo" required>
               <option value="">Selecione</option>

@@ -479,6 +479,10 @@ function abrirPopupProgresso(id) {
         return;
       }
 
+      titulosAlternativosEdicao = Array.isArray(obra.titulos_alternativos)
+        ? [...obra.titulos_alternativos]
+        : [];
+
       obra.temporadas = prepararProgresso(
         lerConteudoObra(obra.temporadas),
         "episodios",
@@ -492,12 +496,20 @@ function abrirPopupProgresso(id) {
       obraProgressoAtual = obra;
 
       document.getElementById("titulo-progresso").textContent =
-        `Progresso: ${obra.title}`;
+        `Progresso: ${obterTituloExibicao(obra)}`;
 
       renderizarProgresso();
 
       document.getElementById("popup-progresso").style.display = "flex";
     });
+}
+
+function obterTituloExibicao(obra) {
+  if (!obra.titulo_exibicao || obra.titulo_exibicao === "principal") {
+    return obra.title;
+  }
+
+  return obra.titulo_exibicao;
 }
 
 function carregarObras() {
@@ -599,7 +611,7 @@ function carregarObras() {
         const imagens = obterImagemPreferida(obra);
         const linkLeitura = String(obra.link_leitura || "").trim();
         const imagem = imagens.principal
-          ? `<img class="imagem-obra" src="${imagens.principal}" alt="${obra.title}">`
+          ? `<img class="imagem-obra" src="${imagens.principal}" alt="${obterTituloExibicao(obra)}">`
           : "";
         const botaoLeitura = linkLeitura
           ? `
@@ -622,7 +634,7 @@ function carregarObras() {
 
             <div class="titulo-card">
 
-              <h2>${obra.title}</h2>
+              <h2>${obterTituloExibicao(obra)}</h2>
 
               <span
                 class="status-card status-${obra.status}"
@@ -748,6 +760,8 @@ document
       }
     });
   });
+
+let titulosAlternativosEdicao = [];
 
 document.addEventListener("click", (evento) => {
   const botaoEditar = evento.target.closest("button[data-id]");
@@ -1286,6 +1300,73 @@ function renderizarTitulosAlternativos() {
     : "principal";
 }
 
+function renderizarTitulosAlternativosEdicao() {
+  const lista = document.getElementById("editar-lista-titulos-alternativos");
+
+  const select = document.getElementById("editar-titulo-exibicao");
+
+  const selecaoAtual = select.value || "principal";
+
+  lista.innerHTML = "";
+
+  select.innerHTML = `
+    <option value="principal">Título principal</option>
+  `;
+
+  titulosAlternativosEdicao.forEach((titulo, indice) => {
+    const item = document.createElement("div");
+
+    const texto = document.createElement("span");
+    texto.textContent = titulo;
+
+    const botaoRemover = document.createElement("button");
+    botaoRemover.type = "button";
+    botaoRemover.textContent = "×";
+
+    botaoRemover.addEventListener("click", () => {
+      titulosAlternativosEdicao.splice(indice, 1);
+
+      renderizarTitulosAlternativosEdicao();
+    });
+
+    item.append(texto, botaoRemover);
+
+    lista.appendChild(item);
+
+    const opcao = document.createElement("option");
+
+    opcao.value = titulo;
+    opcao.textContent = titulo;
+
+    select.appendChild(opcao);
+  });
+
+  select.value = titulosAlternativosEdicao.includes(selecaoAtual)
+    ? selecaoAtual
+    : "principal";
+}
+
+document
+  .getElementById("editar-adicionar-titulo-alternativo")
+  .addEventListener("click", () => {
+    const campo = document.getElementById("editar-titulo-alternativo");
+    const titulo = campo.value.trim();
+
+    if (!titulo) {
+      mostrarMensagem("Digite um título alternativo.", "aviso");
+      return;
+    }
+
+    if (titulosAlternativosEdicao.includes(titulo)) {
+      mostrarMensagem("Esse título alternativo já foi adicionado.", "aviso");
+      return;
+    }
+
+    titulosAlternativosEdicao.push(titulo);
+    campo.value = "";
+    renderizarTitulosAlternativosEdicao();
+  });
+
 formCriar.addEventListener("submit", async (evento) => {
   evento.preventDefault();
 
@@ -1564,8 +1645,16 @@ formCriar.addEventListener("submit", async (evento) => {
     await carregarObras();
 
     mostrarMensagem("Obra criada com sucesso!", "sucesso");
+  renderizarTitulosAlternativos();
 
     tituloObra.value = "";
+
+        titulosAlternativosEdicao = Array.isArray(obra.titulos_alternativos)
+          ? [...obra.titulos_alternativos]
+          : [];
+        renderizarTitulosAlternativosEdicao();
+        document.getElementById("editar-titulo-exibicao").value =
+          obra.titulo_exibicao || "principal";
 
     tipoObra.value = "";
 
@@ -2048,6 +2137,10 @@ formEditar.addEventListener("submit", async (evento) => {
       temporadas: tipo.value === "anime" ? temporadas : null,
 
       volumes: tipo.value === "manga" ? volumes : null,
+
+      titulos_alternativos: titulosAlternativosEdicao,
+
+      titulo_exibicao: document.getElementById("editar-titulo-exibicao").value,
     }),
   }).then(async (resposta) => {
     if (!resposta.ok) {

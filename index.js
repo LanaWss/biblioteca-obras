@@ -366,7 +366,7 @@ app.post("/obras", verificarToken, (req, res) => {
     temporadas: obra.temporadas || null,
     capitulos: obra.capitulos || null,
     volumes: obra.volumes || null,
-    titulos_alternativos: Array.isArray(obras.titulos_alternativos)
+    titulos_alternativos: Array.isArray(obra.titulos_alternativos)
       ? obra.titulos_alternativos
       : [],
     titulo_exibicao: obra.titulo_exibicao || "principal",
@@ -541,8 +541,19 @@ app.use(tratarErro);
 const PORT = process.env.PORT || 3000;
 
 if (require.main === module) {
-  app.listen(PORT, "0.0.0.0", () => {
+  const servidor = app.listen(PORT, "0.0.0.0", () => {
     console.log(`Servidor rodando na porta ${PORT}`);
+  });
+
+  servidor.on("error", (erro) => {
+    if (erro.code === "EADDRINUSE") {
+      console.error(`A porta ${PORT} já está em uso por outro servidor.`);
+      servidor.close();
+      process.exitCode = 1;
+      return;
+    }
+
+    throw erro;
   });
 }
 

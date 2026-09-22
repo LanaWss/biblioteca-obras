@@ -780,6 +780,44 @@ button {
     border: 1px solid #bbb;
     border-radius: 7px;
     font-size: 14px;
+    color: #17263a;
+    background-color: #fff;
+}
+
+#lista-titulos-alternativos,
+#editar-lista-titulos-alternativos {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 2px 0 4px;
+}
+
+#lista-titulos-alternativos > div,
+#editar-lista-titulos-alternativos > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 8px;
+    border: 1px solid #d5d8d8;
+    border-radius: 6px;
+    color: #17263a;
+    background-color: #f4f0e8;
+    font-size: 14px;
+}
+
+#lista-titulos-alternativos span,
+#editar-lista-titulos-alternativos span {
+    overflow-wrap: anywhere;
+}
+
+#lista-titulos-alternativos button,
+#editar-lista-titulos-alternativos button {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 2px 7px;
+    color: #fff;
+    background-color: #b55742;
 }
 
 #popup-criar input:focus,
