@@ -45,7 +45,12 @@ function obterObrasFiltradas() {
   const termo = normalizarTexto(buscarObras.value.trim());
 
   return obrasCarregadas.filter((obra) => {
-    const nomeCombina = normalizarTexto(obra.title).includes(termo);
+    const titulosAlternativos = Array.isArray(obra.titulos_alternativos)
+      ? obra.titulos_alternativos
+      : lerConteudoObra(obra.titulos_alternativos);
+    const nomeCombina = [obra.title, ...titulosAlternativos].some((titulo) =>
+      normalizarTexto(titulo || "").includes(termo),
+    );
 
     const tipoCombina = !filtroTipo.value || obra.tipo === filtroTipo.value;
 
