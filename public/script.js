@@ -189,6 +189,40 @@ function calcularProgresso(obra) {
   };
 }
 
+function ordenarItensPeloProgresso(obra, itens) {
+  if (itens.length < 2) {
+    return itens;
+  }
+
+  const maiorVisto = Math.max(
+    ...itens.flatMap((item) =>
+      Array.isArray(item.vistos) ? item.vistos.map(Number) : [],
+    ),
+    0,
+  );
+
+  if (maiorVisto === 0) {
+    return itens;
+  }
+
+  let indiceAtual = 0;
+
+  itens.forEach((item, indice) => {
+    const inicio =
+      obra.tipo === "manga" ? Number(item.inicio) : obterInicioTemporada(item);
+    const fim =
+      obra.tipo === "manga"
+        ? Number(item.fim)
+        : inicio + Number(item.episodios || 0) - 1;
+
+    if (maiorVisto >= inicio && maiorVisto <= fim) {
+      indiceAtual = indice;
+    }
+  });
+
+  return [itens[indiceAtual], ...itens.filter((_, indice) => indice !== indiceAtual)];
+}
+
 function obterInicioTemporada(temporada) {
   return Number(temporada.inicio) || 1;
 }
@@ -569,7 +603,10 @@ function carregarObras() {
         }[obra.status];
 
         if (obra.tipo === "anime") {
-          const temporadas = lerConteudoObra(obra.temporadas);
+          const temporadas = ordenarItensPeloProgresso(
+            obra,
+            lerConteudoObra(obra.temporadas),
+          );
 
           conteudo = `
             <h3><i class="fa-solid fa-list"></i> Temporadas</h3>
@@ -580,7 +617,11 @@ function carregarObras() {
                   (temporada, indice) => `
                   <p ${indice > 0 ? 'hidden data-temporada-extra="true"' : ""}>
                     Temporada ${temporada.numero} —
-                    ${temporada.episodios} episódios
+                    episódios ${obterInicioTemporada(temporada)}–${
+                      obterInicioTemporada(temporada) +
+                      Number(temporada.episodios || 0) -
+                      1
+                    }
                   </p>
                   `,
                 )
@@ -598,7 +639,10 @@ function carregarObras() {
         }
 
         if (obra.tipo === "manga") {
-          const volumes = lerConteudoObra(obra.volumes);
+          const volumes = ordenarItensPeloProgresso(
+            obra,
+            lerConteudoObra(obra.volumes),
+          );
 
           conteudo = `
             <h3><i class="fa-solid fa-book"></i> Volumes</h3>
