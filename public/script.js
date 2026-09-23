@@ -574,16 +574,26 @@ function carregarObras() {
           conteudo = `
             <h3><i class="fa-solid fa-list"></i> Temporadas</h3>
 
-            ${temporadas
-              .map(
-                (temporada) => `
-                  <p>
+            <div class="lista-temporadas-card">
+              ${temporadas
+                .map(
+                  (temporada, indice) => `
+                  <p ${indice > 0 ? 'hidden data-temporada-extra="true"' : ""}>
                     Temporada ${temporada.numero} —
                     ${temporada.episodios} episódios
                   </p>
-                `,
-              )
-              .join("")}
+                  `,
+                )
+                .join("")}
+            </div>
+
+            ${
+              temporadas.length > 1
+                ? `<button type="button" class="botao-mais-itens" data-temporadas-expandidas="false">
+                  Ler mais
+                </button>`
+                : ""
+            }
           `;
         }
 
@@ -608,7 +618,7 @@ function carregarObras() {
 
             ${
               volumes.length > 1
-                ? `<button type="button" class="botao-mais-volumes" data-volumes-expandidos="false">
+                ? `<button type="button" class="botao-mais-itens" data-volumes-expandidos="false">
                   Ler mais
                 </button>`
                 : ""
@@ -1049,6 +1059,19 @@ document.addEventListener("click", async (evento) => {
     });
 
     botao.dataset.volumesExpandidos = String(mostrar);
+    botao.textContent = mostrar ? "Mostrar menos" : "Ler mais";
+  }
+
+  if (evento.target.matches("button[data-temporadas-expandidas]")) {
+    const botao = evento.target;
+    const card = botao.closest(".cards");
+    const mostrar = botao.dataset.temporadasExpandidas !== "true";
+
+    card.querySelectorAll("[data-temporada-extra]").forEach((temporada) => {
+      temporada.hidden = !mostrar;
+    });
+
+    botao.dataset.temporadasExpandidas = String(mostrar);
     botao.textContent = mostrar ? "Mostrar menos" : "Ler mais";
   }
 
