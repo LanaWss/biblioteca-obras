@@ -34,6 +34,8 @@ const filtroStatus = document.getElementById("filtro-status");
 
 const filtroProgresso = document.getElementById("filtro-progresso");
 
+const filtroFavorito = document.getElementById("filtro-favorito");
+
 function normalizarTexto(valor) {
   return valor
     .toLocaleLowerCase("pt-BR")
@@ -66,7 +68,11 @@ function obterObrasFiltradas() {
       (filtroProgresso.value === "pendente" &&
         progresso.vistos < progresso.total);
 
-    return nomeCombina && tipoCombina && statusCombina && progressoCombina;
+    const favoritoCombina =
+      !filtroFavorito.value ||
+      (filtroFavorito.value === "favoritos" && obra.favorito === 1);
+
+    return nomeCombina && tipoCombina && statusCombina && progressoCombina && favoritoCombina;
   });
 }
 
@@ -484,10 +490,6 @@ function abrirPopupProgresso(id) {
         return;
       }
 
-      titulosAlternativosEdicao = Array.isArray(obra.titulos_alternativos)
-        ? [...obra.titulos_alternativos]
-        : [];
-
       obra.temporadas = prepararProgresso(
         lerConteudoObra(obra.temporadas),
         "episodios",
@@ -637,6 +639,16 @@ function carregarObras() {
             data-card-id="${obra.id}"
           >
 
+          <button
+  type="button"
+  class="botao-favorito"
+  data-favorito-id="${obra.id}"
+  aria-label="${obra.favorito ? "Remover dos favoritos" : "Adicionar aos favoritos"}"
+  title="${obra.favorito ? "Remover dos favoritos" : "Adicionar aos favoritos"}"
+>
+  <i class="${obra.favorito ? "fa-solid" : "fa-regular"} fa-heart"></i>
+</button>
+
             <div class="titulo-card">
 
               <h2>${obterTituloExibicao(obra)}</h2>
@@ -734,6 +746,10 @@ filtroProgresso.addEventListener("change", () => {
   carregarObras();
 });
 
+filtroFavorito.addEventListener("change", () => {
+  carregarObras();
+});
+
 document.getElementById("abrir-filtros").addEventListener("click", () => {
   document.getElementById("popup-filtros").style.display = "flex";
 });
@@ -750,6 +766,8 @@ document.getElementById("limpar-filtros").addEventListener("click", () => {
   filtroStatus.value = "";
 
   filtroProgresso.value = "";
+
+  filtroFavorito.value = "";
 
   carregarObras();
 });
@@ -768,7 +786,7 @@ document
 
 let titulosAlternativosEdicao = [];
 
-document.addEventListener("click", (evento) => {
+document.addEventListener("click", async (evento) => {
   const botaoEditar = evento.target.closest("button[data-id]");
 
   if (botaoEditar) {
@@ -791,6 +809,10 @@ document.addEventListener("click", (evento) => {
           return;
         }
 
+        titulosAlternativosEdicao = Array.isArray(obra.titulos_alternativos)
+          ? [...obra.titulos_alternativos]
+          : [];
+
         const popupEditar = document.getElementById("popup-editar");
 
         popupEditar.dataset.id = id;
@@ -800,6 +822,11 @@ document.addEventListener("click", (evento) => {
         document.getElementById("editar-tipo").value = obra.tipo || "";
 
         document.getElementById("editar-status").value = obra.status || "";
+
+        renderizarTitulosAlternativosEdicao();
+
+        document.getElementById("editar-titulo-exibicao").value =
+          obra.titulo_exibicao || "principal";
 
         document.getElementById("editar-imagem").value = obra.imagem || "";
         document.getElementById("editar-preferencia-imagem").value =
@@ -963,6 +990,52 @@ document.addEventListener("click", (evento) => {
 
   if (evento.target.matches("button[data-progress-id]")) {
     abrirPopupProgresso(evento.target.dataset.progressId);
+  }
+
+  const botaoFavorito = evento.target.closest("button[data-favorito-id]");
+
+  if (botaoFavorito) {
+    const id = botaoFavorito.dataset.favoritoId;
+
+    const obra = obrasCarregadas.find((item) => String(item.id) === String(id));
+
+    if (!obra) {
+      return;
+    }
+
+    const novoFavorito = obra.favorito ? 0 : 1;
+
+    botaoFavorito.disabled = true;
+
+    try {
+      const resposta = await fetch(`/obras/${id}/favorito`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          favorito: novoFavorito,
+        }),
+      });
+
+      if (!resposta.ok) {
+        const resultado = await resposta.json().catch(() => ({}));
+
+        mostrarMensagem(
+          resultado.erro || "Não foi possível atualizar o favorito.",
+          "erro",
+        );
+
+        return;
+      }
+
+      await carregarObras();
+    } catch (erro) {
+      mostrarMensagem("Não foi possível atualizar o favorito.", "erro");
+    } finally {
+      botaoFavorito.disabled = false;
+    }
   }
 
   if (evento.target.matches("button[data-volumes-expandidos]")) {
@@ -1647,19 +1720,12 @@ formCriar.addEventListener("submit", async (evento) => {
       throw new Error(resultado.erro || "Não foi possível criar a obra.");
     }
 
-    await carregarObras();
-
     mostrarMensagem("Obra criada com sucesso!", "sucesso");
-  renderizarTitulosAlternativos();
+    popupCriar.style.display = "none";
+
+    renderizarTitulosAlternativos();
 
     tituloObra.value = "";
-
-        titulosAlternativosEdicao = Array.isArray(obra.titulos_alternativos)
-          ? [...obra.titulos_alternativos]
-          : [];
-        renderizarTitulosAlternativosEdicao();
-        document.getElementById("editar-titulo-exibicao").value =
-          obra.titulo_exibicao || "principal";
 
     tipoObra.value = "";
 
@@ -1740,7 +1806,14 @@ formCriar.addEventListener("submit", async (evento) => {
 
     camposManga.style.display = "none";
 
-    popupCriar.style.display = "none";
+    try {
+      await carregarObras();
+    } catch (erro) {
+      mostrarMensagem(
+        "A obra foi criada, mas não foi possível atualizar a lista.",
+        "aviso",
+      );
+    }
   } catch (erro) {
     mostrarMensagem(erro.message || "Não foi possível criar a obra.", "erro");
   } finally {

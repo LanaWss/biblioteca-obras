@@ -255,6 +255,41 @@ test("PATCH /obras/:id deve atualizar o progresso", async () => {
   assert.strictEqual(temporadas[0].assistidos, 5);
 });
 
+test("PATCH /obras/:id/favorito deve atualizar o favorito", async () => {
+  const criada = await criarObra({
+    title: "Obra favorita",
+    tipo: "manga",
+    status: "completa",
+    imagem: "https://exemplo.com/imagem.jpg",
+  });
+
+  const respostaFavoritar = await fetch(
+    `http://localhost:3000/obras/${criada.id}/favorito`,
+    {
+      method: "PATCH",
+      headers: headersComToken(),
+      body: JSON.stringify({ favorito: 1 }),
+    },
+  );
+
+  const favorito = await respostaFavoritar.json();
+
+  assert.strictEqual(respostaFavoritar.status, 200);
+  assert.strictEqual(favorito.id, criada.id);
+  assert.strictEqual(favorito.favorito, 1);
+
+  const respostaConsulta = await fetch(
+    `http://localhost:3000/obras/${criada.id}`,
+    {
+      headers: headersComToken(),
+    },
+  );
+
+  const obraAtualizada = await respostaConsulta.json();
+
+  assert.strictEqual(obraAtualizada.favorito, 1);
+});
+
 test("DELETE /obras/:id deve apagar uma obra", async () => {
   const criada = await criarObra({
     title: "Obra para apagar",

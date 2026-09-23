@@ -92,6 +92,7 @@ for (const coluna of [
   "ALTER TABLE obras ADD COLUMN imagem_arquivo TEXT",
   "ALTER TABLE obras ADD COLUMN imagem_preferencia TEXT DEFAULT 'url'",
   "ALTER TABLE obras ADD COLUMN link_leitura TEXT",
+  "ALTER TABLE obras ADD COLUMN favorito INTEGER NOT NULL DEFAULT 0",
 ]) {
   try {
     db.exec(coluna);
@@ -331,9 +332,10 @@ app.post("/obras", verificarToken, (req, res) => {
       capitulos,
       volumes,
       titulos_alternativos,
+      favorito,
       titulo_exibicao
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const resultado = inserir.run(
@@ -351,6 +353,7 @@ app.post("/obras", verificarToken, (req, res) => {
     obra.titulos_alternativos
       ? JSON.stringify(obra.titulos_alternativos)
       : "[]",
+    obra.favorito || 0,
     obra.titulo_exibicao || "principal",
   );
 
@@ -369,6 +372,7 @@ app.post("/obras", verificarToken, (req, res) => {
     titulos_alternativos: Array.isArray(obra.titulos_alternativos)
       ? obra.titulos_alternativos
       : [],
+    favorito: obra.favorito || 0,
     titulo_exibicao: obra.titulo_exibicao || "principal",
     done: 0,
   });
@@ -458,6 +462,33 @@ app.put("/obras/:id", verificarToken, (req, res) => {
       ? obra.titulos_alternativos
       : [],
     titulo_exibicao: obra.titulo_exibicao || "principal",
+    favorito: obra.favorito || 0,
+  });
+});
+
+app.patch("/obras/:id/favorito", verificarToken, (req, res) => {
+  const id = Number(req.params.id);
+  const favorito = req.body.favorito ? 1 : 0;
+
+  const atualizar = db.prepare(`
+    UPDATE obras
+    SET favorito = ?
+    WHERE id = ? AND usuario_id = ?
+  `);
+
+  const resultado = atualizar.run(
+    favorito,
+    id,
+    req.usuario.id,
+  );
+
+  if (resultado.changes === 0) {
+    return responderErro(res, 404, "Obra não encontrada");
+  }
+
+  res.json({
+    id,
+    favorito,
   });
 });
 
