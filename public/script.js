@@ -1233,12 +1233,17 @@ adicionarTemporada.addEventListener("click", () => {
 
   novaTemporada.classList.add("temporada");
 
+  const proximoNumero = Number(campos[0].value) + 1;
+  const proximoInicio =
+    (Number(campos[2].value) || 1) + Number(campos[1].value);
+
   novaTemporada.innerHTML = `
       <label>
         Temporada
         <input
           type="number"
           min="1"
+          value="${proximoNumero}"
         >
       </label>
 
@@ -1251,7 +1256,7 @@ adicionarTemporada.addEventListener("click", () => {
       </label>
       <label>
         Começa no episódio
-        <input type="number" min="1" value="${Number(campos[1].value) + 1}">
+        <input type="number" min="1" value="${proximoInicio}">
       </label>
     `;
 
@@ -1966,12 +1971,17 @@ editarAdicionarTemporada.addEventListener("click", () => {
 
   novaTemporada.classList.add("temporada");
 
+  const proximoNumero = Number(campos[0].value) + 1;
+  const proximoInicio =
+    (Number(campos[2].value) || 1) + Number(campos[1].value);
+
   novaTemporada.innerHTML = `
       <label>
         Temporada
         <input
           type="number"
           min="1"
+          value="${proximoNumero}"
         >
       </label>
 
@@ -1984,7 +1994,7 @@ editarAdicionarTemporada.addEventListener("click", () => {
       </label>
       <label>
         Começa no episódio
-        <input type="number" min="1" value="${Number(campos[1].value) + 1}">
+        <input type="number" min="1" value="${proximoInicio}">
       </label>
     `;
 
