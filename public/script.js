@@ -62,6 +62,7 @@ function obterObrasFiltradas() {
     const progresso = calcularProgresso(obra);
     const progressoCombina =
       !filtroProgresso.value ||
+      (filtroProgresso.value === "nao-comecou" && progresso.vistos === 0) ||
       (filtroProgresso.value === "completo" &&
         progresso.total > 0 &&
         progresso.vistos === progresso.total) ||
