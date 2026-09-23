@@ -8,6 +8,7 @@ const app = express();
 
 const VERSAO_TERMOS = "1.0";
 const VERSAO_PRIVACIDADE = "1.0";
+const TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024;
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static("public"));
@@ -21,6 +22,47 @@ class ErroAplicacao extends Error {
 
 function responderErro(res, status, mensagem) {
   return res.status(status).json({ erro: mensagem });
+}
+
+async function baixarImagemComoDataUrl(url) {
+  if (!url || !/^https?:\/\//i.test(url)) {
+    return null;
+  }
+
+  const controlador = new AbortController();
+  const tempoLimite = setTimeout(() => controlador.abort(), 8000);
+
+  try {
+    const resposta = await fetch(url, {
+      signal: controlador.signal,
+      headers: {
+        Accept: "image/*",
+      },
+    });
+
+    if (!resposta.ok) {
+      return null;
+    }
+
+    const tipo = resposta.headers.get("content-type") || "";
+    const tamanhoInformado = Number(resposta.headers.get("content-length"));
+
+    if (!tipo.startsWith("image/") || tamanhoInformado > TAMANHO_MAXIMO_IMAGEM) {
+      return null;
+    }
+
+    const dados = Buffer.from(await resposta.arrayBuffer());
+
+    if (dados.length > TAMANHO_MAXIMO_IMAGEM) {
+      return null;
+    }
+
+    return `data:${tipo.split(";")[0]};base64,${dados.toString("base64")}`;
+  } catch (erro) {
+    return null;
+  } finally {
+    clearTimeout(tempoLimite);
+  }
 }
 
 function tratarErro(erro, req, res, next) {
@@ -311,12 +353,15 @@ function preservarProgresso(itensNovos, conteudoAtual, quantidadeKey) {
   });
 }
 
-app.post("/obras", verificarToken, (req, res) => {
+app.post("/obras", verificarToken, async (req, res) => {
   const obra = req.body;
 
   if (!obra.title) {
     return responderErro(res, 400, "O nome da obra é obrigatório");
   }
+
+  const imagemArquivo =
+    obra.imagem_arquivo || (await baixarImagemComoDataUrl(obra.imagem));
 
   const inserir = db.prepare(`
     INSERT INTO obras (
@@ -344,7 +389,7 @@ app.post("/obras", verificarToken, (req, res) => {
     obra.tipo,
     obra.status,
     obra.imagem,
-    obra.imagem_arquivo || null,
+    imagemArquivo || null,
     obra.imagem_preferencia || "url",
     obra.link_leitura ? String(obra.link_leitura).trim() : null,
     obra.temporadas ? JSON.stringify(obra.temporadas) : null,
@@ -363,7 +408,7 @@ app.post("/obras", verificarToken, (req, res) => {
     tipo: obra.tipo,
     status: obra.status,
     imagem: obra.imagem,
-    imagem_arquivo: obra.imagem_arquivo || null,
+    imagem_arquivo: imagemArquivo || null,
     imagem_preferencia: obra.imagem_preferencia || "url",
     link_leitura: obra.link_leitura ? String(obra.link_leitura).trim() : null,
     temporadas: obra.temporadas || null,
@@ -378,7 +423,7 @@ app.post("/obras", verificarToken, (req, res) => {
   });
 });
 
-app.put("/obras/:id", verificarToken, (req, res) => {
+app.put("/obras/:id", verificarToken, async (req, res) => {
   const id = req.params.id;
   const obra = req.body;
   const obraAtual = db
@@ -405,6 +450,9 @@ app.put("/obras/:id", verificarToken, (req, res) => {
         )
       : null;
 
+  const imagemArquivo =
+    obra.imagem_arquivo || (await baixarImagemComoDataUrl(obra.imagem));
+
   const atualizar = db.prepare(`
     UPDATE obras
     SET
@@ -428,7 +476,7 @@ app.put("/obras/:id", verificarToken, (req, res) => {
     obra.tipo,
     obra.status,
     obra.imagem,
-    obra.imagem_arquivo || null,
+    imagemArquivo || null,
     obra.imagem_preferencia || "url",
     obra.link_leitura ? String(obra.link_leitura).trim() : null,
     temporadas ? JSON.stringify(temporadas) : null,
@@ -452,7 +500,7 @@ app.put("/obras/:id", verificarToken, (req, res) => {
     tipo: obra.tipo,
     status: obra.status,
     imagem: obra.imagem,
-    imagem_arquivo: obra.imagem_arquivo || null,
+    imagem_arquivo: imagemArquivo || null,
     imagem_preferencia: obra.imagem_preferencia || "url",
     link_leitura: obra.link_leitura ? String(obra.link_leitura).trim() : null,
     temporadas: temporadas || null,
