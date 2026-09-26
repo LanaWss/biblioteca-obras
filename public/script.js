@@ -352,9 +352,6 @@ function configurarImagemCard(card, obra) {
       imagem.src = imagens.fallback;
       card.style.setProperty("--imagem-obra", `url("${imagens.fallback}")`);
       ajustarCorDoTexto(card, imagens.fallback);
-      aviso.textContent =
-        "A URL da imagem falhou. Imagem do dispositivo exibida.";
-      aviso.hidden = false;
       return;
     }
 
