@@ -321,6 +321,15 @@ function obterImagemPreferida(obra) {
   };
 }
 
+function obterImagemParaCss(url) {
+  const urlEscapada = String(url)
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, "\\A");
+
+  return `url("${urlEscapada}")`;
+}
+
 function lerArquivoComoDataUrl(arquivo) {
   if (!arquivo) {
     return Promise.resolve("");
@@ -419,7 +428,7 @@ function configurarImagemCard(card, obra) {
 
   card.style.setProperty(
     "--imagem-obra",
-    imagens.principal ? `url("${imagens.principal}")` : "none",
+    imagens.principal ? obterImagemParaCss(imagens.principal) : "none",
   );
 
   if (!imagem || !imagens.principal) {
@@ -427,9 +436,13 @@ function configurarImagemCard(card, obra) {
   }
 
   const usarFallback = () => {
-    if (imagens.fallback && imagem.src !== imagens.fallback) {
+    if (imagens.fallback && !imagem.dataset.fallbackTentado) {
+      imagem.dataset.fallbackTentado = "true";
       imagem.src = imagens.fallback;
-      card.style.setProperty("--imagem-obra", `url("${imagens.fallback}")`);
+      card.style.setProperty(
+        "--imagem-obra",
+        obterImagemParaCss(imagens.fallback),
+      );
       ajustarCorDoTexto(card, imagens.fallback);
       return;
     }
@@ -443,6 +456,7 @@ function configurarImagemCard(card, obra) {
   imagem.addEventListener("load", () => {
     imagem.hidden = false;
     card.classList.remove("imagem-indisponivel");
+    aviso.hidden = true;
     ajustarCorDoTexto(card, imagem.currentSrc || imagem.src);
   });
   imagem.addEventListener("error", usarFallback);
@@ -2331,6 +2345,12 @@ const imagemObra = document.getElementById("imagem-obra");
 
 const previewImagem = document.getElementById("preview-imagem");
 
+const imagemEdicao = document.getElementById("editar-imagem");
+
+const preferenciaImagemEdicao = document.getElementById(
+  "editar-preferencia-imagem",
+);
+
 imagemObra.addEventListener("input", () => {
   previewImagem.hidden = !imagemObra.value;
 
@@ -2339,6 +2359,12 @@ imagemObra.addEventListener("input", () => {
 
 previewImagem.addEventListener("error", () => {
   previewImagem.hidden = true;
+});
+
+imagemEdicao.addEventListener("input", () => {
+  if (imagemEdicao.value.trim()) {
+    preferenciaImagemEdicao.value = "url";
+  }
 });
 
 document
