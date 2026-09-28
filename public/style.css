@@ -464,6 +464,22 @@ body {
   margin: 0 auto;
 }
 
+#botao-inicio {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  z-index: 9000;
+  width: 46px;
+  height: 46px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--secundary-color);
+  box-shadow: 0 4px 12px rgba(23, 38, 58, 0.3);
+}
+
 .campo-busca {
   display: flex;
   flex-direction: row;
@@ -510,7 +526,10 @@ button {
   font-size: 13px;
   border: none;
   border-radius: 8px;
-  white-space: nowrap;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.2;
   cursor: pointer;
   width: auto;
 }
@@ -539,6 +558,11 @@ button {
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
 }
 
+.cards button,
+.cards a {
+  text-shadow: none;
+}
+
 .cards {
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 20px;
@@ -561,9 +585,19 @@ button {
 }
 
 .botao-favorito {
-    position: absolute;
+  position: absolute;
   top: 10px;
-    right: 10px;
+  right: 10px;
+}
+
+.botao-avancar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  min-width: 42px;
+  font-size: 14px;
+  font-weight: bold;
 }
 
 .cards::before {
@@ -598,6 +632,13 @@ button {
   position: absolute;
   top: 10px;
   right: 10px;
+  z-index: 2;
+}
+
+.cards > .botao-avancar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
   z-index: 2;
 }
 
@@ -646,9 +687,27 @@ button {
   font-size: 13px;
 }
 
+.botao-favorito,
+.botao-avancar,
+.botao-mais-itens,
+.botao-ler,
+.botoes-card button {
+  box-sizing: border-box;
+  border: 1px solid #fff;
+  border-radius: 8px;
+  color: var(--primary-color);
+  background-color: var(--secundary-color);
+  font-weight: bold;
+}
+
 .botao-mais-itens {
-  width: auto;
+  width: 33.333%;
+  flex: 0 0 33.333%;
+  min-height: 36px;
+  align-self: center;
   margin: 0;
+  padding: 8px 12px;
+  font-size: 13px;
 }
 
 .botao-ler {
@@ -658,16 +717,16 @@ button {
   justify-content: center;
   gap: 6px;
   padding: 10px 6px;
-  color: var(--primary-color);
-  background-color: var(--secundary-color);
-  border-radius: 8px;
   font-size: 14px;
-  font-weight: bold;
   text-decoration: none;
 }
 
 .botao-ler:hover {
   transform: scale(1.03);
+}
+
+.cards button:hover {
+  transform: scale(1.05);
 }
 
 .aviso-imagem-card,
@@ -709,7 +768,25 @@ button {
 }
 
 .progresso-card {
+  width: 100px;
   margin: 8px 0;
+}
+
+.progressos-separados-card {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  margin: 0 0 4px;
+}
+
+.progresso-tipo-card {
+  width: 100px;
+}
+
+.progresso-tipo-card .progresso-texto {
+  justify-content: center;
+  margin-bottom: 3px;
+  font-size: 12px;
 }
 
 .progresso-texto {
@@ -796,6 +873,29 @@ button {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.atalhos-tipo {
+  display: flex;
+  gap: 8px;
+  margin: 2px 0 4px;
+}
+
+.atalhos-tipo button {
+  flex: 1;
+  margin: 0;
+  padding: 8px 6px;
+  border: 1px solid #d5d8d8;
+  border-radius: 7px;
+  color: #17263a;
+  background: #f4f0e8;
+  font-size: 12px;
+}
+
+.atalhos-tipo button:hover {
+  border-color: var(--secundary-color);
+  background: #e9f1ef;
+  transform: none;
 }
 
 #popup-criar input,
@@ -1021,8 +1121,196 @@ button {
 
 .temporada,
 .volume {
+  position: relative;
   display: flex;
   gap: 8px;
+  padding-top: 8px;
+}
+
+.botao-remover-item {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  margin: 5px 0 0;
+  padding: 2px 8px;
+  color: #fff;
+  background-color: #b55742;
+  border: 0;
+  border-radius: 6px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.campo-com-limpar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.campo-com-limpar input {
+  flex: 1;
+  min-width: 0;
+}
+
+.linha-link-leitura {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr auto;
+  gap: 6px;
+}
+
+.linha-link-leitura input {
+  min-width: 0;
+}
+
+.linha-link-leitura button {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.lista-links-leitura {
+  display: grid;
+  gap: 5px;
+}
+
+.item-link-leitura {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid #d5d8d8;
+  border-radius: 6px;
+  color: #17263a;
+  background: #f4f0e8;
+  font-size: 13px;
+}
+
+.item-link-leitura button {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 2px 7px;
+  color: #fff;
+  background: #b55742;
+}
+
+.botao-limpar-campo {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 4px 9px;
+  color: #fff;
+  background-color: #b55742;
+  border: 0;
+  border-radius: 6px;
+  font-size: 17px;
+  line-height: 1;
+}
+
+#botao-atualizacoes {
+  position: fixed;
+  bottom: 18px;
+  left: 18px;
+  z-index: 9000;
+  width: 46px;
+  height: 46px;
+  margin: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: #2d7180;
+  box-shadow: 0 4px 12px rgba(23, 38, 58, 0.3);
+}
+
+#popup-atualizacoes {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+#popup-atualizacoes .popup-shell {
+  max-width: 420px;
+}
+
+#popup-atualizacoes .popup-shell > div {
+  padding: 24px;
+  border-radius: 10px;
+  color: #17263a;
+  background: #fff;
+}
+
+#popup-escolha-avanco {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+#popup-escolha-avanco .popup-shell {
+  max-width: 360px;
+}
+
+#popup-escolha-avanco .popup-shell > div {
+  padding: 24px;
+  border-radius: 10px;
+  color: #17263a;
+  background: #fff;
+  text-align: center;
+}
+
+#popup-escolha-link {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+#popup-escolha-link .popup-shell {
+  max-width: 360px;
+}
+
+#popup-escolha-link .popup-shell > div {
+  padding: 24px;
+  border-radius: 10px;
+  color: #17263a;
+  background: #fff;
+}
+
+#opcoes-links-leitura {
+  display: grid;
+  gap: 8px;
+}
+
+#opcoes-links-leitura button {
+  margin: 0;
+  padding: 10px;
+}
+
+.opcoes-avanco {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.opcoes-avanco button {
+  margin: 0;
+  padding: 10px 6px;
+}
+
+.lista-atualizacoes {
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.6;
 }
 
 .temporada label,

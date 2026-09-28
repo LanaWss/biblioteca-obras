@@ -12,6 +12,15 @@
   <body>
     <div id="mensagem"></div>
 
+    <button
+      id="botao-inicio"
+      type="button"
+      aria-label="Voltar ao topo"
+      title="Voltar ao topo"
+    >
+      <i class="fa-solid fa-house"></i>
+    </button>
+
     <div id="boas-vindas" class="boas-vindas" hidden>
       <p>Olá, <strong id="nome-boas-vindas"></strong></p>
     </div>
@@ -52,6 +61,7 @@
               <option value="">Todos</option>
               <option value="anime">Anime</option>
               <option value="manga">Mangá</option>
+              <option value="ambos">Anime e mangá</option>
             </select>
 
             <label for="filtro-status">Status</label>
@@ -133,11 +143,18 @@
                 <option value="">Selecione</option>
                 <option value="anime">Anime</option>
                 <option value="manga">Mangá</option>
+                <option value="ambos">Anime e mangá</option>
               </select>
+
+              <div class="atalhos-tipo" data-seletor-tipo="tipo-obra">
+                <button type="button" data-tipo-atalho="anime">Configurar anime</button>
+                <button type="button" data-tipo-atalho="manga">Configurar mangá</button>
+              </div>
 
               <div id="campos-anime" style="display: none">
                 <div id="lista-temporadas">
                   <div class="temporada">
+                    <button type="button" class="botao-remover-item" aria-label="Remover temporada" title="Remover temporada">×</button>
                     <label>
                       Temporada
                       <input type="number" value="1" min="1" />
@@ -161,6 +178,7 @@
               <div id="campos-manga" style="display: none">
                 <div id="lista-volumes">
                   <div class="volume">
+                    <button type="button" class="botao-remover-item" aria-label="Remover volume" title="Remover volume">×</button>
                     <label>
                       Volume
                       <input type="number" value="1" min="1" />
@@ -196,11 +214,10 @@
 
               <label for="imagem-obra">Imagem</label>
 
-              <input
-                id="imagem-obra"
-                type="url"
-                placeholder="URL da imagem (opcional)"
-              />
+              <div class="campo-com-limpar">
+                <input id="imagem-obra" type="url" placeholder="URL da imagem (opcional)" />
+                <button type="button" class="botao-limpar-campo" data-limpar-campo="imagem-obra" aria-label="Limpar URL da imagem">×</button>
+              </div>
               <label for="arquivo-imagem-obra">Ou imagem do dispositivo</label>
               <input id="arquivo-imagem-obra" type="file" accept="image/*" />
               <label for="preferencia-imagem-obra">Imagem preferida</label>
@@ -211,12 +228,13 @@
               <img id="preview-imagem" src="" alt="Preview da obra" hidden />
               <p id="aviso-imagem-obra" class="aviso-form" role="status"></p>
 
-              <label for="link-leitura-obra">Link para ler (opcional)</label>
-              <input
-                id="link-leitura-obra"
-                type="url"
-                placeholder="https://site.com/obra"
-              />
+              <label>Links para ler (opcional)</label>
+              <div class="linha-link-leitura">
+                <input id="nome-link-leitura-obra" type="text" placeholder="Nome da opção (opcional)" />
+                <input id="link-leitura-obra" type="url" placeholder="https://site.com/obra" />
+                <button type="button" id="adicionar-link-leitura-obra">Adicionar</button>
+              </div>
+              <div id="lista-links-leitura-obra" class="lista-links-leitura"></div>
 
               <button type="submit">Criar</button>
             </form>
@@ -270,11 +288,18 @@
               <option value="">Selecione</option>
               <option value="anime">Anime</option>
               <option value="manga">Mangá</option>
+              <option value="ambos">Anime e mangá</option>
             </select>
+
+            <div class="atalhos-tipo" data-seletor-tipo="editar-tipo">
+              <button type="button" data-tipo-atalho="anime">Configurar anime</button>
+              <button type="button" data-tipo-atalho="manga">Configurar mangá</button>
+            </div>
 
             <div id="editar-campos-anime" style="display: none">
               <div id="editar-lista-temporadas">
                 <div class="temporada">
+                  <button type="button" class="botao-remover-item" aria-label="Remover temporada" title="Remover temporada">×</button>
                   <label>
                     Temporada
                     <input type="number" min="1" />
@@ -298,6 +323,7 @@
             <div id="editar-campos-manga" style="display: none">
               <div id="editar-lista-volumes">
                 <div class="volume">
+                  <button type="button" class="botao-remover-item" aria-label="Remover volume" title="Remover volume">×</button>
                   <label>
                     Volume
                     <input type="number" min="1" />
@@ -327,11 +353,10 @@
             </select>
 
             <label for="editar-imagem">Imagem</label>
-            <input
-              id="editar-imagem"
-              type="url"
-              placeholder="URL da imagem (opcional)"
-            />
+            <div class="campo-com-limpar">
+              <input id="editar-imagem" type="url" placeholder="URL da imagem (opcional)" />
+              <button type="button" class="botao-limpar-campo" data-limpar-campo="editar-imagem" aria-label="Limpar URL da imagem">×</button>
+            </div>
             <label for="editar-arquivo-imagem">Ou imagem do dispositivo</label>
             <input id="editar-arquivo-imagem" type="file" accept="image/*" />
             <label for="editar-preferencia-imagem">Imagem preferida</label>
@@ -348,12 +373,13 @@
             />
             <p id="aviso-imagem-editar" class="aviso-form" role="status"></p>
 
-            <label for="editar-link-leitura">Link para ler (opcional)</label>
-            <input
-              id="editar-link-leitura"
-              type="url"
-              placeholder="https://site.com/obra"
-            />
+            <label>Links para ler (opcional)</label>
+            <div class="linha-link-leitura">
+              <input id="editar-nome-link-leitura" type="text" placeholder="Nome da opção (opcional)" />
+              <input id="editar-link-leitura" type="url" placeholder="https://site.com/obra" />
+              <button type="button" id="editar-adicionar-link-leitura">Adicionar</button>
+            </div>
+            <div id="editar-lista-links-leitura" class="lista-links-leitura"></div>
 
             <button type="submit" class="botao-salvar-edicao">Salvar</button>
           </form>
@@ -392,6 +418,58 @@
 
     <div id="lista-obras"></div>
 
-    <script src="script.js?v=7"></script>
+    <button id="botao-atualizacoes" type="button" aria-label="Abrir atualizações" title="Atualizações">
+      <i class="fa-solid fa-list-ul"></i>
+    </button>
+
+    <div id="popup-atualizacoes">
+      <div class="popup-shell">
+        <button id="fechar-atualizacoes" class="popup-fechar" type="button" aria-label="Fechar atualizações">X</button>
+        <div>
+          <h2>Atualizações</h2>
+          <ul class="lista-atualizacoes">
+            <br>
+            <li><strong>+1</strong> avança o próximo episódio ou capítulo do último item.</li>
+            <li>Agora é possível remover temporadas e volumes na criação e edição.</li>
+            <li>Campos de URL e link podem ser limpos com um clique.</li>
+            <li>Botão para subir no topo da página.</li>
+            <li>Botão para adicionar um cap ou ep novo e ja deixar lido.</li>
+            <li>Ter obra com dois tipos (anime e mangá) ao mesmo tempo.</li>
+            <br>
+            </p><strong>V 18.0.0</strong></p>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div id="popup-escolha-avanco">
+      <div class="popup-shell">
+        <button id="fechar-escolha-avanco" class="popup-fechar" type="button" aria-label="Fechar escolha">X</button>
+        <div>
+          <h2>Avançar progresso</h2>
+          <br>
+          <p>Onde deseja marcar o próximo como visto?</p>
+          <br>
+          <div class="opcoes-avanco">
+            <button type="button" data-avancar-tipo="anime">Anime</button>
+            <button type="button" data-avancar-tipo="manga">Mangá</button>
+            <button type="button" data-avancar-tipo="ambos">Ambos</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="popup-escolha-link">
+      <div class="popup-shell">
+        <button id="fechar-escolha-link" class="popup-fechar" type="button" aria-label="Fechar links">X</button>
+        <div>
+          <h2>Escolha onde ler</h2>
+          <br>
+          <div id="opcoes-links-leitura"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js?v=13"></script>
   </body>
 </html>

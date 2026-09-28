@@ -103,6 +103,38 @@ test("POST /obras deve criar uma obra", async () => {
   assert.strictEqual(obra.tipo, "anime");
 });
 
+test("POST /obras deve criar uma obra com anime e mangá", async () => {
+  const obra = await criarObra({
+    title: "Obra combinada",
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://exemplo.com/imagem.jpg",
+    temporadas: [{ numero: 1, episodios: 12 }],
+    volumes: [{ numero: 1, inicio: 1, fim: 80 }],
+  });
+
+  assert.strictEqual(obra.tipo, "ambos");
+  assert.strictEqual(obra.temporadas[0].episodios, 12);
+  assert.strictEqual(obra.volumes[0].fim, 80);
+});
+
+test("POST /obras deve salvar múltiplos links de leitura", async () => {
+  const obra = await criarObra({
+    title: "Obra com links",
+    tipo: "manga",
+    status: "lancando",
+    link_leituras: [
+      { nome: "Site oficial", url: "https://exemplo.com/oficial" },
+      { nome: "Alternativo", url: "https://exemplo.com/alternativo" },
+    ],
+  });
+
+  assert.deepStrictEqual(obra.link_leituras, [
+    { nome: "Site oficial", url: "https://exemplo.com/oficial" },
+    { nome: "Alternativo", url: "https://exemplo.com/alternativo" },
+  ]);
+});
+
 test("POST /obras deve retornar erro quando o nome não for informado", async () => {
   const resposta = await fetch("http://localhost:3000/obras", {
     method: "POST",
@@ -202,6 +234,34 @@ test("PUT /obras/:id deve preservar o progresso ao editar o link", async () => {
   );
 });
 
+test("PUT /obras/:id deve salvar temporadas e volumes ao editar ambos", async () => {
+  const criada = await criarObra({
+    title: "Obra dupla para editar",
+    tipo: "anime",
+    status: "lancando",
+    temporadas: [{ numero: 1, inicio: 1, episodios: 2 }],
+  });
+
+  const resposta = await fetch(`http://localhost:3000/obras/${criada.id}`, {
+    method: "PUT",
+    headers: headersComToken(),
+    body: JSON.stringify({
+      title: criada.title,
+      tipo: "ambos",
+      status: criada.status,
+      temporadas: [{ numero: 1, inicio: 1, episodios: 2 }],
+      volumes: [{ numero: 1, inicio: 1, fim: 20 }],
+    }),
+  });
+
+  const obra = await resposta.json();
+
+  assert.strictEqual(resposta.status, 200);
+  assert.strictEqual(obra.tipo, "ambos");
+  assert.strictEqual(obra.temporadas[0].episodios, 2);
+  assert.strictEqual(obra.volumes[0].fim, 20);
+});
+
 test("PATCH /obras/:id deve atualizar o progresso", async () => {
   const criada = await criarObra({
     title: "Obra para progresso",
@@ -253,6 +313,56 @@ test("PATCH /obras/:id deve atualizar o progresso", async () => {
   const temporadas = JSON.parse(obraAtualizada.temporadas);
 
   assert.strictEqual(temporadas[0].assistidos, 5);
+});
+
+test("PATCH /obras/:id deve atualizar o progresso do mangá", async () => {
+  const criada = await criarObra({
+    title: "Mangá para progresso",
+    tipo: "manga",
+    status: "lancando",
+    imagem: "https://exemplo.com/imagem.jpg",
+    volumes: [{ numero: 1, inicio: 1, fim: 10, vistos: [1] }],
+  });
+
+  const resposta = await fetch(`http://localhost:3000/obras/${criada.id}`, {
+    method: "PATCH",
+    headers: headersComToken(),
+    body: JSON.stringify({
+      volumes: [{ numero: 1, inicio: 1, fim: 11, vistos: [1, 2, 11] }],
+    }),
+  });
+
+  assert.strictEqual(resposta.status, 200);
+
+  const consulta = await fetch(`http://localhost:3000/obras/${criada.id}`, {
+    headers: headersComToken(),
+  });
+  const obra = await consulta.json();
+  const volumes = JSON.parse(obra.volumes);
+
+  assert.strictEqual(volumes[0].fim, 11);
+  assert.deepStrictEqual(volumes[0].vistos, [1, 2, 11]);
+});
+
+test("PATCH /obras/:id deve atualizar anime e mangá juntos", async () => {
+  const criada = await criarObra({
+    title: "Obra dupla para progresso",
+    tipo: "ambos",
+    status: "lancando",
+    temporadas: [{ numero: 1, inicio: 1, episodios: 2, vistos: [1] }],
+    volumes: [{ numero: 1, inicio: 1, fim: 2, vistos: [1] }],
+  });
+
+  const resposta = await fetch(`http://localhost:3000/obras/${criada.id}`, {
+    method: "PATCH",
+    headers: headersComToken(),
+    body: JSON.stringify({
+      temporadas: [{ numero: 1, inicio: 1, episodios: 3, vistos: [1, 2, 3] }],
+      volumes: [{ numero: 1, inicio: 1, fim: 3, vistos: [1, 2, 3] }],
+    }),
+  });
+
+  assert.strictEqual(resposta.status, 200);
 });
 
 test("PATCH /obras/:id/favorito deve atualizar o favorito", async () => {

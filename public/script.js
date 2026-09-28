@@ -1,8 +1,18 @@
 let obraProgressoAtual = null;
 
 let obrasCarregadas = [];
+let linksLeituraCriacao = [];
+let linksLeituraEdicao = [];
+let linksEscolhaAtual = [];
 
 const boasVindas = document.getElementById("boas-vindas");
+
+document.getElementById("botao-inicio").addEventListener("click", () => {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+});
 
 function mostrarMensagem(texto, tipo) {
   const mensagem = document.getElementById("mensagem");
@@ -43,6 +53,23 @@ function normalizarTexto(valor) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
+function tipoTemAnime(tipo) {
+  return tipo === "anime" || tipo === "ambos";
+}
+
+function tipoTemManga(tipo) {
+  return tipo === "manga" || tipo === "ambos";
+}
+
+function atualizarCamposDeTipo(tipo, camposAnime, camposManga) {
+  camposAnime.style.display = tipoTemAnime(tipo) ? "block" : "none";
+  camposManga.style.display = tipoTemManga(tipo) ? "block" : "none";
+}
+
+function obterItensDaObra(obra, tipo) {
+  return tipo === "anime" ? obra.temporadas : obra.volumes;
+}
+
 function obterObrasFiltradas() {
   const termo = normalizarTexto(buscarObras.value.trim());
 
@@ -54,7 +81,11 @@ function obterObrasFiltradas() {
       normalizarTexto(titulo || "").includes(termo),
     );
 
-    const tipoCombina = !filtroTipo.value || obra.tipo === filtroTipo.value;
+    const tipoCombina =
+      !filtroTipo.value ||
+      obra.tipo === filtroTipo.value ||
+      (filtroTipo.value === "anime" && tipoTemAnime(obra.tipo)) ||
+      (filtroTipo.value === "manga" && tipoTemManga(obra.tipo));
 
     const statusCombina =
       !filtroStatus.value || obra.status === filtroStatus.value;
@@ -82,11 +113,34 @@ function lerConteudoObra(valor) {
     return [];
   }
 
+  if (Array.isArray(valor)) {
+    return valor;
+  }
+
   try {
     return JSON.parse(valor);
   } catch (erro) {
     return [];
   }
+}
+
+function obterLinksLeitura(obra) {
+  let links = lerConteudoObra(obra.link_leituras);
+
+  if (!links.length && obra.link_leitura) {
+    links = [{ nome: "", url: String(obra.link_leitura).trim() }];
+  }
+
+  return links.filter((link) => link && link.url);
+}
+
+function renderizarListaLinks(links, lista, prefixo) {
+  lista.innerHTML = links.map((link, indice) => `
+    <div class="item-link-leitura">
+      <span>${link.nome || "Link de leitura"}</span>
+      <button type="button" data-remover-link="${prefixo}" data-indice-link="${indice}" aria-label="Remover link">×</button>
+    </div>
+  `).join("");
 }
 
 function prepararProgresso(itens, quantidadeKey) {
@@ -132,13 +186,8 @@ function obterFimComProgresso(item, inicio, fim) {
   return Math.max(inicio - 1, maiorVisto);
 }
 
-function calcularProgresso(obra) {
-  const itens =
-    obra.tipo === "anime"
-      ? lerConteudoObra(obra.temporadas)
-      : lerConteudoObra(obra.volumes);
-
-  if (obra.tipo === "manga") {
+function calcularProgressoPorTipo(itens, tipo) {
+  if (tipo === "manga") {
     const fimDaObra = itens.reduce((maiorFim, item) => {
       const maiorVisto = Math.max(
         ...(Array.isArray(item.vistos) ? item.vistos.map(Number) : []),
@@ -166,20 +215,11 @@ function calcularProgresso(obra) {
   let vistos = 0;
 
   itens.forEach((item) => {
-    const inicio =
-      obra.tipo === "manga" ? Number(item.inicio) : obterInicioTemporada(item);
-    let fim =
-      obra.tipo === "manga"
-        ? Number(item.fim)
-        : obterInicioTemporada(item) + Number(item.episodios || 0) - 1;
+    const inicio = obterInicioTemporada(item);
+    let fim = inicio + Number(item.episodios || 0) - 1;
     fim = obterFimComProgresso(item, inicio, fim);
 
-    if (obra.tipo === "manga") {
-      total += Math.max(0, fim - inicio + 1);
-    } else {
-      total += Math.max(0, fim - inicio + 1);
-    }
-
+    total += Math.max(0, fim - inicio + 1);
     vistos += obterNumerosVistosValidos(item, inicio, fim).size;
   });
 
@@ -189,7 +229,46 @@ function calcularProgresso(obra) {
   };
 }
 
-function ordenarItensPeloProgresso(obra, itens) {
+function calcularProgresso(obra) {
+  const progressoAnime = tipoTemAnime(obra.tipo)
+    ? calcularProgressoPorTipo(lerConteudoObra(obra.temporadas), "anime")
+    : { vistos: 0, total: 0 };
+  const progressoManga = tipoTemManga(obra.tipo)
+    ? calcularProgressoPorTipo(lerConteudoObra(obra.volumes), "manga")
+    : { vistos: 0, total: 0 };
+
+  return {
+    vistos: progressoAnime.vistos + progressoManga.vistos,
+    total: progressoAnime.total + progressoManga.total,
+  };
+}
+
+function renderizarProgressoTipo(obra, tipo) {
+  if (obra.tipo !== "ambos") {
+    return "";
+  }
+
+  const itens = tipo === "anime"
+    ? lerConteudoObra(obra.temporadas)
+    : lerConteudoObra(obra.volumes);
+  const progresso = calcularProgressoPorTipo(itens, tipo);
+  const percentual = progresso.total
+    ? (progresso.vistos / progresso.total) * 100
+    : 0;
+
+  return `
+    <div class="progresso-tipo-card">
+      <div class="progresso-texto">
+        <span>${progresso.vistos}/${progresso.total}</span>
+      </div>
+      <div class="barra-progresso">
+        <div class="barra-progresso-preenchida" style="width: ${percentual}%"></div>
+      </div>
+    </div>
+  `;
+}
+
+function ordenarItensPeloProgresso(obra, itens, tipo = obra.tipo) {
   if (itens.length < 2) {
     return itens;
   }
@@ -209,9 +288,9 @@ function ordenarItensPeloProgresso(obra, itens) {
 
   itens.forEach((item, indice) => {
     const inicio =
-      obra.tipo === "manga" ? Number(item.inicio) : obterInicioTemporada(item);
+      tipo === "manga" ? Number(item.inicio) : obterInicioTemporada(item);
     const fim =
-      obra.tipo === "manga"
+      tipo === "manga"
         ? Number(item.fim)
         : inicio + Number(item.episodios || 0) - 1;
 
@@ -411,45 +490,37 @@ function renderizarProgresso() {
 
   const listaProgresso = document.getElementById("lista-progresso");
 
-  const itens = obra.tipo === "anime" ? obra.temporadas : obra.volumes;
-
-  const quantidadeKey = obra.tipo === "anime" ? "episodios" : "capitulos";
-
-  const itemLabel = obra.tipo === "anime" ? "Episódio" : "Capítulo";
-
-  const grupoLabel = obra.tipo === "anime" ? "Temporada" : "Volume";
-  const todosItens = itens.every((item) => {
-    const inicio =
-      obra.tipo === "manga" ? Number(item.inicio) : obterInicioTemporada(item);
+  const tipos = [
+    ...(tipoTemAnime(obra.tipo) ? [{ chave: "anime", itens: obra.temporadas }] : []),
+    ...(tipoTemManga(obra.tipo) ? [{ chave: "manga", itens: obra.volumes }] : []),
+  ];
+  const todosItens = tipos.every(({ chave, itens }) => itens.every((item) => {
+    const inicio = chave === "manga" ? Number(item.inicio) : obterInicioTemporada(item);
     const fim = obterFimComProgresso(
       item,
       inicio,
-      obra.tipo === "manga"
-        ? Number(item.fim)
-        : obterInicioTemporada(item) + Number(item.episodios) - 1,
+      chave === "manga" ? Number(item.fim) : inicio + Number(item.episodios) - 1,
     );
 
-    return (
-      obterNumerosVistosValidos(item, inicio, fim).size === fim - inicio + 1
-    );
-  });
+    return obterNumerosVistosValidos(item, inicio, fim).size === fim - inicio + 1;
+  }));
 
   const botaoTodaObra = document.getElementById("marcar-toda-obra");
   botaoTodaObra.textContent = todosItens
     ? "Desmarcar toda a obra"
     : "Marcar toda a obra";
 
-  listaProgresso.innerHTML = itens
-    .map((item, indice) => {
-      const inicio =
-        obra.tipo === "manga" ? item.inicio : obterInicioTemporada(item);
+  listaProgresso.innerHTML = tipos.map(({ chave, itens }) => {
+    const itemLabel = chave === "anime" ? "Episódio" : "Capítulo";
+    const grupoLabel = chave === "anime" ? "Temporada" : "Volume";
+
+    return itens.map((item, indice) => {
+      const inicio = chave === "manga" ? Number(item.inicio) : obterInicioTemporada(item);
 
       const fim = obterFimComProgresso(
         item,
         inicio,
-        obra.tipo === "manga"
-          ? Number(item.fim)
-          : obterInicioTemporada(item) + Number(item[quantidadeKey]) - 1,
+        chave === "manga" ? Number(item.fim) : inicio + Number(item.episodios || 0) - 1,
       );
 
       const totalItens = fim - inicio + 1;
@@ -467,6 +538,7 @@ function renderizarProgresso() {
         <input
           type="checkbox"
           data-progresso-item="${indice}"
+          data-progresso-tipo="${chave}"
           data-numero-item="${numeroItem}"
           ${marcado ? "checked" : ""}
         >
@@ -487,6 +559,7 @@ function renderizarProgresso() {
             <button
               type="button"
               data-marcar-todos="${indice}"
+              data-marcar-tipo="${chave}"
             >
               ${todosMarcados ? "Desmarcar todos" : "Marcar todos"}
             </button>
@@ -499,8 +572,8 @@ function renderizarProgresso() {
 
         </section>
       `;
-    })
-    .join("");
+    }).join("");
+  }).join("");
 }
 
 function abrirPopupProgresso(id) {
@@ -543,6 +616,149 @@ function abrirPopupProgresso(id) {
     });
 }
 
+function prepararAvanco(itens, tipo) {
+  if (!itens.length) {
+    if (tipo === "anime") {
+      itens.push({
+        numero: 1,
+        inicio: 1,
+        episodios: 1,
+        vistos: [1],
+      });
+    } else {
+      itens.push({
+        numero: 1,
+        inicio: 1,
+        fim: 1,
+        vistos: [1],
+      });
+    }
+
+    return { proximo: 1, criouNovoItem: true };
+  }
+
+  const ultimoItem = itens[itens.length - 1];
+
+  if (!ultimoItem) {
+    return null;
+  }
+
+  const vistos = new Set(
+    Array.isArray(ultimoItem.vistos) ? ultimoItem.vistos.map(Number) : [],
+  );
+  const inicio = tipo === "anime"
+    ? obterInicioTemporada(ultimoItem)
+    : Number(ultimoItem.inicio);
+  const limiteAtual = tipo === "anime"
+    ? inicio + Number(ultimoItem.episodios || 0) - 1
+    : Number(ultimoItem.fim);
+  const proximo = Math.max(limiteAtual, ...vistos, inicio - 1) + 1;
+
+  if (tipo === "anime") {
+    ultimoItem.episodios = proximo - inicio + 1;
+  } else {
+    ultimoItem.fim = proximo;
+  }
+
+  vistos.add(proximo);
+  ultimoItem.vistos = [...vistos].sort((a, b) => a - b);
+
+  return { proximo, criouNovoItem: true };
+}
+
+async function avancarProgresso(id, botao, tipoEscolhido) {
+  let obra = obrasCarregadas.find(
+    (item) => String(item.id) === String(id),
+  );
+
+  if (!obra) {
+    return;
+  }
+
+  try {
+    const respostaAtual = await fetch(`/obras/${id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (respostaAtual.ok) {
+      obra = await respostaAtual.json();
+    }
+  } catch (erro) {
+  }
+
+  const tipos = tipoEscolhido === "ambos"
+    ? ["anime", "manga"]
+    : [tipoEscolhido || (tipoTemAnime(obra.tipo) ? "anime" : "manga")];
+  const avancos = [];
+  const dados = {};
+
+  tipos.forEach((tipo) => {
+    const chave = tipo === "anime" ? "temporadas" : "volumes";
+    const itens = lerConteudoObra(obra[chave]);
+    const avanco = prepararAvanco(itens, tipo);
+
+    if (avanco) {
+      dados[chave] = itens;
+      avancos.push({ tipo, ...avanco });
+    }
+  });
+
+  if (!avancos.length) {
+    mostrarMensagem("Adicione uma temporada ou volume primeiro.", "aviso");
+    return;
+  }
+
+  botao.disabled = true;
+
+  try {
+    const resposta = await fetch(`/obras/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify(dados),
+    });
+
+    const resultado = await resposta.json().catch(() => ({}));
+
+    if (!resposta.ok) {
+      mostrarMensagem(
+        resultado.erro || "Não foi possível atualizar o progresso.",
+        "erro",
+      );
+      return;
+    }
+
+    const obraLocal = obrasCarregadas.find(
+      (item) => String(item.id) === String(id),
+    );
+
+    if (obraLocal) {
+      Object.entries(dados).forEach(([chave, itens]) => {
+        obraLocal[chave] = resultado[chave] || JSON.stringify(itens);
+      });
+    }
+
+    await carregarObras();
+    const resumo = avancos
+      .map(({ tipo, proximo, criouNovoItem }) =>
+        `${tipo === "anime" ? "Episódio" : "Capítulo"} ${proximo}${criouNovoItem ? " criado" : ""}`,
+      )
+      .join(" e ");
+    mostrarMensagem(
+      `${resumo} marcado como visto.`,
+      "sucesso",
+    );
+  } catch (erro) {
+    mostrarMensagem("Não foi possível atualizar o progresso.", "erro");
+  } finally {
+    botao.disabled = false;
+  }
+}
+
 function obterTituloExibicao(obra) {
   if (!obra.titulo_exibicao || obra.titulo_exibicao === "principal") {
     return obra.title;
@@ -559,7 +775,7 @@ function carregarObras() {
     return;
   }
 
-  fetch("/obras", {
+  return fetch("/obras", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -592,6 +808,8 @@ function carregarObras() {
         let conteudo = "";
 
         const progresso = calcularProgresso(obra);
+        const progressoTemporadas = renderizarProgressoTipo(obra, "anime");
+        const progressoVolumes = renderizarProgressoTipo(obra, "manga");
 
         const statusExibido = {
           completa: "Completa",
@@ -599,14 +817,17 @@ function carregarObras() {
           lancando: "Lançando",
         }[obra.status];
 
-        if (obra.tipo === "anime") {
+        if (tipoTemAnime(obra.tipo)) {
           const temporadas = ordenarItensPeloProgresso(
             obra,
             lerConteudoObra(obra.temporadas),
+            "anime",
           );
 
           conteudo = `
             <h3><i class="fa-solid fa-list"></i> Temporadas</h3>
+
+            ${progressoTemporadas}
 
             <div class="lista-temporadas-card">
               ${temporadas
@@ -635,14 +856,17 @@ function carregarObras() {
           `;
         }
 
-        if (obra.tipo === "manga") {
+        if (tipoTemManga(obra.tipo)) {
           const volumes = ordenarItensPeloProgresso(
             obra,
             lerConteudoObra(obra.volumes),
+            "manga",
           );
 
-          conteudo = `
+          conteudo += `
             <h3><i class="fa-solid fa-book"></i> Volumes</h3>
+
+            ${progressoVolumes}
 
             <div class="lista-volumes-card">
               ${volumes
@@ -668,22 +892,24 @@ function carregarObras() {
         }
 
         const imagens = obterImagemPreferida(obra);
-        const linkLeitura = String(obra.link_leitura || "").trim();
+        const linksLeitura = obterLinksLeitura(obra);
         const imagem = imagens.principal
           ? `<img class="imagem-obra" src="${imagens.principal}" alt="${obterTituloExibicao(obra)}">`
           : "";
-        const botaoLeitura = linkLeitura
+        const botaoLeitura = linksLeitura.length === 1
           ? `
               <a
                 class="botao-ler"
-                href="${linkLeitura}"
+                href="${linksLeitura[0].url}"
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 <i class="fa-solid fa-book-open"></i>Ler
               </a>
             `
-          : "";
+          : linksLeitura.length > 1
+            ? `<button type="button" class="botao-ler" data-escolher-link="${obra.id}"><i class="fa-solid fa-book-open"></i>Ler</button>`
+            : "";
 
         lista.innerHTML += `
           <div
@@ -700,6 +926,17 @@ function carregarObras() {
 >
   <i class="${obra.favorito ? "fa-solid" : "fa-regular"} fa-heart"></i>
 </button>
+
+            <button
+              type="button"
+              class="botao-avancar"
+              data-avancar-id="${obra.id}"
+              data-tipo-obra="${obra.tipo}"
+              aria-label="Marcar próximo como visto"
+              title="Marcar próximo como visto"
+            >
+              <strong>+1</strong>
+            </button>
 
             <div class="titulo-card">
 
@@ -826,7 +1063,7 @@ document.getElementById("limpar-filtros").addEventListener("click", () => {
 
 document
   .querySelectorAll(
-    "#popup-filtros, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao",
+    "#popup-filtros, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-escolha-avanco, #popup-escolha-link",
   )
   .forEach((popup) => {
     popup.addEventListener("click", (evento) => {
@@ -837,8 +1074,124 @@ document
   });
 
 let titulosAlternativosEdicao = [];
+let avancoPendente = null;
 
 document.addEventListener("click", async (evento) => {
+  const botaoAvancar = evento.target.closest("button[data-avancar-id]");
+
+  if (botaoAvancar) {
+    const obra = obrasCarregadas.find(
+      (item) => String(item.id) === String(botaoAvancar.dataset.avancarId),
+    );
+
+    const tipoObra = botaoAvancar.dataset.tipoObra || obra?.tipo;
+
+    if (tipoObra === "ambos") {
+      avancoPendente = {
+        id: botaoAvancar.dataset.avancarId,
+        botao: botaoAvancar,
+      };
+      document.getElementById("popup-escolha-avanco").style.display = "flex";
+      return;
+    }
+
+    await avancarProgresso(
+      botaoAvancar.dataset.avancarId,
+      botaoAvancar,
+      tipoObra === "manga" ? "manga" : "anime",
+    );
+    return;
+  }
+
+  const botaoTipoAvanco = evento.target.closest("button[data-avancar-tipo]");
+
+  if (botaoTipoAvanco && avancoPendente) {
+    const { id, botao } = avancoPendente;
+    const tipo = botaoTipoAvanco.dataset.avancarTipo;
+    avancoPendente = null;
+    document.getElementById("popup-escolha-avanco").style.display = "none";
+    await avancarProgresso(id, botao, tipo);
+    return;
+  }
+
+  if (evento.target.matches("#fechar-escolha-avanco")) {
+    avancoPendente = null;
+    document.getElementById("popup-escolha-avanco").style.display = "none";
+    return;
+  }
+
+  const botaoLimpar = evento.target.closest("button[data-limpar-campo]");
+
+  if (botaoLimpar) {
+    const campo = document.getElementById(botaoLimpar.dataset.limparCampo);
+    campo.value = "";
+    campo.dispatchEvent(new Event("input", { bubbles: true }));
+    campo.focus();
+    return;
+  }
+
+  const botaoRemoverLink = evento.target.closest("button[data-remover-link]");
+
+  if (botaoRemoverLink) {
+    const lista = botaoRemoverLink.dataset.removerLink === "criacao"
+      ? linksLeituraCriacao
+      : linksLeituraEdicao;
+    lista.splice(Number(botaoRemoverLink.dataset.indiceLink), 1);
+    renderizarListaLinks(
+      lista,
+      document.getElementById(
+        botaoRemoverLink.dataset.removerLink === "criacao"
+          ? "lista-links-leitura-obra"
+          : "editar-lista-links-leitura",
+      ),
+      botaoRemoverLink.dataset.removerLink,
+    );
+    return;
+  }
+
+  const botaoEscolherLink = evento.target.closest("button[data-escolher-link]");
+
+  if (botaoEscolherLink) {
+    const obra = obrasCarregadas.find(
+      (item) => String(item.id) === String(botaoEscolherLink.dataset.escolherLink),
+    );
+    linksEscolhaAtual = obterLinksLeitura(obra || {});
+    document.getElementById("opcoes-links-leitura").innerHTML = linksEscolhaAtual
+      .map((link, indice) => `<button type="button" data-abrir-link="${indice}">${link.nome || "Link de leitura"}</button>`)
+      .join("");
+    document.getElementById("popup-escolha-link").style.display = "flex";
+    return;
+  }
+
+  if (evento.target.matches("button[data-abrir-link]")) {
+    const link = linksEscolhaAtual[Number(evento.target.dataset.abrirLink)];
+    if (link) {
+      window.open(link.url, "_blank", "noopener,noreferrer");
+    }
+    document.getElementById("popup-escolha-link").style.display = "none";
+    return;
+  }
+
+  if (evento.target.matches("#fechar-escolha-link")) {
+    document.getElementById("popup-escolha-link").style.display = "none";
+    return;
+  }
+
+  if (evento.target.matches("button.botao-remover-item")) {
+    evento.target.closest(".temporada, .volume")?.remove();
+    return;
+  }
+
+  if (evento.target.matches("#botao-atualizacoes")) {
+    document.getElementById("popup-atualizacoes").style.display = "flex";
+    return;
+  }
+
+  if (evento.target.matches("#fechar-atualizacoes")) {
+    document.getElementById("popup-atualizacoes").style.display = "none";
+    return;
+  }
+
   const botaoEditar = evento.target.closest("button[data-id]");
 
   if (botaoEditar) {
@@ -884,7 +1237,13 @@ document.addEventListener("click", async (evento) => {
         document.getElementById("editar-preferencia-imagem").value =
           obra.imagem_preferencia || "url";
         document.getElementById("editar-link-leitura").value =
-          obra.link_leitura || "";
+          "";
+        linksLeituraEdicao = obterLinksLeitura(obra).map((link) => ({ ...link }));
+        renderizarListaLinks(
+          linksLeituraEdicao,
+          document.getElementById("editar-lista-links-leitura"),
+          "edicao",
+        );
         popupEditar.dataset.imagemUrl = obra.imagem || "";
         popupEditar.dataset.imagemArquivo = obra.imagem_arquivo || "";
         document.getElementById("editar-arquivo-imagem").value = "";
@@ -908,18 +1267,38 @@ document.addEventListener("click", async (evento) => {
         const editarTipo = document.getElementById("editar-tipo");
 
         editarTipo.addEventListener("change", () => {
-          if (editarTipo.value === "anime") {
-            editarCamposAnime.style.display = "block";
+          atualizarCamposDeTipo(
+            editarTipo.value,
+            editarCamposAnime,
+            editarCamposManga,
+          );
 
-            editarCamposManga.style.display = "none";
-          } else if (editarTipo.value === "manga") {
-            editarCamposAnime.style.display = "none";
+          if (
+            tipoTemAnime(editarTipo.value) &&
+            !editarListaTemporadas.querySelector(".temporada")
+          ) {
+            editarListaTemporadas.innerHTML = `
+              <div class="temporada">
+                <button type="button" class="botao-remover-item" aria-label="Remover temporada">×</button>
+                <label>Temporada<input type="number" min="1" value="1"></label>
+                <label>Episódios<input type="number" min="0"></label>
+                <label>Começa no episódio<input type="number" min="1" value="1"></label>
+              </div>
+            `;
+          }
 
-            editarCamposManga.style.display = "block";
-          } else {
-            editarCamposAnime.style.display = "none";
-
-            editarCamposManga.style.display = "none";
+          if (
+            tipoTemManga(editarTipo.value) &&
+            !editarListaVolumes.querySelector(".volume")
+          ) {
+            editarListaVolumes.innerHTML = `
+              <div class="volume">
+                <button type="button" class="botao-remover-item" aria-label="Remover volume">×</button>
+                <label>Volume<input type="number" min="1" value="1"></label>
+                <label>Começa no capítulo<input type="number" min="1" value="1"></label>
+                <label>Termina no capítulo<input type="number" min="1"></label>
+              </div>
+            `;
           }
         });
 
@@ -927,10 +1306,8 @@ document.addEventListener("click", async (evento) => {
 
         editarListaVolumes.innerHTML = "";
 
-        if (obra.tipo === "anime") {
+        if (tipoTemAnime(obra.tipo)) {
           editarCamposAnime.style.display = "block";
-
-          editarCamposManga.style.display = "none";
 
           const temporadas = lerConteudoObra(obra.temporadas);
 
@@ -941,6 +1318,7 @@ document.addEventListener("click", async (evento) => {
             linha.dataset.vistos = JSON.stringify(temporada.vistos || []);
 
             linha.innerHTML = `
+              <button type="button" class="botao-remover-item" aria-label="Remover temporada">×</button>
               <label>
                 Temporada
                 <input
@@ -966,9 +1344,9 @@ document.addEventListener("click", async (evento) => {
 
             editarListaTemporadas.appendChild(linha);
           });
-        } else if (obra.tipo === "manga") {
-          editarCamposAnime.style.display = "none";
+        }
 
+        if (tipoTemManga(obra.tipo)) {
           editarCamposManga.style.display = "block";
 
           const volumes = lerConteudoObra(obra.volumes);
@@ -980,6 +1358,7 @@ document.addEventListener("click", async (evento) => {
             linha.dataset.vistos = JSON.stringify(volume.vistos || []);
 
             linha.innerHTML = `
+              <button type="button" class="botao-remover-item" aria-label="Remover volume">×</button>
   <label>
     Volume
     <input
@@ -1118,18 +1497,17 @@ document.addEventListener("click", async (evento) => {
 
   if (evento.target.matches("button[data-marcar-todos]")) {
     const indice = Number(evento.target.dataset.marcarTodos);
+    const tipo = evento.target.dataset.marcarTipo;
 
     const obra = obraProgressoAtual;
-
-    const itens = obra.tipo === "anime" ? obra.temporadas : obra.volumes;
+    const itens = obterItensDaObra(obra, tipo);
 
     const item = itens[indice];
 
-    const inicio =
-      obra.tipo === "manga" ? item.inicio : obterInicioTemporada(item);
+    const inicio = tipo === "manga" ? item.inicio : obterInicioTemporada(item);
 
     const fim =
-      obra.tipo === "manga"
+      tipo === "manga"
         ? item.fim
         : obterInicioTemporada(item) + item.episodios - 1;
 
@@ -1149,35 +1527,24 @@ document.addEventListener("click", async (evento) => {
 
   if (evento.target.matches("#marcar-toda-obra")) {
     const obra = obraProgressoAtual;
-    const itens = obra.tipo === "anime" ? obra.temporadas : obra.volumes;
-    const todosMarcados = itens.every((item) => {
-      const inicio =
-        obra.tipo === "manga" ? item.inicio : obterInicioTemporada(item);
-      const fim =
-        obra.tipo === "manga"
-          ? item.fim
-          : obterInicioTemporada(item) + item.episodios - 1;
+    const tipos = [
+      ...(tipoTemAnime(obra.tipo) ? ["anime"] : []),
+      ...(tipoTemManga(obra.tipo) ? ["manga"] : []),
+    ];
+    const todosMarcados = tipos.every((tipo) => obterItensDaObra(obra, tipo).every((item) => {
+      const inicio = tipo === "manga" ? item.inicio : obterInicioTemporada(item);
+      const fim = tipo === "manga" ? item.fim : inicio + item.episodios - 1;
+      return obterNumerosVistosValidos(item, inicio, fim).size === fim - inicio + 1;
+    }));
 
-      return (
-        obterNumerosVistosValidos(item, inicio, fim).size === fim - inicio + 1
+    tipos.forEach((tipo) => obterItensDaObra(obra, tipo).forEach((item) => {
+      const inicio = tipo === "manga" ? item.inicio : obterInicioTemporada(item);
+      const fim = tipo === "manga" ? item.fim : inicio + item.episodios - 1;
+      item.vistos = todosMarcados ? [] : Array.from(
+        { length: fim - inicio + 1 },
+        (_, numero) => inicio + numero,
       );
-    });
-
-    itens.forEach((item) => {
-      const inicio =
-        obra.tipo === "manga" ? item.inicio : obterInicioTemporada(item);
-      const fim =
-        obra.tipo === "manga"
-          ? item.fim
-          : obterInicioTemporada(item) + item.episodios - 1;
-
-      item.vistos = todosMarcados
-        ? []
-        : Array.from(
-            { length: fim - inicio + 1 },
-            (_, numero) => inicio + numero,
-          );
-    });
+    }));
 
     renderizarProgresso();
     salvarProgresso();
@@ -1195,7 +1562,8 @@ document.addEventListener("change", async (evento) => {
 
   const obra = obraProgressoAtual;
 
-  const itens = obra.tipo === "anime" ? obra.temporadas : obra.volumes;
+  const tipo = evento.target.dataset.progressoTipo;
+  const itens = obterItensDaObra(obra, tipo);
 
   const indice = Number(evento.target.dataset.progressoItem);
 
@@ -1231,23 +1599,27 @@ const adicionarTemporada = document.getElementById("adicionar-temporada");
 const adicionarVolume = document.getElementById("adicionar-volume");
 
 tipoObra.addEventListener("change", () => {
-  if (tipoObra.value === "anime") {
-    camposAnime.style.display = "block";
+  atualizarCamposDeTipo(tipoObra.value, camposAnime, camposManga);
+});
 
-    camposManga.style.display = "none";
-  } else if (tipoObra.value === "manga") {
-    camposAnime.style.display = "none";
+document.querySelectorAll("[data-seletor-tipo] [data-tipo-atalho]").forEach((botao) => {
+  botao.addEventListener("click", () => {
+    const seletor = document.getElementById(botao.parentElement.dataset.seletorTipo);
+    const valorAtual = seletor.value;
+    const tipo = botao.dataset.tipoAtalho;
 
-    camposManga.style.display = "block";
-  } else {
-    camposAnime.style.display = "none";
-
-    camposManga.style.display = "none";
-  }
+    seletor.value = tipo;
+    seletor.dispatchEvent(new Event("change"));
+  });
 });
 
 adicionarTemporada.addEventListener("click", () => {
   const temporadas = listaTemporadas.querySelectorAll(".temporada");
+
+  if (!temporadas.length) {
+    listaTemporadas.innerHTML = `<div class="temporada"><button type="button" class="botao-remover-item" aria-label="Remover temporada">×</button><label>Temporada<input type="number" min="1" value="1"></label><label>Episódios<input type="number" min="1"></label><label>Começa no episódio<input type="number" min="1" value="1"></label></div>`;
+    return;
+  }
 
   const ultimaTemporada = temporadas[temporadas.length - 1];
 
@@ -1279,6 +1651,7 @@ adicionarTemporada.addEventListener("click", () => {
     (Number(campos[2].value) || 1) + Number(campos[1].value);
 
   novaTemporada.innerHTML = `
+      <button type="button" class="botao-remover-item" aria-label="Remover temporada">×</button>
       <label>
         Temporada
         <input
@@ -1306,6 +1679,11 @@ adicionarTemporada.addEventListener("click", () => {
 
 adicionarVolume.addEventListener("click", () => {
   const volumes = listaVolumes.querySelectorAll(".volume");
+
+  if (!volumes.length) {
+    listaVolumes.innerHTML = `<div class="volume"><button type="button" class="botao-remover-item" aria-label="Remover volume">×</button><label>Volume<input type="number" min="1" value="1"></label><label>Começa no capítulo<input type="number" min="1" value="1"></label><label>Termina no capítulo<input type="number" min="1"></label></div>`;
+    return;
+  }
 
   const ultimoVolume = volumes[volumes.length - 1];
 
@@ -1336,6 +1714,7 @@ adicionarVolume.addEventListener("click", () => {
   const proximoInicio = Number(campos[2].value) + 1;
 
   novoVolume.innerHTML = `
+    <button type="button" class="botao-remover-item" aria-label="Remover volume">×</button>
     <label>
       Volume
       <input
@@ -1515,6 +1894,26 @@ document
     renderizarTitulosAlternativosEdicao();
   });
 
+document.getElementById("adicionar-link-leitura-obra").addEventListener("click", () => {
+  const nome = document.getElementById("nome-link-leitura-obra");
+  const url = document.getElementById("link-leitura-obra");
+
+  if (!url.value.trim() || !url.checkValidity()) {
+    mostrarMensagem("Informe uma URL válida para o link de leitura.", "erro");
+    url.focus();
+    return;
+  }
+
+  linksLeituraCriacao.push({ nome: nome.value.trim(), url: url.value.trim() });
+  nome.value = "";
+  url.value = "";
+  renderizarListaLinks(
+    linksLeituraCriacao,
+    document.getElementById("lista-links-leitura-obra"),
+    "criacao",
+  );
+});
+
 formCriar.addEventListener("submit", async (evento) => {
   evento.preventDefault();
 
@@ -1533,6 +1932,22 @@ formCriar.addEventListener("submit", async (evento) => {
   const arquivoImagemObra = document.getElementById("arquivo-imagem-obra");
 
   const linkLeituraObra = document.getElementById("link-leitura-obra");
+
+  if (linkLeituraObra.value.trim()) {
+    if (!linkLeituraObra.checkValidity()) {
+      mostrarMensagem("Informe uma URL válida para o link de leitura.", "erro");
+      linkLeituraObra.focus();
+      botaoCriar.disabled = false;
+      return;
+    }
+
+    linksLeituraCriacao.push({
+      nome: document.getElementById("nome-link-leitura-obra").value.trim(),
+      url: linkLeituraObra.value.trim(),
+    });
+    document.getElementById("nome-link-leitura-obra").value = "";
+    linkLeituraObra.value = "";
+  }
 
   imagemObra.value = imagemObra.value.trim();
 
@@ -1564,8 +1979,14 @@ formCriar.addEventListener("submit", async (evento) => {
     "preferencia-imagem-obra",
   ).value;
 
-  if (tipoObra.value === "anime") {
+  if (tipoTemAnime(tipoObra.value)) {
     const temporadas = listaTemporadas.querySelectorAll(".temporada");
+
+    if (!temporadas.length) {
+      mostrarMensagem("Adicione pelo menos uma temporada para o anime.", "erro");
+      botaoCriar.disabled = false;
+      return;
+    }
 
     const primeira = temporadas[0].querySelectorAll("input");
     const primeiraVazia = [...primeira].every((campo) => campo.value === "");
@@ -1624,8 +2045,14 @@ formCriar.addEventListener("submit", async (evento) => {
     }
   }
 
-  if (tipoObra.value === "manga") {
+  if (tipoTemManga(tipoObra.value)) {
     const volumes = listaVolumes.querySelectorAll(".volume");
+
+    if (!volumes.length) {
+      mostrarMensagem("Adicione pelo menos um volume para o mangá.", "erro");
+      botaoCriar.disabled = false;
+      return;
+    }
 
     const primeiro = volumes[0].querySelectorAll("input");
 
@@ -1685,7 +2112,7 @@ formCriar.addEventListener("submit", async (evento) => {
 
   const temporadas = [];
 
-  if (tipoObra.value === "anime") {
+  if (tipoTemAnime(tipoObra.value)) {
     const linhasTemporadas = listaTemporadas.querySelectorAll(".temporada");
     for (let i = 0; i < linhasTemporadas.length; i++) {
       const campos = linhasTemporadas[i].querySelectorAll("input");
@@ -1718,7 +2145,7 @@ formCriar.addEventListener("submit", async (evento) => {
 
   const volumes = [];
 
-  if (tipoObra.value === "manga") {
+  if (tipoTemManga(tipoObra.value)) {
     const linhas = listaVolumes.querySelectorAll(".volume");
 
     linhas.forEach((linha) => {
@@ -1773,7 +2200,10 @@ formCriar.addEventListener("submit", async (evento) => {
 
         imagem_preferencia: preferenciaImagem,
 
-        link_leitura: linkLeituraObra.value.trim() || null,
+        link_leitura: linksLeituraCriacao.length === 1
+          ? linksLeituraCriacao[0].url
+          : null,
+        link_leituras: linksLeituraCriacao,
 
         temporadas: temporadas,
 
@@ -1808,6 +2238,12 @@ formCriar.addEventListener("submit", async (evento) => {
     document.getElementById("preferencia-imagem-obra").value = "url";
 
     linkLeituraObra.value = "";
+    linksLeituraCriacao = [];
+    renderizarListaLinks(
+      linksLeituraCriacao,
+      document.getElementById("lista-links-leitura-obra"),
+      "criacao",
+    );
 
     previewImagem.src = "";
 
@@ -1970,6 +2406,7 @@ editarAdicionarTemporada.addEventListener("click", () => {
   if (!ultimaTemporada) {
     editarListaTemporadas.innerHTML = `
         <div class="temporada">
+        <button type="button" class="botao-remover-item" aria-label="Remover temporada">×</button>
 
           <label>
             Temporada
@@ -2017,6 +2454,7 @@ editarAdicionarTemporada.addEventListener("click", () => {
     (Number(campos[2].value) || 1) + Number(campos[1].value);
 
   novaTemporada.innerHTML = `
+      <button type="button" class="botao-remover-item" aria-label="Remover temporada">×</button>
       <label>
         Temporada
         <input
@@ -2050,6 +2488,7 @@ editarAdicionarVolume.addEventListener("click", () => {
   if (!ultimoVolume) {
     editarListaVolumes.innerHTML = `
     <div class="volume">
+      <button type="button" class="botao-remover-item" aria-label="Remover volume">×</button>
       <label>
         Volume
         <input type="number" min="1" value="1">
@@ -2099,6 +2538,7 @@ editarAdicionarVolume.addEventListener("click", () => {
   const proximoInicio = Number(campos[2].value) + 1;
 
   novoVolume.innerHTML = `
+  <button type="button" class="botao-remover-item" aria-label="Remover volume">×</button>
   <label>
     Volume
     <input
@@ -2128,6 +2568,26 @@ editarAdicionarVolume.addEventListener("click", () => {
   editarListaVolumes.appendChild(novoVolume);
 });
 
+document.getElementById("editar-adicionar-link-leitura").addEventListener("click", () => {
+  const nome = document.getElementById("editar-nome-link-leitura");
+  const url = document.getElementById("editar-link-leitura");
+
+  if (!url.value.trim() || !url.checkValidity()) {
+    mostrarMensagem("Informe uma URL válida para o link de leitura.", "erro");
+    url.focus();
+    return;
+  }
+
+  linksLeituraEdicao.push({ nome: nome.value.trim(), url: url.value.trim() });
+  nome.value = "";
+  url.value = "";
+  renderizarListaLinks(
+    linksLeituraEdicao,
+    document.getElementById("editar-lista-links-leitura"),
+    "edicao",
+  );
+});
+
 formEditar.addEventListener("submit", async (evento) => {
   evento.preventDefault();
 
@@ -2150,6 +2610,21 @@ formEditar.addEventListener("submit", async (evento) => {
   );
 
   const linkLeitura = document.getElementById("editar-link-leitura");
+
+  if (linkLeitura.value.trim()) {
+    if (!linkLeitura.checkValidity()) {
+      mostrarMensagem("Informe uma URL válida para o link de leitura.", "erro");
+      linkLeitura.focus();
+      return;
+    }
+
+    linksLeituraEdicao.push({
+      nome: document.getElementById("editar-nome-link-leitura").value.trim(),
+      url: linkLeitura.value.trim(),
+    });
+    document.getElementById("editar-nome-link-leitura").value = "";
+    linkLeitura.value = "";
+  }
 
   imagem.value = imagem.value.trim();
 
@@ -2285,11 +2760,14 @@ formEditar.addEventListener("submit", async (evento) => {
 
       imagem_preferencia: preferenciaImagem.value,
 
-      link_leitura: linkLeitura.value.trim() || null,
+        link_leitura: linksLeituraEdicao.length === 1
+          ? linksLeituraEdicao[0].url
+          : null,
+        link_leituras: linksLeituraEdicao,
 
-      temporadas: tipo.value === "anime" ? temporadas : null,
+      temporadas: tipoTemAnime(tipo.value) ? temporadas : null,
 
-      volumes: tipo.value === "manga" ? volumes : null,
+      volumes: tipoTemManga(tipo.value) ? volumes : null,
 
       titulos_alternativos: titulosAlternativosEdicao,
 

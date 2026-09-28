@@ -119,6 +119,7 @@ db.exec(`
     imagem_arquivo TEXT,
     imagem_preferencia TEXT DEFAULT 'url',
     link_leitura TEXT,
+    link_leituras TEXT DEFAULT '[]',
     temporadas TEXT,
     capitulos INTEGER
   );
@@ -134,6 +135,7 @@ for (const coluna of [
   "ALTER TABLE obras ADD COLUMN imagem_arquivo TEXT",
   "ALTER TABLE obras ADD COLUMN imagem_preferencia TEXT DEFAULT 'url'",
   "ALTER TABLE obras ADD COLUMN link_leitura TEXT",
+  "ALTER TABLE obras ADD COLUMN link_leituras TEXT DEFAULT '[]'",
   "ALTER TABLE obras ADD COLUMN favorito INTEGER NOT NULL DEFAULT 0",
 ]) {
   try {
@@ -360,6 +362,10 @@ app.post("/obras", verificarToken, async (req, res) => {
     return responderErro(res, 400, "O nome da obra é obrigatório");
   }
 
+  if (!["anime", "manga", "ambos"].includes(obra.tipo)) {
+    return responderErro(res, 400, "Selecione anime, mangá ou ambos");
+  }
+
   const imagemArquivo =
     obra.imagem_arquivo || (await baixarImagemComoDataUrl(obra.imagem));
 
@@ -373,6 +379,7 @@ app.post("/obras", verificarToken, async (req, res) => {
       imagem_arquivo,
       imagem_preferencia,
       link_leitura,
+      link_leituras,
       temporadas,
       capitulos,
       volumes,
@@ -380,7 +387,7 @@ app.post("/obras", verificarToken, async (req, res) => {
       favorito,
       titulo_exibicao
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const resultado = inserir.run(
@@ -392,6 +399,9 @@ app.post("/obras", verificarToken, async (req, res) => {
     imagemArquivo || null,
     obra.imagem_preferencia || "url",
     obra.link_leitura ? String(obra.link_leitura).trim() : null,
+    Array.isArray(obra.link_leituras)
+      ? JSON.stringify(obra.link_leituras)
+      : "[]",
     obra.temporadas ? JSON.stringify(obra.temporadas) : null,
     obra.capitulos || null,
     obra.volumes ? JSON.stringify(obra.volumes) : null,
@@ -411,6 +421,9 @@ app.post("/obras", verificarToken, async (req, res) => {
     imagem_arquivo: imagemArquivo || null,
     imagem_preferencia: obra.imagem_preferencia || "url",
     link_leitura: obra.link_leitura ? String(obra.link_leitura).trim() : null,
+    link_leituras: Array.isArray(obra.link_leituras)
+      ? obra.link_leituras
+      : [],
     temporadas: obra.temporadas || null,
     capitulos: obra.capitulos || null,
     volumes: obra.volumes || null,
@@ -426,6 +439,11 @@ app.post("/obras", verificarToken, async (req, res) => {
 app.put("/obras/:id", verificarToken, async (req, res) => {
   const id = req.params.id;
   const obra = req.body;
+
+  if (!["anime", "manga", "ambos"].includes(obra.tipo)) {
+    return responderErro(res, 400, "Selecione anime, mangá ou ambos");
+  }
+
   const obraAtual = db
     .prepare(
       "SELECT tipo, temporadas, volumes FROM obras WHERE id = ? AND usuario_id = ?",
@@ -433,19 +451,23 @@ app.put("/obras/:id", verificarToken, async (req, res) => {
     .get(id, req.usuario.id);
 
   const temporadas =
-    obra.tipo === "anime"
+    ["anime", "ambos"].includes(obra.tipo)
       ? preservarProgresso(
           obra.temporadas,
-          obraAtual?.tipo === "anime" ? obraAtual.temporadas : null,
+          ["anime", "ambos"].includes(obraAtual?.tipo)
+            ? obraAtual.temporadas
+            : null,
           "episodios",
         )
       : null;
 
   const volumes =
-    obra.tipo === "manga"
+    ["manga", "ambos"].includes(obra.tipo)
       ? preservarProgresso(
           obra.volumes,
-          obraAtual?.tipo === "manga" ? obraAtual.volumes : null,
+          ["manga", "ambos"].includes(obraAtual?.tipo)
+            ? obraAtual.volumes
+            : null,
           "capitulos",
         )
       : null;
@@ -463,6 +485,7 @@ app.put("/obras/:id", verificarToken, async (req, res) => {
       imagem_arquivo = ?,
       imagem_preferencia = ?,
       link_leitura = ?,
+      link_leituras = ?,
       temporadas = ?,
       capitulos = ?,
       volumes = ?,
@@ -479,6 +502,9 @@ app.put("/obras/:id", verificarToken, async (req, res) => {
     imagemArquivo || null,
     obra.imagem_preferencia || "url",
     obra.link_leitura ? String(obra.link_leitura).trim() : null,
+    Array.isArray(obra.link_leituras)
+      ? JSON.stringify(obra.link_leituras)
+      : "[]",
     temporadas ? JSON.stringify(temporadas) : null,
     obra.capitulos || null,
     volumes ? JSON.stringify(volumes) : null,
@@ -503,6 +529,9 @@ app.put("/obras/:id", verificarToken, async (req, res) => {
     imagem_arquivo: imagemArquivo || null,
     imagem_preferencia: obra.imagem_preferencia || "url",
     link_leitura: obra.link_leitura ? String(obra.link_leitura).trim() : null,
+    link_leituras: Array.isArray(obra.link_leituras)
+      ? obra.link_leituras
+      : [],
     temporadas: temporadas || null,
     capitulos: obra.capitulos || null,
     volumes: volumes || null,
