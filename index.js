@@ -47,7 +47,10 @@ async function baixarImagemComoDataUrl(url) {
     const tipo = resposta.headers.get("content-type") || "";
     const tamanhoInformado = Number(resposta.headers.get("content-length"));
 
-    if (!tipo.startsWith("image/") || tamanhoInformado > TAMANHO_MAXIMO_IMAGEM) {
+    if (
+      !tipo.startsWith("image/") ||
+      tamanhoInformado > TAMANHO_MAXIMO_IMAGEM
+    ) {
       return null;
     }
 
@@ -121,7 +124,8 @@ db.exec(`
     link_leitura TEXT,
     link_leituras TEXT DEFAULT '[]',
     temporadas TEXT,
-    capitulos INTEGER
+    capitulos INTEGER,
+    ordem INTEGER
   );
 `);
 
@@ -137,12 +141,42 @@ for (const coluna of [
   "ALTER TABLE obras ADD COLUMN link_leitura TEXT",
   "ALTER TABLE obras ADD COLUMN link_leituras TEXT DEFAULT '[]'",
   "ALTER TABLE obras ADD COLUMN favorito INTEGER NOT NULL DEFAULT 0",
+  "ALTER TABLE obras ADD COLUMN ordem INTEGER",
 ]) {
   try {
     db.exec(coluna);
   } catch (erro) {
     // A coluna já existe
   }
+}
+
+const obrasSemOrdem = db
+  .prepare(
+    `
+    SELECT id, usuario_id
+    FROM obras
+    WHERE ordem IS NULL
+    ORDER BY usuario_id, id
+  `,
+  )
+  .all();
+
+const definirOrdem = db.prepare(`
+  UPDATE obras
+  SET ordem = ?
+  WHERE id = ?
+`);
+
+const ordemPorUsuario = new Map();
+
+for (const obra of obrasSemOrdem) {
+  const usuarioId = obra.usuario_id;
+
+  const proximaOrdem = (ordemPorUsuario.get(usuarioId) || 0) + 1;
+
+  definirOrdem.run(proximaOrdem, obra.id);
+
+  ordemPorUsuario.set(usuarioId, proximaOrdem);
 }
 
 db.exec(`
@@ -279,6 +313,7 @@ app.get("/obras", verificarToken, (req, res) => {
       SELECT *
       FROM obras
       WHERE usuario_id = ?
+      ORDER BY ordem ASC, id ASC
     `,
     )
     .all(req.usuario.id);
@@ -358,6 +393,18 @@ function preservarProgresso(itensNovos, conteudoAtual, quantidadeKey) {
 app.post("/obras", verificarToken, async (req, res) => {
   const obra = req.body;
 
+  const resultadoOrdem = db
+    .prepare(
+      `
+    SELECT COALESCE(MAX(ordem), 0) + 1 AS proxima_ordem
+    FROM obras
+    WHERE usuario_id = ?
+  `,
+    )
+    .get(req.usuario.id);
+
+  const ordem = resultadoOrdem.proxima_ordem;
+
   if (!obra.title) {
     return responderErro(res, 400, "O nome da obra é obrigatório");
   }
@@ -373,6 +420,7 @@ app.post("/obras", verificarToken, async (req, res) => {
     INSERT INTO obras (
       title,
       usuario_id,
+      ordem,
       tipo,
       status,
       imagem,
@@ -387,12 +435,13 @@ app.post("/obras", verificarToken, async (req, res) => {
       favorito,
       titulo_exibicao
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const resultado = inserir.run(
     obra.title,
     req.usuario.id,
+    ordem,
     obra.tipo,
     obra.status,
     obra.imagem,
@@ -421,9 +470,7 @@ app.post("/obras", verificarToken, async (req, res) => {
     imagem_arquivo: imagemArquivo || null,
     imagem_preferencia: obra.imagem_preferencia || "url",
     link_leitura: obra.link_leitura ? String(obra.link_leitura).trim() : null,
-    link_leituras: Array.isArray(obra.link_leituras)
-      ? obra.link_leituras
-      : [],
+    link_leituras: Array.isArray(obra.link_leituras) ? obra.link_leituras : [],
     temporadas: obra.temporadas || null,
     capitulos: obra.capitulos || null,
     volumes: obra.volumes || null,
@@ -450,27 +497,23 @@ app.put("/obras/:id", verificarToken, async (req, res) => {
     )
     .get(id, req.usuario.id);
 
-  const temporadas =
-    ["anime", "ambos"].includes(obra.tipo)
-      ? preservarProgresso(
-          obra.temporadas,
-          ["anime", "ambos"].includes(obraAtual?.tipo)
-            ? obraAtual.temporadas
-            : null,
-          "episodios",
-        )
-      : null;
+  const temporadas = ["anime", "ambos"].includes(obra.tipo)
+    ? preservarProgresso(
+        obra.temporadas,
+        ["anime", "ambos"].includes(obraAtual?.tipo)
+          ? obraAtual.temporadas
+          : null,
+        "episodios",
+      )
+    : null;
 
-  const volumes =
-    ["manga", "ambos"].includes(obra.tipo)
-      ? preservarProgresso(
-          obra.volumes,
-          ["manga", "ambos"].includes(obraAtual?.tipo)
-            ? obraAtual.volumes
-            : null,
-          "capitulos",
-        )
-      : null;
+  const volumes = ["manga", "ambos"].includes(obra.tipo)
+    ? preservarProgresso(
+        obra.volumes,
+        ["manga", "ambos"].includes(obraAtual?.tipo) ? obraAtual.volumes : null,
+        "capitulos",
+      )
+    : null;
 
   const imagemArquivo =
     obra.imagem_arquivo || (await baixarImagemComoDataUrl(obra.imagem));
@@ -529,9 +572,7 @@ app.put("/obras/:id", verificarToken, async (req, res) => {
     imagem_arquivo: imagemArquivo || null,
     imagem_preferencia: obra.imagem_preferencia || "url",
     link_leitura: obra.link_leitura ? String(obra.link_leitura).trim() : null,
-    link_leituras: Array.isArray(obra.link_leituras)
-      ? obra.link_leituras
-      : [],
+    link_leituras: Array.isArray(obra.link_leituras) ? obra.link_leituras : [],
     temporadas: temporadas || null,
     capitulos: obra.capitulos || null,
     volumes: volumes || null,
@@ -553,11 +594,7 @@ app.patch("/obras/:id/favorito", verificarToken, (req, res) => {
     WHERE id = ? AND usuario_id = ?
   `);
 
-  const resultado = atualizar.run(
-    favorito,
-    id,
-    req.usuario.id,
-  );
+  const resultado = atualizar.run(favorito, id, req.usuario.id);
 
   if (resultado.changes === 0) {
     return responderErro(res, 404, "Obra não encontrada");
@@ -566,6 +603,32 @@ app.patch("/obras/:id/favorito", verificarToken, (req, res) => {
   res.json({
     id,
     favorito,
+  });
+});
+
+app.patch("/obras/ordem", verificarToken, (req, res) => {
+  const { obras } = req.body;
+
+  if (!Array.isArray(obras)) {
+    return responderErro(res, 400, "Ordem das obras inválida");
+  }
+
+  const atualizarOrdem = db.prepare(`
+    UPDATE obras
+    SET ordem = ?
+    WHERE id = ? AND usuario_id = ?
+  `);
+
+  const salvarOrdem = db.transaction((lista) => {
+    lista.forEach((obra, indice) => {
+      atualizarOrdem.run(indice + 1, obra.id, req.usuario.id);
+    });
+  });
+
+  salvarOrdem(obras);
+
+  res.json({
+    mensagem: "Ordem das obras atualizada",
   });
 });
 

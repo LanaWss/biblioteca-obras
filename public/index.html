@@ -1,329 +1,151 @@
 <!doctype html>
 <html>
-  <head>
-    <title>Biblioteca de Obras</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="style.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    />
-    <link rel="icon" href="icone.png" />
-  </head>
-  <body>
-    <div id="mensagem"></div>
 
-    <button
-      id="botao-inicio"
-      type="button"
-      aria-label="Voltar ao topo"
-      title="Voltar ao topo"
-    >
-      <i class="fa-solid fa-house"></i>
-    </button>
+<head>
+  <title>Biblioteca de Obras</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="icon" href="icone.png" />
+</head>
 
-    <div id="boas-vindas" class="boas-vindas" hidden>
-      <p>Olá, <strong id="nome-boas-vindas"></strong></p>
+<body>
+  <div id="mensagem"></div>
+
+  <button id="botao-inicio" type="button" aria-label="Voltar ao topo" title="Voltar ao topo">
+    <i class="fa-solid fa-house"></i>
+  </button>
+
+  <div id="boas-vindas" class="boas-vindas" hidden>
+    <p>Olá, <strong id="nome-boas-vindas"></strong></p>
+  </div>
+  <header>
+    <h1>Minhas Obras</h1>
+    <p>Esta é a página principal da sua biblioteca de obras.</p>
+
+    <div class="barra-ferramentas">
+      <label class="campo-busca" for="buscar-obras">
+        <span class="icone-busca">🔍</span>
+        <input id="buscar-obras" type="search" placeholder="Buscar obra pelo nome" autocomplete="off" />
+      </label>
+      <button id="abrir-filtros" type="button">
+        <i class="fa-solid fa-filter"></i> Filtro
+      </button>
+
+      <button id="botao-criar" type="button">
+        <i class="fa-solid fa-plus"></i> Criar obra
+      </button>
+
+      <button id="botao-organizar" type="button">
+        <i class="fa-solid fa-arrows-up-down-left-right"></i> Organizar
+      </button>
+
+      <button id="botao-sair">Sair</button>
     </div>
-    <header>
-      <h1>Minhas Obras</h1>
-      <p>Esta é a página principal da sua biblioteca de obras.</p>
 
-      <div class="barra-ferramentas">
-        <label class="campo-busca" for="buscar-obras">
-          <span class="icone-busca">🔍</span>
-          <input
-            id="buscar-obras"
-            type="search"
-            placeholder="Buscar obra pelo nome"
-            autocomplete="off"
-          />
-        </label>
-        <button id="abrir-filtros" type="button">
-          <i class="fa-solid fa-filter"></i> Filtro
-        </button>
-
-        <button id="botao-criar" type="button">
-          <i class="fa-solid fa-plus"></i> Criar obra
-        </button>
-
-        <button id="botao-organizar" type="button">
-          <i class="fa-solid fa-arrows-up-down-left-right"></i> Organizar
-        </button>
-
-        <button id="botao-sair">Sair</button>
-      </div>
-
-      <div id="popup-filtros">
-        <div class="popup-shell">
-          <button id="fechar-filtros" class="popup-fechar" type="button">
-            X
-          </button>
-          <div>
-            <h2>Filtros</h2>
-            <label for="filtro-tipo">Tipo</label>
-            <select id="filtro-tipo">
-              <option value="">Todos</option>
-              <option value="anime">Anime</option>
-              <option value="manga">Mangá</option>
-              <option value="ambos">Anime e mangá</option>
-            </select>
-
-            <label for="filtro-status">Status</label>
-            <select id="filtro-status">
-              <option value="">Todos</option>
-              <option value="completa">Completa</option>
-              <option value="hiato">Em hiato</option>
-              <option value="lancando">Lançando</option>
-            </select>
-
-            <label for="filtro-progresso">Progresso</label>
-            <select id="filtro-progresso">
-              <option value="">Todos</option>
-              <option value="nao-comecou">Não começou</option>
-              <option value="pendente">Falta ler</option>
-              <option value="completo">Leu tudo</option>
-            </select>
-
-            <label for="filtro-favorito">Favoritos</label>
-            <select id="filtro-favorito">
-              <option value="">Todos</option>
-              <option value="favoritos">⭐ Favoritos</option>
-            </select>
-
-            <button id="limpar-filtros" type="button">Limpar filtros</button>
-          </div>
-        </div>
-      </div>
-
-      <div id="popup-criar">
-        <div class="popup-shell">
-          <button id="fechar-popup" class="popup-fechar" type="button">
-            X
-          </button>
-          <div>
-            <h2>Criar obra</h2>
-
-            <form id="form-criar" autocomplete="off">
-              <label for="titulo-obra">
-                Nome da obra <span class="obrigatorio">*</span>
-              </label>
-
-              <input
-                id="titulo-obra"
-                type="text"
-                placeholder="Nome da obra"
-                required
-              />
-
-              <div class="campo-titulos-alternativos">
-                <label for="titulo-alternativo"> Títulos alternativos </label>
-
-                <div class="linha-titulo-alternativo">
-                  <input
-                    type="text"
-                    id="titulo-alternativo"
-                    placeholder="Digite um título alternativo"
-                  />
-
-                  <button type="button" id="adicionar-titulo-alternativo">
-                    Adicionar
-                  </button>
-                </div>
-
-                <div id="lista-titulos-alternativos"></div>
-
-                <label for="titulo-exibicao"> Título mostrado no card </label>
-
-                <select id="titulo-exibicao">
-                  <option value="principal">Título principal</option>
-                </select>
-              </div>
-
-              <label for="tipo-obra"
-                >Tipo <span class="obrigatorio">*</span></label
-              >
-
-              <select id="tipo-obra" required>
-                <option value="">Selecione</option>
-                <option value="anime">Anime</option>
-                <option value="manga">Mangá</option>
-                <option value="ambos">Anime e mangá</option>
-              </select>
-
-              <div class="atalhos-tipo" data-seletor-tipo="tipo-obra">
-                <button type="button" data-tipo-atalho="anime">Configurar anime</button>
-                <button type="button" data-tipo-atalho="manga">Configurar mangá</button>
-              </div>
-
-              <div id="campos-anime" style="display: none">
-                <div id="lista-temporadas">
-                  <div class="temporada">
-                    <button type="button" class="botao-remover-item" aria-label="Remover temporada" title="Remover temporada">×</button>
-                    <label>
-                      Temporada
-                      <input type="number" value="1" min="1" />
-                    </label>
-                    <label>
-                      Episódios
-                      <input type="number" min="1" />
-                    </label>
-                    <label>
-                      Começa no episódio
-                      <input type="number" min="1" value="1" />
-                    </label>
-                  </div>
-                </div>
-
-                <button type="button" id="adicionar-temporada">
-                  + Enviar temporada
-                </button>
-              </div>
-
-              <div id="campos-manga" style="display: none">
-                <div id="lista-volumes">
-                  <div class="volume">
-                    <button type="button" class="botao-remover-item" aria-label="Remover volume" title="Remover volume">×</button>
-                    <label>
-                      Volume
-                      <input type="number" value="1" min="1" />
-                    </label>
-
-                    <label>
-                      Começa no capítulo
-                      <input type="number" value="1" min="1" />
-                    </label>
-
-                    <label>
-                      Termina no capítulo
-                      <input type="number" min="1" />
-                    </label>
-                  </div>
-                </div>
-
-                <button type="button" id="adicionar-volume">
-                  + Enviar volume
-                </button>
-              </div>
-
-              <label for="status-obra"
-                >Status <span class="obrigatorio">*</span></label
-              >
-
-              <select id="status-obra" required>
-                <option value="">Selecione</option>
-                <option value="completa">Completa</option>
-                <option value="hiato">Em hiato</option>
-                <option value="lancando">Lançando</option>
-              </select>
-
-              <label for="imagem-obra">Imagem</label>
-
-              <div class="campo-com-limpar">
-                <input id="imagem-obra" type="url" placeholder="URL da imagem (opcional)" />
-                <button type="button" class="botao-limpar-campo" data-limpar-campo="imagem-obra" aria-label="Limpar URL da imagem">×</button>
-              </div>
-              <label for="arquivo-imagem-obra">Ou imagem do dispositivo</label>
-              <input id="arquivo-imagem-obra" type="file" accept="image/*" />
-              <label for="preferencia-imagem-obra">Imagem preferida</label>
-              <select id="preferencia-imagem-obra">
-                <option value="url">URL</option>
-                <option value="arquivo">Imagem do dispositivo</option>
-              </select>
-              <img id="preview-imagem" src="" alt="Preview da obra" hidden />
-              <p id="aviso-imagem-obra" class="aviso-form" role="status"></p>
-
-              <label>Links para ler (opcional)</label>
-              <div class="linha-link-leitura">
-                <input id="nome-link-leitura-obra" type="text" placeholder="Nome da opção (opcional)" />
-                <input id="link-leitura-obra" type="url" placeholder="https://site.com/obra" />
-                <button type="button" id="adicionar-link-leitura-obra">Adicionar</button>
-              </div>
-              <div id="lista-links-leitura-obra" class="lista-links-leitura"></div>
-
-              <button type="submit">Criar</button>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      <div id="popup-organizar">
-        <div class="popup-shell">
-          <button id="fechar-popup-organizar" class="popup-fechar" type="button">
-            X
-          </button>
-          <div>
-            <h2>Organizar</h2>
-          </div>
-        </div>
-      </div>
-    
-    </header>
-
-    <div id="popup-editar">
+    <div id="popup-filtros">
       <div class="popup-shell">
-        <button id="fechar-popup-editar" class="popup-fechar" type="button">
+        <button id="fechar-filtros" class="popup-fechar" type="button">
           X
         </button>
         <div>
-          <h2>Editar obra</h2>
+          <h2>Filtros</h2>
+          <label for="filtro-tipo">Tipo</label>
+          <select id="filtro-tipo">
+            <option value="">Todos</option>
+            <option value="anime">Anime</option>
+            <option value="manga">Mangá</option>
+            <option value="ambos">Anime e mangá</option>
+          </select>
 
-          <form id="form-editar" autocomplete="off">
-            <label for="editar-titulo">Nome da obra</label>
-            <input id="editar-titulo" type="text" required />
+          <label for="filtro-status">Status</label>
+          <select id="filtro-status">
+            <option value="">Todos</option>
+            <option value="completa">Completa</option>
+            <option value="hiato">Em hiato</option>
+            <option value="lancando">Lançando</option>
+          </select>
+
+          <label for="filtro-progresso">Progresso</label>
+          <select id="filtro-progresso">
+            <option value="">Todos</option>
+            <option value="nao-comecou">Não começou</option>
+            <option value="pendente">Falta ler</option>
+            <option value="completo">Leu tudo</option>
+          </select>
+
+          <label for="filtro-favorito">Favoritos</label>
+          <select id="filtro-favorito">
+            <option value="">Todos</option>
+            <option value="favoritos">⭐ Favoritos</option>
+          </select>
+
+          <button id="limpar-filtros" type="button">Limpar filtros</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="popup-criar">
+      <div class="popup-shell">
+        <button id="fechar-popup" class="popup-fechar" type="button">
+          X
+        </button>
+        <div>
+          <h2>Criar obra</h2>
+
+          <form id="form-criar" autocomplete="off">
+            <label for="titulo-obra">
+              Nome da obra <span class="obrigatorio">*</span>
+            </label>
+
+            <input id="titulo-obra" type="text" placeholder="Nome da obra" required />
 
             <div class="campo-titulos-alternativos">
-              <label for="editar-titulo-alternativo">
-                Títulos alternativos
-              </label>
+              <label for="titulo-alternativo"> Títulos alternativos </label>
 
               <div class="linha-titulo-alternativo">
-                <input
-                  type="text"
-                  id="editar-titulo-alternativo"
-                  placeholder="Digite um título alternativo"
-                />
+                <input type="text" id="titulo-alternativo" placeholder="Digite um título alternativo" />
 
-                <button type="button" id="editar-adicionar-titulo-alternativo">
+                <button type="button" id="adicionar-titulo-alternativo">
                   Adicionar
                 </button>
               </div>
 
-              <div id="editar-lista-titulos-alternativos"></div>
+              <div id="lista-titulos-alternativos"></div>
 
-              <label for="editar-titulo-exibicao">
-                Título mostrado no card
-              </label>
+              <label for="titulo-exibicao"> Título mostrado no card </label>
 
-              <select id="editar-titulo-exibicao">
+              <select id="titulo-exibicao">
                 <option value="principal">Título principal</option>
               </select>
             </div>
 
-            <label for="editar-tipo">Tipo</label>
-            <select id="editar-tipo" required>
+            <label for="tipo-obra">Tipo <span class="obrigatorio">*</span></label>
+
+            <select id="tipo-obra" required>
               <option value="">Selecione</option>
               <option value="anime">Anime</option>
               <option value="manga">Mangá</option>
               <option value="ambos">Anime e mangá</option>
             </select>
 
-            <div class="atalhos-tipo" data-seletor-tipo="editar-tipo">
+            <div class="atalhos-tipo" data-seletor-tipo="tipo-obra">
               <button type="button" data-tipo-atalho="anime">Configurar anime</button>
               <button type="button" data-tipo-atalho="manga">Configurar mangá</button>
             </div>
 
-            <div id="editar-campos-anime" style="display: none">
-              <div id="editar-lista-temporadas">
+            <div id="campos-anime" style="display: none">
+              <div id="lista-temporadas">
                 <div class="temporada">
-                  <button type="button" class="botao-remover-item" aria-label="Remover temporada" title="Remover temporada">×</button>
+                  <button type="button" class="botao-remover-item" aria-label="Remover temporada"
+                    title="Remover temporada">×</button>
                   <label>
                     Temporada
-                    <input type="number" min="1" />
+                    <input type="number" value="1" min="1" />
                   </label>
                   <label>
                     Episódios
-                    <input type="number" min="0" />
+                    <input type="number" min="1" />
                   </label>
                   <label>
                     Começa no episódio
@@ -332,23 +154,26 @@
                 </div>
               </div>
 
-              <button type="button" id="editar-adicionar-temporada">
+              <button type="button" id="adicionar-temporada">
                 + Enviar temporada
               </button>
             </div>
 
-            <div id="editar-campos-manga" style="display: none">
-              <div id="editar-lista-volumes">
+            <div id="campos-manga" style="display: none">
+              <div id="lista-volumes">
                 <div class="volume">
-                  <button type="button" class="botao-remover-item" aria-label="Remover volume" title="Remover volume">×</button>
+                  <button type="button" class="botao-remover-item" aria-label="Remover volume"
+                    title="Remover volume">×</button>
                   <label>
                     Volume
-                    <input type="number" min="1" />
+                    <input type="number" value="1" min="1" />
                   </label>
+
                   <label>
                     Começa no capítulo
-                    <input type="number" min="1" value="1" />
+                    <input type="number" value="1" min="1" />
                   </label>
+
                   <label>
                     Termina no capítulo
                     <input type="number" min="1" />
@@ -356,133 +181,284 @@
                 </div>
               </div>
 
-              <button type="button" id="editar-adicionar-volume">
+              <button type="button" id="adicionar-volume">
                 + Enviar volume
               </button>
             </div>
 
-            <label for="editar-status">Status</label>
-            <select id="editar-status" required>
+            <label for="status-obra">Status <span class="obrigatorio">*</span></label>
+
+            <select id="status-obra" required>
               <option value="">Selecione</option>
               <option value="completa">Completa</option>
               <option value="hiato">Em hiato</option>
               <option value="lancando">Lançando</option>
             </select>
 
-            <label for="editar-imagem">Imagem</label>
+            <label for="imagem-obra">Imagem</label>
+
             <div class="campo-com-limpar">
-              <input id="editar-imagem" type="url" placeholder="URL da imagem (opcional)" />
-              <button type="button" class="botao-limpar-campo" data-limpar-campo="editar-imagem" aria-label="Limpar URL da imagem">×</button>
+              <input id="imagem-obra" type="url" placeholder="URL da imagem (opcional)" />
+              <button type="button" class="botao-limpar-campo" data-limpar-campo="imagem-obra"
+                aria-label="Limpar URL da imagem">×</button>
             </div>
-            <label for="editar-arquivo-imagem">Ou imagem do dispositivo</label>
-            <input id="editar-arquivo-imagem" type="file" accept="image/*" />
-            <label for="editar-preferencia-imagem">Imagem preferida</label>
-            <select id="editar-preferencia-imagem">
+            <label for="arquivo-imagem-obra">Ou imagem do dispositivo</label>
+            <input id="arquivo-imagem-obra" type="file" accept="image/*" />
+            <label for="preferencia-imagem-obra">Imagem preferida</label>
+            <select id="preferencia-imagem-obra">
               <option value="url">URL</option>
               <option value="arquivo">Imagem do dispositivo</option>
             </select>
-
-            <img
-              id="preview-imagem-editar"
-              src=""
-              alt="Preview da obra"
-              hidden
-            />
-            <p id="aviso-imagem-editar" class="aviso-form" role="status"></p>
+            <img id="preview-imagem" src="" alt="Preview da obra" hidden />
+            <p id="aviso-imagem-obra" class="aviso-form" role="status"></p>
 
             <label>Links para ler (opcional)</label>
             <div class="linha-link-leitura">
-              <input id="editar-nome-link-leitura" type="text" placeholder="Nome da opção (opcional)" />
-              <input id="editar-link-leitura" type="url" placeholder="https://site.com/obra" />
-              <button type="button" id="editar-adicionar-link-leitura">Adicionar</button>
+              <input id="nome-link-leitura-obra" type="text" placeholder="Nome da opção (opcional)" />
+              <input id="link-leitura-obra" type="url" placeholder="https://site.com/obra" />
+              <button type="button" id="adicionar-link-leitura-obra">Adicionar</button>
             </div>
-            <div id="editar-lista-links-leitura" class="lista-links-leitura"></div>
+            <div id="lista-links-leitura-obra" class="lista-links-leitura"></div>
 
-            <button type="submit" class="botao-salvar-edicao">Salvar</button>
+            <button type="submit">Criar</button>
           </form>
         </div>
       </div>
     </div>
 
-    <div id="popup-progresso">
+    <div id="popup-organizar">
       <div class="popup-shell">
-        <button id="fechar-popup-progresso" class="popup-fechar" type="button">
+        <button id="fechar-popup-organizar" class="popup-fechar" type="button">
           X
         </button>
         <div>
-          <h2 id="titulo-progresso"></h2>
-          <button id="marcar-toda-obra" type="button"></button>
-          <div id="lista-progresso"></div>
+          <h2>Organizar</h2>
+          <p class="organizar-instrucoes">
+            Arraste uma obra ou use os botões para mudar a posição.
+          </p>
+          <div id="lista-organizar"></div>
+          <button id="salvar-ordem" type="button">
+            Salvar ordem
+          </button>
         </div>
       </div>
     </div>
 
-    <div id="popup-confirmar-exclusao" class="popup-confirmacao" hidden>
-      <div
-        class="popup-confirmacao-conteudo"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="titulo-confirmar-exclusao"
-      >
-        <h2 id="titulo-confirmar-exclusao">Tem certeza que deseja excluir?</h2>
-        <p id="nome-obra-exclusao"></p>
-        <div class="botoes-confirmacao">
-          <button id="confirmar-exclusao" type="button">S</button>
-          <button id="cancelar-exclusao" type="button">N</button>
-        </div>
-      </div>
-    </div>
+  </header>
 
-    <div id="lista-obras"></div>
+  <div id="popup-editar">
+    <div class="popup-shell">
+      <button id="fechar-popup-editar" class="popup-fechar" type="button">
+        X
+      </button>
+      <div>
+        <h2>Editar obra</h2>
 
-    <button id="botao-atualizacoes" type="button" aria-label="Abrir atualizações" title="Atualizações">
-      <i class="fa-solid fa-list-ul"></i>
-    </button>
+        <form id="form-editar" autocomplete="off">
+          <label for="editar-titulo">Nome da obra</label>
+          <input id="editar-titulo" type="text" required />
 
-    <div id="popup-atualizacoes">
-      <div class="popup-shell">
-        <button id="fechar-atualizacoes" class="popup-fechar" type="button" aria-label="Fechar atualizações">X</button>
-        <div>
-          <h2>Atualizações</h2>
-          <ul class="lista-atualizacoes">
-            <br>
-            <li>Colocado botão para organizar as obras.</li>
-            <li>Melhorar a interface do usuário mobile com aumento dos elementos.</li>
-            <br>
-            </p><strong>V 18.5</strong></p>
-          </ul>
-        </div>
-      </div>
-    </div>
+          <div class="campo-titulos-alternativos">
+            <label for="editar-titulo-alternativo">
+              Títulos alternativos
+            </label>
 
-    <div id="popup-escolha-avanco">
-      <div class="popup-shell">
-        <button id="fechar-escolha-avanco" class="popup-fechar" type="button" aria-label="Fechar escolha">X</button>
-        <div>
-          <h2>Avançar progresso</h2>
-          <br>
-          <p>Onde deseja marcar o próximo como visto?</p>
-          <br>
-          <div class="opcoes-avanco">
-            <button type="button" data-avancar-tipo="anime">Anime</button>
-            <button type="button" data-avancar-tipo="manga">Mangá</button>
-            <button type="button" data-avancar-tipo="ambos">Ambos</button>
+            <div class="linha-titulo-alternativo">
+              <input type="text" id="editar-titulo-alternativo" placeholder="Digite um título alternativo" />
+
+              <button type="button" id="editar-adicionar-titulo-alternativo">
+                Adicionar
+              </button>
+            </div>
+
+            <div id="editar-lista-titulos-alternativos"></div>
+
+            <label for="editar-titulo-exibicao">
+              Título mostrado no card
+            </label>
+
+            <select id="editar-titulo-exibicao">
+              <option value="principal">Título principal</option>
+            </select>
           </div>
-        </div>
+
+          <label for="editar-tipo">Tipo</label>
+          <select id="editar-tipo" required>
+            <option value="">Selecione</option>
+            <option value="anime">Anime</option>
+            <option value="manga">Mangá</option>
+            <option value="ambos">Anime e mangá</option>
+          </select>
+
+          <div class="atalhos-tipo" data-seletor-tipo="editar-tipo">
+            <button type="button" data-tipo-atalho="anime">Configurar anime</button>
+            <button type="button" data-tipo-atalho="manga">Configurar mangá</button>
+          </div>
+
+          <div id="editar-campos-anime" style="display: none">
+            <div id="editar-lista-temporadas">
+              <div class="temporada">
+                <button type="button" class="botao-remover-item" aria-label="Remover temporada"
+                  title="Remover temporada">×</button>
+                <label>
+                  Temporada
+                  <input type="number" min="1" />
+                </label>
+                <label>
+                  Episódios
+                  <input type="number" min="0" />
+                </label>
+                <label>
+                  Começa no episódio
+                  <input type="number" min="1" value="1" />
+                </label>
+              </div>
+            </div>
+
+            <button type="button" id="editar-adicionar-temporada">
+              + Enviar temporada
+            </button>
+          </div>
+
+          <div id="editar-campos-manga" style="display: none">
+            <div id="editar-lista-volumes">
+              <div class="volume">
+                <button type="button" class="botao-remover-item" aria-label="Remover volume"
+                  title="Remover volume">×</button>
+                <label>
+                  Volume
+                  <input type="number" min="1" />
+                </label>
+                <label>
+                  Começa no capítulo
+                  <input type="number" min="1" value="1" />
+                </label>
+                <label>
+                  Termina no capítulo
+                  <input type="number" min="1" />
+                </label>
+              </div>
+            </div>
+
+            <button type="button" id="editar-adicionar-volume">
+              + Enviar volume
+            </button>
+          </div>
+
+          <label for="editar-status">Status</label>
+          <select id="editar-status" required>
+            <option value="">Selecione</option>
+            <option value="completa">Completa</option>
+            <option value="hiato">Em hiato</option>
+            <option value="lancando">Lançando</option>
+          </select>
+
+          <label for="editar-imagem">Imagem</label>
+          <div class="campo-com-limpar">
+            <input id="editar-imagem" type="url" placeholder="URL da imagem (opcional)" />
+            <button type="button" class="botao-limpar-campo" data-limpar-campo="editar-imagem"
+              aria-label="Limpar URL da imagem">×</button>
+          </div>
+          <label for="editar-arquivo-imagem">Ou imagem do dispositivo</label>
+          <input id="editar-arquivo-imagem" type="file" accept="image/*" />
+          <label for="editar-preferencia-imagem">Imagem preferida</label>
+          <select id="editar-preferencia-imagem">
+            <option value="url">URL</option>
+            <option value="arquivo">Imagem do dispositivo</option>
+          </select>
+
+          <img id="preview-imagem-editar" src="" alt="Preview da obra" hidden />
+          <p id="aviso-imagem-editar" class="aviso-form" role="status"></p>
+
+          <label>Links para ler (opcional)</label>
+          <div class="linha-link-leitura">
+            <input id="editar-nome-link-leitura" type="text" placeholder="Nome da opção (opcional)" />
+            <input id="editar-link-leitura" type="url" placeholder="https://site.com/obra" />
+            <button type="button" id="editar-adicionar-link-leitura">Adicionar</button>
+          </div>
+          <div id="editar-lista-links-leitura" class="lista-links-leitura"></div>
+
+          <button type="submit" class="botao-salvar-edicao">Salvar</button>
+        </form>
       </div>
     </div>
+  </div>
 
-    <div id="popup-escolha-link">
-      <div class="popup-shell">
-        <button id="fechar-escolha-link" class="popup-fechar" type="button" aria-label="Fechar links">X</button>
-        <div>
-          <h2>Escolha onde ler</h2>
+  <div id="popup-progresso">
+    <div class="popup-shell">
+      <button id="fechar-popup-progresso" class="popup-fechar" type="button">
+        X
+      </button>
+      <div>
+        <h2 id="titulo-progresso"></h2>
+        <button id="marcar-toda-obra" type="button"></button>
+        <div id="lista-progresso"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="popup-confirmar-exclusao" class="popup-confirmacao" hidden>
+    <div class="popup-confirmacao-conteudo" role="dialog" aria-modal="true" aria-labelledby="titulo-confirmar-exclusao">
+      <h2 id="titulo-confirmar-exclusao">Tem certeza que deseja excluir?</h2>
+      <p id="nome-obra-exclusao"></p>
+      <div class="botoes-confirmacao">
+        <button id="confirmar-exclusao" type="button">S</button>
+        <button id="cancelar-exclusao" type="button">N</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="lista-obras"></div>
+
+  <button id="botao-atualizacoes" type="button" aria-label="Abrir atualizações" title="Atualizações">
+    <i class="fa-solid fa-list-ul"></i>
+  </button>
+
+  <div id="popup-atualizacoes">
+    <div class="popup-shell">
+      <button id="fechar-atualizacoes" class="popup-fechar" type="button" aria-label="Fechar atualizações">X</button>
+      <div>
+        <h2>Atualizações</h2>
+        <ul class="lista-atualizacoes">
           <br>
-          <div id="opcoes-links-leitura"></div>
+          <li>Colocado botão para organizar as obras.</li>
+          <li>Melhorar a interface do usuário mobile com aumento dos elementos.</li>
+          <br>
+          </p><strong>V 18.6</strong></p>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="popup-escolha-avanco">
+    <div class="popup-shell">
+      <button id="fechar-escolha-avanco" class="popup-fechar" type="button" aria-label="Fechar escolha">X</button>
+      <div>
+        <h2>Avançar progresso</h2>
+        <br>
+        <p>Onde deseja marcar o próximo como visto?</p>
+        <br>
+        <div class="opcoes-avanco">
+          <button type="button" data-avancar-tipo="anime">Anime</button>
+          <button type="button" data-avancar-tipo="manga">Mangá</button>
+          <button type="button" data-avancar-tipo="ambos">Ambos</button>
         </div>
       </div>
     </div>
+  </div>
 
-    <script src="script.js?v=13"></script>
-  </body>
+  <div id="popup-escolha-link">
+    <div class="popup-shell">
+      <button id="fechar-escolha-link" class="popup-fechar" type="button" aria-label="Fechar links">X</button>
+      <div>
+        <h2>Escolha onde ler</h2>
+        <br>
+        <div id="opcoes-links-leitura"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js?v=13"></script>
+</body>
+
 </html>
