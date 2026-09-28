@@ -1111,7 +1111,7 @@ document.getElementById("limpar-filtros").addEventListener("click", () => {
 
 document
   .querySelectorAll(
-    "#popup-filtros, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-escolha-avanco, #popup-escolha-link",
+    "#popup-filtros, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-perfil, #popup-escolha-avanco, #popup-escolha-link",
   )
   .forEach((popup) => {
     popup.addEventListener("click", (evento) => {
@@ -3041,6 +3041,19 @@ document.getElementById("botao-sair").addEventListener("click", () => {
   localStorage.removeItem("token");
 
   window.location.href = "/login.html";
+});
+
+const nomePerfil = localStorage.getItem("nomeUsuario") || "usuário";
+
+document.getElementById("nome-perfil").textContent = nomePerfil;
+document.getElementById("nome-perfil-popup").textContent = nomePerfil;
+
+document.getElementById("botao-perfil").addEventListener("click", () => {
+  document.getElementById("popup-perfil").style.display = "flex";
+});
+
+document.getElementById("fechar-perfil").addEventListener("click", () => {
+  document.getElementById("popup-perfil").style.display = "none";
 });
 
 const popupExclusao = document.getElementById("popup-confirmar-exclusao");
