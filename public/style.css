@@ -834,7 +834,8 @@ button {
 }
 
 #popup-criar,
-#popup-editar {
+#popup-editar,
+#popup-organizar {
   display: none;
   position: fixed;
   inset: 0;
@@ -846,7 +847,8 @@ button {
 }
 
 #popup-criar > .popup-shell > div,
-#popup-editar > .popup-shell > div {
+#popup-editar > .popup-shell > div, 
+#popup-organizar > .popup-shell > div {
   background-color: white;
   padding: 25px;
   border-radius: 15px;
@@ -861,9 +863,14 @@ button {
   padding-bottom: 0;
   color: #17263a;
 }
+#popup-organizar > .popup-shell > div {
+  padding-bottom: 0;
+  color: #17263a;
+}
 
 #popup-criar h2,
-#popup-editar h2 {
+#popup-editar h2,
+#popup-organizar h2 {
   text-align: center;
   margin-bottom: 20px;
 }
@@ -1340,6 +1347,28 @@ button {
     font-size: 28px;
   }
 
+  .barra-ferramentas {
+    gap: 8px;
+  }
+
+  .campo-busca {
+    width: 100%;
+  }
+
+  .campo-busca input {
+    flex: 1;
+    width: auto;
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  .barra-ferramentas > button {
+    flex: 1 1 auto;
+    min-height: 52px;
+    padding: 12px 14px;
+    font-size: 16px;
+  }
+
   .cards {
     position: relative;
     max-width: none;
@@ -1359,11 +1388,26 @@ button {
 
   .botoes-card button,
   .botao-ler {
-    min-height: 44px;
+    min-height: 52px;
     min-width: 0;
-    padding-left: 3px;
-    padding-right: 3px;
-    font-size: 12px;
+    padding: 10px 6px;
+    font-size: 15px;
+  }
+
+  #popup-criar input,
+  #popup-criar select,
+  #popup-editar input,
+  #popup-editar select,
+  #popup-filtros select {
+    min-height: 50px;
+    font-size: 16px;
+  }
+
+  #popup-criar button,
+  #popup-editar button,
+  #popup-filtros button {
+    min-height: 50px;
+    font-size: 16px;
   }
 }
 

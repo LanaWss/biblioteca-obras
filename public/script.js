@@ -1063,7 +1063,7 @@ document.getElementById("limpar-filtros").addEventListener("click", () => {
 
 document
   .querySelectorAll(
-    "#popup-filtros, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-escolha-avanco, #popup-escolha-link",
+    "#popup-filtros, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-escolha-avanco, #popup-escolha-link",
   )
   .forEach((popup) => {
     popup.addEventListener("click", (evento) => {
@@ -2790,6 +2790,17 @@ formEditar.addEventListener("submit", async (evento) => {
 
     mostrarMensagem("Obra editada com sucesso!", "sucesso");
   });
+});
+
+const botaoOrganizar = document.getElementById("botao-organizar");
+
+botaoOrganizar.addEventListener("click", () => {
+  const popupOrganizar = document.getElementById("popup-organizar");
+  popupOrganizar.style.display = "flex";
+});
+
+document.getElementById("fechar-popup-organizar").addEventListener("click", () => {
+  document.getElementById("popup-organizar").style.display = "none";
 });
 
 document.getElementById("botao-sair").addEventListener("click", () => {
