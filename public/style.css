@@ -1347,6 +1347,23 @@ button {
     font-size: 28px;
   }
 
+  #botao-inicio,
+  #botao-atualizacoes {
+    width: 58px;
+    height: 58px;
+    font-size: 20px;
+  }
+
+  #botao-inicio {
+    top: 12px;
+    left: 12px;
+  }
+
+  #botao-atualizacoes {
+    bottom: 12px;
+    left: 12px;
+  }
+
   .barra-ferramentas {
     gap: 8px;
   }
@@ -1372,8 +1389,15 @@ button {
   .cards {
     position: relative;
     max-width: none;
-    padding: 12px;
-    margin: 8px 0 20px;
+    padding: 10px;
+    margin: 5px 0 12px;
+  }
+
+  #lista-obras {
+    column-gap: 10px;
+    row-gap: 8px;
+    margin-top: 18px;
+    padding-bottom: 12px;
   }
 
   .botao-favorito {
@@ -1407,6 +1431,12 @@ button {
   #popup-editar button,
   #popup-filtros button {
     min-height: 50px;
+    font-size: 16px;
+  }
+
+  #mensagem {
+    min-height: 52px;
+    padding: 15px 20px;
     font-size: 16px;
   }
 }
