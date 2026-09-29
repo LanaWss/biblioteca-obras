@@ -1,6 +1,8 @@
 let obraProgressoAtual = null;
 
 let obrasCarregadas = [];
+let carregamentoObrasAtual = 0;
+let controladorCarregamentoObras = null;
 let linksLeituraCriacao = [];
 let linksLeituraEdicao = [];
 let linksEscolhaAtual = [];
@@ -821,8 +823,14 @@ function carregarObras() {
     return;
   }
 
+  const numeroCarregamento = ++carregamentoObrasAtual;
+
+  controladorCarregamentoObras?.abort();
+  controladorCarregamentoObras = new AbortController();
+
   return fetch("/obras", {
     cache: "no-store",
+    signal: controladorCarregamentoObras.signal,
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -845,6 +853,10 @@ function carregarObras() {
       return resultado;
     })
     .then((obras) => {
+      if (numeroCarregamento !== carregamentoObrasAtual) {
+        return;
+      }
+
       obrasCarregadas = obras;
 
       const lista = document.getElementById("lista-obras");
@@ -941,7 +953,7 @@ function carregarObras() {
         const imagens = obterImagemPreferida(obra);
         const linksLeitura = obterLinksLeitura(obra);
         const imagem = imagens.principal
-          ? `<img class="imagem-obra" src="${imagens.principal}" alt="${obterTituloExibicao(obra)}">`
+          ? `<img class="imagem-obra" src="${imagens.principal}" referrerpolicy="no-referrer" alt="${obterTituloExibicao(obra)}">`
           : "";
         const botaoLeitura =
           linksLeitura.length === 1
@@ -1055,6 +1067,10 @@ function carregarObras() {
       });
     })
     .catch((erro) => {
+      if (erro.name === "AbortError") {
+        return;
+      }
+
       if (erro.status === 401) {
         localStorage.removeItem("token");
         window.location.href = "/login.html";
@@ -1066,6 +1082,12 @@ function carregarObras() {
 }
 
 carregarObras();
+
+window.addEventListener("pageshow", (evento) => {
+  if (evento.persisted) {
+    carregarObras();
+  }
+});
 
 buscarObras.addEventListener("input", () => {
   carregarObras();
@@ -2921,7 +2943,7 @@ function carregarListaOrganizar() {
 
     item.innerHTML = `
       <span class="organizar-alca" aria-hidden="true">☷</span>
-      <img src="${imagem}" alt="">
+      <img src="${imagem}" referrerpolicy="no-referrer" alt="">
       <span class="organizar-titulo">${titulo}</span>
       <div class="organizar-acoes">
         <button type="button" data-mover="cima" aria-label="Subir ${titulo}" title="Subir">↑</button>
