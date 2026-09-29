@@ -179,6 +179,33 @@ for (const obra of obrasSemOrdem) {
   ordemPorUsuario.set(usuarioId, proximaOrdem);
 }
 
+function normalizarOrdemDoUsuario(usuarioId) {
+  const obras = db
+    .prepare(
+      `
+      SELECT id
+      FROM obras
+      WHERE usuario_id = ?
+      ORDER BY ordem ASC, id ASC
+    `,
+    )
+    .all(usuarioId);
+
+  const atualizarOrdem = db.prepare(`
+    UPDATE obras
+    SET ordem = ?
+    WHERE id = ? AND usuario_id = ?
+  `);
+
+  const normalizar = db.transaction((lista) => {
+    lista.forEach((obra, indice) => {
+      atualizarOrdem.run(indice + 1, obra.id, usuarioId);
+    });
+  });
+
+  normalizar(obras);
+}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS usuarios (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -290,6 +317,7 @@ app.post("/login", async (req, res) => {
   db.prepare("UPDATE obras SET usuario_id = ? WHERE usuario_id IS NULL").run(
     usuario.id,
   );
+  normalizarOrdemDoUsuario(usuario.id);
 
   const token = jwt.sign(
     {
@@ -307,6 +335,8 @@ app.post("/login", async (req, res) => {
 });
 
 app.get("/obras", verificarToken, (req, res) => {
+  normalizarOrdemDoUsuario(req.usuario.id);
+
   const obras = db
     .prepare(
       `
