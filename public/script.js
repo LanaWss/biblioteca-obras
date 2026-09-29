@@ -329,11 +329,19 @@ function obterImagemPreferida(obra) {
   };
 
   const preferida = obra.imagem_preferencia || "url";
-  const alternativa = preferida === "url" ? "arquivo" : "url";
+  const imagemLocal = imagens.arquivo;
+  const imagemPreferida = imagens[preferida] || imagens.url || imagens.arquivo;
+
+  if (imagemLocal) {
+    return {
+      principal: imagemLocal,
+      fallback: imagemPreferida === imagemLocal ? imagens.url || "" : imagemPreferida,
+    };
+  }
 
   return {
-    principal: imagens[preferida] || imagens[alternativa] || "",
-    fallback: imagens[preferida] ? imagens[alternativa] || "" : "",
+    principal: imagemPreferida || "",
+    fallback: preferida === "url" ? imagens.arquivo || "" : imagens.url || "",
   };
 }
 
@@ -856,6 +864,13 @@ function carregarObras() {
       if (numeroCarregamento !== carregamentoObrasAtual) {
         return;
       }
+
+      obras.sort(
+        (obraA, obraB) =>
+          (Number(obraA.ordem) || Number.MAX_SAFE_INTEGER) -
+            (Number(obraB.ordem) || Number.MAX_SAFE_INTEGER) ||
+          Number(obraA.id) - Number(obraB.id),
+      );
 
       obrasCarregadas = obras;
 
