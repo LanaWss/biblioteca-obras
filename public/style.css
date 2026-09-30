@@ -590,6 +590,53 @@ button {
   right: 10px;
 }
 
+.botao-visto {
+  align-self: flex-start;
+  flex: 0 0 auto;
+  margin: -8px 0 0;
+  min-width: 42px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.cards > .botao-visto {
+  margin-top: -30px;
+}
+
+#popup-escolha-visto {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+#popup-escolha-visto .popup-shell {
+  max-width: 360px;
+}
+
+#popup-escolha-visto .popup-shell > div {
+  padding: 24px;
+  border-radius: 10px;
+  color: #17263a;
+  background: #fff;
+  text-align: center;
+}
+
+#opcoes-visto {
+  display: grid;
+  gap: 8px;
+}
+
+#opcoes-visto button {
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+}
+
 .botao-avancar {
   position: absolute;
   top: 10px;
@@ -688,6 +735,7 @@ button {
 }
 
 .botao-favorito,
+.botao-visto,
 .botao-avancar,
 .botao-mais-itens,
 .botao-ler,

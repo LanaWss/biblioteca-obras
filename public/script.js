@@ -31,8 +31,11 @@ function mostrarMensagem(texto, tipo) {
 if (boasVindas && sessionStorage.getItem("mostrarBoasVindas") === "true") {
   document.getElementById("nome-boas-vindas").textContent =
     localStorage.getItem("nomeUsuario") || "usuário";
+
   boasVindas.hidden = false;
+
   sessionStorage.removeItem("mostrarBoasVindas");
+
   setTimeout(() => {
     boasVindas.hidden = true;
   }, 1600);
@@ -79,6 +82,7 @@ function obterObrasFiltradas() {
     const titulosAlternativos = Array.isArray(obra.titulos_alternativos)
       ? obra.titulos_alternativos
       : lerConteudoObra(obra.titulos_alternativos);
+
     const nomeCombina = [obra.title, ...titulosAlternativos].some((titulo) =>
       normalizarTexto(titulo || "").includes(termo),
     );
@@ -93,6 +97,7 @@ function obterObrasFiltradas() {
       !filtroStatus.value || obra.status === filtroStatus.value;
 
     const progresso = calcularProgresso(obra);
+
     const progressoCombina =
       !filtroProgresso.value ||
       (filtroProgresso.value === "nao-comecou" && progresso.vistos === 0) ||
@@ -136,7 +141,12 @@ function obterLinksLeitura(obra) {
   let links = lerConteudoObra(obra.link_leituras);
 
   if (!links.length && obra.link_leitura) {
-    links = [{ nome: "", url: String(obra.link_leitura).trim() }];
+    links = [
+      {
+        nome: "",
+        url: String(obra.link_leitura).trim(),
+      },
+    ];
   }
 
   return links.filter((link) => link && link.url);
@@ -148,7 +158,15 @@ function renderizarListaLinks(links, lista, prefixo) {
       (link, indice) => `
     <div class="item-link-leitura">
       <span>${link.nome || "Link de leitura"}</span>
-      <button type="button" data-remover-link="${prefixo}" data-indice-link="${indice}" aria-label="Remover link">×</button>
+
+      <button
+        type="button"
+        data-remover-link="${prefixo}"
+        data-indice-link="${indice}"
+        aria-label="Remover link"
+      >
+        ×
+      </button>
     </div>
   `,
     )
@@ -228,10 +246,13 @@ function calcularProgressoPorTipo(itens, tipo) {
 
   itens.forEach((item) => {
     const inicio = obterInicioTemporada(item);
+
     let fim = inicio + Number(item.episodios || 0) - 1;
+
     fim = obterFimComProgresso(item, inicio, fim);
 
     total += Math.max(0, fim - inicio + 1);
+
     vistos += obterNumerosVistosValidos(item, inicio, fim).size;
   });
 
@@ -244,13 +265,21 @@ function calcularProgressoPorTipo(itens, tipo) {
 function calcularProgresso(obra) {
   const progressoAnime = tipoTemAnime(obra.tipo)
     ? calcularProgressoPorTipo(lerConteudoObra(obra.temporadas), "anime")
-    : { vistos: 0, total: 0 };
+    : {
+        vistos: 0,
+        total: 0,
+      };
+
   const progressoManga = tipoTemManga(obra.tipo)
     ? calcularProgressoPorTipo(lerConteudoObra(obra.volumes), "manga")
-    : { vistos: 0, total: 0 };
+    : {
+        vistos: 0,
+        total: 0,
+      };
 
   return {
     vistos: progressoAnime.vistos + progressoManga.vistos,
+
     total: progressoAnime.total + progressoManga.total,
   };
 }
@@ -264,19 +293,31 @@ function renderizarProgressoTipo(obra, tipo) {
     tipo === "anime"
       ? lerConteudoObra(obra.temporadas)
       : lerConteudoObra(obra.volumes);
+
   const progresso = calcularProgressoPorTipo(itens, tipo);
+
   const percentual = progresso.total
     ? (progresso.vistos / progresso.total) * 100
     : 0;
 
   return `
     <div class="progresso-tipo-card">
+
       <div class="progresso-texto">
-        <span>${progresso.vistos}/${progresso.total}</span>
+        <span>
+          ${progresso.vistos}/${progresso.total}
+        </span>
       </div>
+
       <div class="barra-progresso">
-        <div class="barra-progresso-preenchida" style="width: ${percentual}%"></div>
+
+        <div
+          class="barra-progresso-preenchida"
+          style="width: ${percentual}%"
+        ></div>
+
       </div>
+
     </div>
   `;
 }
@@ -302,6 +343,7 @@ function ordenarItensPeloProgresso(obra, itens, tipo = obra.tipo) {
   itens.forEach((item, indice) => {
     const inicio =
       tipo === "manga" ? Number(item.inicio) : obterInicioTemporada(item);
+
     const fim =
       tipo === "manga"
         ? Number(item.fim)
@@ -314,6 +356,7 @@ function ordenarItensPeloProgresso(obra, itens, tipo = obra.tipo) {
 
   return [
     itens[indiceAtual],
+
     ...itens.filter((_, indice) => indice !== indiceAtual),
   ];
 }
@@ -329,18 +372,23 @@ function obterImagemPreferida(obra) {
   };
 
   const preferida = obra.imagem_preferencia || "url";
+
   const imagemLocal = imagens.arquivo;
+
   const imagemPreferida = imagens[preferida] || imagens.url || imagens.arquivo;
 
   if (imagemLocal) {
     return {
       principal: imagemLocal,
-      fallback: imagemPreferida === imagemLocal ? imagens.url || "" : imagemPreferida,
+
+      fallback:
+        imagemPreferida === imagemLocal ? imagens.url || "" : imagemPreferida,
     };
   }
 
   return {
     principal: imagemPreferida || "",
+
     fallback: preferida === "url" ? imagens.arquivo || "" : imagens.url || "",
   };
 }
@@ -363,7 +411,9 @@ function lerArquivoComoDataUrl(arquivo) {
     const leitor = new FileReader();
 
     leitor.onload = () => resolve(leitor.result);
+
     leitor.onerror = () => reject(new Error("Não foi possível ler a imagem."));
+
     leitor.readAsDataURL(arquivo);
   });
 }
@@ -374,6 +424,7 @@ function validarImagem(url, arquivoDataUrl) {
       "Informe uma URL ou escolha uma imagem do dispositivo.",
       "erro",
     );
+
     return false;
   }
 
@@ -394,7 +445,9 @@ function ajustarCorDoTexto(card, imagemUrl) {
       const tamanhoAmostra = 8;
 
       canvas.width = tamanhoAmostra;
+
       canvas.height = tamanhoAmostra;
+
       contexto.drawImage(imagem, 0, 0, tamanhoAmostra, tamanhoAmostra);
 
       const pixels = contexto.getImageData(
@@ -409,8 +462,11 @@ function ajustarCorDoTexto(card, imagemUrl) {
 
       for (let indice = 0; indice < pixels.length; indice += 4) {
         const alpha = pixels[indice + 3] / 255;
+
         const vermelho = pixels[indice] / 255;
+
         const verde = pixels[indice + 1] / 255;
+
         const azul = pixels[indice + 2] / 255;
 
         const luminancia =
@@ -419,26 +475,33 @@ function ajustarCorDoTexto(card, imagemUrl) {
           0.0722 * azul ** 2.2;
 
         luminanciaTotal += luminancia * alpha;
+
         pesoTotal += alpha;
       }
 
       const luminanciaMedia = pesoTotal ? luminanciaTotal / pesoTotal : 0;
+
       const contrasteComPreto = (luminanciaMedia + 0.05) / 0.05;
+
       const contrasteComBranco = 1.05 / (luminanciaMedia + 0.05);
+
       const textoEscuro = contrasteComPreto >= contrasteComBranco;
 
       card.classList.toggle("texto-escuro", textoEscuro);
+
       card.classList.toggle("texto-claro", !textoEscuro);
     } catch (erro) {
       console.log("Não foi possível analisar o brilho da imagem.");
 
       card.classList.add("texto-claro");
+
       card.classList.remove("texto-escuro");
     }
   };
 
   imagem.onerror = () => {
     card.classList.add("texto-claro");
+
     card.classList.remove("texto-escuro");
   };
 
@@ -447,7 +510,9 @@ function ajustarCorDoTexto(card, imagemUrl) {
 
 function configurarImagemCard(card, obra) {
   const imagem = card.querySelector(".imagem-obra");
+
   const aviso = card.querySelector(".aviso-imagem-card");
+
   const imagens = obterImagemPreferida(obra);
 
   card.style.setProperty(
@@ -462,28 +527,40 @@ function configurarImagemCard(card, obra) {
   const usarFallback = () => {
     if (imagens.fallback && !imagem.dataset.fallbackTentado) {
       imagem.dataset.fallbackTentado = "true";
+
       imagem.src = imagens.fallback;
+
       card.style.setProperty(
         "--imagem-obra",
         obterImagemParaCss(imagens.fallback),
       );
+
       ajustarCorDoTexto(card, imagens.fallback);
+
       return;
     }
 
     imagem.hidden = true;
+
     card.classList.add("imagem-indisponivel");
+
     aviso.textContent = "Não foi possível carregar a imagem.";
+
     aviso.hidden = false;
   };
 
   imagem.addEventListener("load", () => {
     imagem.hidden = false;
+
     card.classList.remove("imagem-indisponivel");
+
     aviso.hidden = true;
+
     ajustarCorDoTexto(card, imagem.currentSrc || imagem.src);
   });
+
   imagem.addEventListener("error", usarFallback);
+
   imagem.src = imagens.principal;
 }
 
@@ -492,14 +569,19 @@ let filaSalvamentoProgresso = Promise.resolve();
 function salvarProgresso() {
   filaSalvamentoProgresso = filaSalvamentoProgresso.then(async () => {
     const obra = obraProgressoAtual;
+
     const resposta = await fetch(`/obras/${obra.id}`, {
       method: "PATCH",
+
       headers: {
         "Content-Type": "application/json",
+
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
+
       body: JSON.stringify({
         temporadas: obra.temporadas,
+
         volumes: obra.volumes,
       }),
     });
@@ -530,16 +612,29 @@ function renderizarProgresso() {
 
   const tipos = [
     ...(tipoTemAnime(obra.tipo)
-      ? [{ chave: "anime", itens: obra.temporadas }]
+      ? [
+          {
+            chave: "anime",
+            itens: obra.temporadas,
+          },
+        ]
       : []),
+
     ...(tipoTemManga(obra.tipo)
-      ? [{ chave: "manga", itens: obra.volumes }]
+      ? [
+          {
+            chave: "manga",
+            itens: obra.volumes,
+          },
+        ]
       : []),
   ];
+
   const todosItens = tipos.every(({ chave, itens }) =>
     itens.every((item) => {
       const inicio =
         chave === "manga" ? Number(item.inicio) : obterInicioTemporada(item);
+
       const fim = obterFimComProgresso(
         item,
         inicio,
@@ -555,6 +650,7 @@ function renderizarProgresso() {
   );
 
   const botaoTodaObra = document.getElementById("marcar-toda-obra");
+
   botaoTodaObra.textContent = todosItens
     ? "Desmarcar toda a obra"
     : "Marcar toda a obra";
@@ -562,6 +658,7 @@ function renderizarProgresso() {
   listaProgresso.innerHTML = tipos
     .map(({ chave, itens }) => {
       const itemLabel = chave === "anime" ? "Episódio" : "Capítulo";
+
       const grupoLabel = chave === "anime" ? "Temporada" : "Volume";
 
       return itens
@@ -582,15 +679,21 @@ function renderizarProgresso() {
           const totalItens = fim - inicio + 1;
 
           const vistosValidos = obterNumerosVistosValidos(item, inicio, fim);
+
           const todosMarcados = vistosValidos.size === totalItens;
 
-          const itensHtml = Array.from({ length: totalItens }, (_, numero) => {
-            const numeroItem = inicio + numero;
+          const itensHtml = Array.from(
+            {
+              length: totalItens,
+            },
+            (_, numero) => {
+              const numeroItem = inicio + numero;
 
-            const marcado = vistosValidos.has(numeroItem);
+              const marcado = vistosValidos.has(numeroItem);
 
-            return `
+              return `
       <label class="item-progresso">
+
         <input
           type="checkbox"
           data-progresso-item="${indice}"
@@ -598,10 +701,13 @@ function renderizarProgresso() {
           data-numero-item="${numeroItem}"
           ${marcado ? "checked" : ""}
         >
+
         ${itemLabel} ${numeroItem}
+
       </label>
     `;
-          }).join("");
+            },
+          ).join("");
 
           return `
         <section class="grupo-progresso">
@@ -650,6 +756,7 @@ function abrirPopupProgresso(id) {
           "Não foi possível carregar o progresso desta obra.",
           "erro",
         );
+
         return;
       }
 
@@ -692,7 +799,10 @@ function prepararAvanco(itens, tipo) {
       });
     }
 
-    return { proximo: 1, criouNovoItem: true };
+    return {
+      proximo: 1,
+      criouNovoItem: true,
+    };
   }
 
   const ultimoItem = itens[itens.length - 1];
@@ -704,14 +814,17 @@ function prepararAvanco(itens, tipo) {
   const vistos = new Set(
     Array.isArray(ultimoItem.vistos) ? ultimoItem.vistos.map(Number) : [],
   );
+
   const inicio =
     tipo === "anime"
       ? obterInicioTemporada(ultimoItem)
       : Number(ultimoItem.inicio);
+
   const limiteAtual =
     tipo === "anime"
       ? inicio + Number(ultimoItem.episodios || 0) - 1
       : Number(ultimoItem.fim);
+
   const proximo = Math.max(limiteAtual, ...vistos, inicio - 1) + 1;
 
   if (tipo === "anime") {
@@ -721,9 +834,13 @@ function prepararAvanco(itens, tipo) {
   }
 
   vistos.add(proximo);
+
   ultimoItem.vistos = [...vistos].sort((a, b) => a - b);
 
-  return { proximo, criouNovoItem: true };
+  return {
+    proximo,
+    criouNovoItem: true,
+  };
 }
 
 async function avancarProgresso(id, botao, tipoEscolhido) {
@@ -749,22 +866,30 @@ async function avancarProgresso(id, botao, tipoEscolhido) {
     tipoEscolhido === "ambos"
       ? ["anime", "manga"]
       : [tipoEscolhido || (tipoTemAnime(obra.tipo) ? "anime" : "manga")];
+
   const avancos = [];
   const dados = {};
 
   tipos.forEach((tipo) => {
     const chave = tipo === "anime" ? "temporadas" : "volumes";
+
     const itens = lerConteudoObra(obra[chave]);
+
     const avanco = prepararAvanco(itens, tipo);
 
     if (avanco) {
       dados[chave] = itens;
-      avancos.push({ tipo, ...avanco });
+
+      avancos.push({
+        tipo,
+        ...avanco,
+      });
     }
   });
 
   if (!avancos.length) {
     mostrarMensagem("Adicione uma temporada ou volume primeiro.", "aviso");
+
     return;
   }
 
@@ -773,10 +898,13 @@ async function avancarProgresso(id, botao, tipoEscolhido) {
   try {
     const resposta = await fetch(`/obras/${id}`, {
       method: "PATCH",
+
       headers: {
         "Content-Type": "application/json",
+
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
+
       body: JSON.stringify(dados),
     });
 
@@ -787,6 +915,7 @@ async function avancarProgresso(id, botao, tipoEscolhido) {
         resultado.erro || "Não foi possível atualizar o progresso.",
         "erro",
       );
+
       return;
     }
 
@@ -801,12 +930,16 @@ async function avancarProgresso(id, botao, tipoEscolhido) {
     }
 
     await carregarObras();
+
     const resumo = avancos
       .map(
         ({ tipo, proximo, criouNovoItem }) =>
-          `${tipo === "anime" ? "Episódio" : "Capítulo"} ${proximo}${criouNovoItem ? " criado" : ""}`,
+          `${tipo === "anime" ? "Episódio" : "Capítulo"} ${proximo}${
+            criouNovoItem ? " criado" : ""
+          }`,
       )
       .join(" e ");
+
     mostrarMensagem(`${resumo} marcado como visto.`, "sucesso");
   } catch (erro) {
     mostrarMensagem("Não foi possível atualizar o progresso.", "erro");
@@ -828,17 +961,21 @@ function carregarObras() {
 
   if (!token) {
     window.location.href = "/login.html";
+
     return;
   }
 
   const numeroCarregamento = ++carregamentoObrasAtual;
 
   controladorCarregamentoObras?.abort();
+
   controladorCarregamentoObras = new AbortController();
 
   return fetch("/obras", {
     cache: "no-store",
+
     signal: controladorCarregamentoObras.signal,
+
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -850,7 +987,9 @@ function carregarObras() {
         const erro = new Error(
           resultado.erro || "Não foi possível carregar as obras.",
         );
+
         erro.status = resposta.status;
+
         throw erro;
       }
 
@@ -882,28 +1021,38 @@ function carregarObras() {
         let conteudo = "";
 
         const progresso = calcularProgresso(obra);
+
         const progressoTemporadas = renderizarProgressoTipo(obra, "anime");
+
         const progressoVolumes = renderizarProgressoTipo(obra, "manga");
 
         const statusExibido = {
           completa: "Completa",
+
           hiato: "Em hiato",
+
           lancando: "Lançando",
         }[obra.status];
 
         if (tipoTemAnime(obra.tipo)) {
           const temporadas = ordenarItensPeloProgresso(
             obra,
+
             lerConteudoObra(obra.temporadas),
+
             "anime",
           );
 
           conteudo = `
-            <h3><i class="fa-solid fa-list"></i> Temporadas</h3>
+            <h3>
+              <i class="fa-solid fa-list"></i>
+              Temporadas
+            </h3>
 
             ${progressoTemporadas}
 
             <div class="lista-temporadas-card">
+
               ${temporadas
                 .map(
                   (temporada, indice) => `
@@ -918,13 +1067,18 @@ function carregarObras() {
                   `,
                 )
                 .join("")}
+
             </div>
 
             ${
               temporadas.length > 1
-                ? `<button type="button" class="botao-mais-itens" data-temporadas-expandidas="false">
-                  Ler mais
-                </button>`
+                ? `<button
+                    type="button"
+                    class="botao-mais-itens"
+                    data-temporadas-expandidas="false"
+                  >
+                    Ler mais
+                  </button>`
                 : ""
             }
           `;
@@ -933,16 +1087,22 @@ function carregarObras() {
         if (tipoTemManga(obra.tipo)) {
           const volumes = ordenarItensPeloProgresso(
             obra,
+
             lerConteudoObra(obra.volumes),
+
             "manga",
           );
 
           conteudo += `
-            <h3><i class="fa-solid fa-book"></i> Volumes</h3>
+            <h3>
+              <i class="fa-solid fa-book"></i>
+              Volumes
+            </h3>
 
             ${progressoVolumes}
 
             <div class="lista-volumes-card">
+
               ${volumes
                 .map(
                   (volume, indice) => `
@@ -953,23 +1113,36 @@ function carregarObras() {
                   `,
                 )
                 .join("")}
+
             </div>
 
             ${
               volumes.length > 1
-                ? `<button type="button" class="botao-mais-itens" data-volumes-expandidos="false">
-                  Ler mais
-                </button>`
+                ? `<button
+                    type="button"
+                    class="botao-mais-itens"
+                    data-volumes-expandidos="false"
+                  >
+                    Ler mais
+                  </button>`
                 : ""
             }
           `;
         }
 
         const imagens = obterImagemPreferida(obra);
+
         const linksLeitura = obterLinksLeitura(obra);
+
         const imagem = imagens.principal
-          ? `<img class="imagem-obra" src="${imagens.principal}" referrerpolicy="no-referrer" alt="${obterTituloExibicao(obra)}">`
+          ? `<img
+                    class="imagem-obra"
+                    src="${imagens.principal}"
+                    referrerpolicy="no-referrer"
+                    alt="${obterTituloExibicao(obra)}"
+                  >`
           : "";
+
         const botaoLeitura =
           linksLeitura.length === 1
             ? `
@@ -979,11 +1152,21 @@ function carregarObras() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <i class="fa-solid fa-book-open"></i>Ler
+                <i class="fa-solid fa-book-open"></i>
+                Ler
               </a>
             `
             : linksLeitura.length > 1
-              ? `<button type="button" class="botao-ler" data-escolher-link="${obra.id}"><i class="fa-solid fa-book-open"></i>Ler</button>`
+              ? `
+              <button
+                type="button"
+                class="botao-ler"
+                data-escolher-link="${obra.id}"
+              >
+                <i class="fa-solid fa-book-open"></i>
+                Ler
+              </button>
+            `
               : "";
 
         lista.innerHTML += `
@@ -992,30 +1175,47 @@ function carregarObras() {
             data-card-id="${obra.id}"
           >
 
-          <button
-  type="button"
-  class="botao-favorito"
-  data-favorito-id="${obra.id}"
-  aria-label="${obra.favorito ? "Remover dos favoritos" : "Adicionar aos favoritos"}"
-  title="${obra.favorito ? "Remover dos favoritos" : "Adicionar aos favoritos"}"
->
-  <i class="${obra.favorito ? "fa-solid" : "fa-regular"} fa-heart"></i>
-</button>
-
             <button
               type="button"
-              class="botao-avancar"
-              data-avancar-id="${obra.id}"
-              data-tipo-obra="${obra.tipo}"
-              aria-label="Marcar próximo como visto"
-              title="Marcar próximo como visto"
+              class="botao-favorito"
+              data-favorito-id="${obra.id}"
+              aria-label="${
+                obra.favorito
+                  ? "Remover dos favoritos"
+                  : "Adicionar aos favoritos"
+              }"
+              title="${
+                obra.favorito
+                  ? "Remover dos favoritos"
+                  : "Adicionar aos favoritos"
+              }"
             >
-              <strong>+1</strong>
+              <i
+                class="${obra.favorito ? "fa-solid" : "fa-regular"} fa-heart"
+              ></i>
             </button>
+
+            <button
+  type="button"
+  class="botao-avancar"
+  data-avancar-id="${obra.id}"
+  data-tipo-obra="${obra.tipo}"
+  aria-label="${
+    obra.status === "completa" ? "Obra completa" : "Marcar próximo como visto"
+  }"
+  title="${
+    obra.status === "completa" ? "Obra completa" : "Marcar próximo como visto"
+  }"
+  ${obra.status === "completa" ? "disabled" : ""}
+>
+  <strong>+1</strong>
+</button>
 
             <div class="titulo-card">
 
-              <h2>${obterTituloExibicao(obra)}</h2>
+              <h2>
+                ${obterTituloExibicao(obra)}
+              </h2>
 
               <span
                 class="status-card status-${obra.status}"
@@ -1026,13 +1226,29 @@ function carregarObras() {
             </div>
 
             ${imagem}
-            <p class="aviso-imagem-card" hidden role="status"></p>
+
+            <button
+              type="button"
+              class="botao-visto"
+              data-visto-id="${obra.id}"
+              title="Marcar como visto"
+              aria-label="Marcar como visto"
+            >
+              <i class="fa-solid fa-check"></i>
+            </button>
+
+            <p
+              class="aviso-imagem-card"
+              hidden
+              role="status"
+            ></p>
 
             <div class="progresso-card">
 
               <div class="progresso-texto">
                 <span>
-                  Progresso ${progresso.vistos}/${progresso.total}
+                  Progresso
+                  ${progresso.vistos}/${progresso.total}
                 </span>
               </div>
 
@@ -1055,21 +1271,30 @@ function carregarObras() {
 
             <div class="botoes-card">
 
-  ${botaoLeitura}
+              ${botaoLeitura}
 
-  <button data-id="${obra.id}">
-    <i class="fa-solid fa-pen"></i> Editar
-  </button>
+              <button
+                data-id="${obra.id}"
+              >
+                <i class="fa-solid fa-pen"></i>
+                Editar
+              </button>
 
-  <button data-delete-id="${obra.id}">
-    <i class="fa-solid fa-trash"></i> Apagar
-  </button>
+              <button
+                data-delete-id="${obra.id}"
+              >
+                <i class="fa-solid fa-trash"></i>
+                Apagar
+              </button>
 
-  <button data-progress-id="${obra.id}">
-    <i class="fa-solid fa-chart-simple"></i> Progresso
-  </button>
+              <button
+                data-progress-id="${obra.id}"
+              >
+                <i class="fa-solid fa-chart-simple"></i>
+                Progresso
+              </button>
 
-</div>
+            </div>
 
           </div>
         `;
@@ -1088,7 +1313,9 @@ function carregarObras() {
 
       if (erro.status === 401) {
         localStorage.removeItem("token");
+
         window.location.href = "/login.html";
+
         return;
       }
 
@@ -1148,7 +1375,7 @@ document.getElementById("limpar-filtros").addEventListener("click", () => {
 
 document
   .querySelectorAll(
-    "#popup-filtros, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-perfil, #popup-escolha-avanco, #popup-escolha-link",
+    "#popup-filtros, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-perfil, #popup-escolha-avanco, #popup-escolha-link, #popup-escolha-visto",
   )
   .forEach((popup) => {
     popup.addEventListener("click", (evento) => {
@@ -1159,9 +1386,297 @@ document
   });
 
 let titulosAlternativosEdicao = [];
+
 let avancoPendente = null;
 
+let pendenciasVistoPendente = [];
+
+let botaoVistoPendente = null;
+
+function obterPendenciasVisto(obra) {
+  const pendencias = [];
+
+  if (tipoTemAnime(obra.tipo)) {
+    const temporadas = lerConteudoObra(obra.temporadas);
+
+    temporadas.forEach((temporada, indice) => {
+      const inicio = obterInicioTemporada(temporada);
+
+      const fim = inicio + Number(temporada.episodios || 0) - 1;
+
+      const vistos = obterNumerosVistosValidos(temporada, inicio, fim);
+
+      const total = fim - inicio + 1;
+
+      if (total <= 0 || vistos.size >= total) {
+        return;
+      }
+
+      let proximo = null;
+
+      for (let numero = inicio; numero <= fim; numero++) {
+        if (!vistos.has(numero)) {
+          proximo = numero;
+          break;
+        }
+      }
+
+      if (proximo !== null) {
+        pendencias.push({
+          tipo: "anime",
+          indice,
+          nome: `Temporada ${temporada.numero}`,
+          proximo,
+        });
+      }
+    });
+  }
+
+  if (tipoTemManga(obra.tipo)) {
+    const volumes = lerConteudoObra(obra.volumes);
+
+    volumes.forEach((volume, indice) => {
+      const inicio = Number(volume.inicio);
+
+      const fim = Number(volume.fim);
+
+      const vistos = obterNumerosVistosValidos(volume, inicio, fim);
+
+      const total = fim - inicio + 1;
+
+      if (total <= 0 || vistos.size >= total) {
+        return;
+      }
+
+      let proximo = null;
+
+      for (let numero = inicio; numero <= fim; numero++) {
+        if (!vistos.has(numero)) {
+          proximo = numero;
+          break;
+        }
+      }
+
+      if (proximo !== null) {
+        pendencias.push({
+          tipo: "manga",
+          indice,
+          nome: `Volume ${volume.numero}`,
+          proximo,
+        });
+      }
+    });
+  }
+
+  return pendencias;
+}
+
+async function marcarProximoVisto(id, botao, tipo, indice) {
+  let obra = obrasCarregadas.find((item) => String(item.id) === String(id));
+
+  if (!obra) {
+    return;
+  }
+
+  try {
+    const respostaAtual = await fetch(`/obras/${id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (respostaAtual.ok) {
+      obra = await respostaAtual.json();
+    }
+  } catch (erro) {
+    mostrarMensagem("Não foi possível carregar o progresso.", "erro");
+
+    return;
+  }
+
+  const chave = tipo === "anime" ? "temporadas" : "volumes";
+
+  const itens = lerConteudoObra(obra[chave]);
+
+  const item = itens[indice];
+
+  if (!item) {
+    return;
+  }
+
+  const inicio =
+    tipo === "anime" ? obterInicioTemporada(item) : Number(item.inicio);
+
+  const fim =
+    tipo === "anime"
+      ? inicio + Number(item.episodios || 0) - 1
+      : Number(item.fim);
+
+  const vistos = obterNumerosVistosValidos(item, inicio, fim);
+
+  let proximo = null;
+
+  for (let numero = inicio; numero <= fim; numero++) {
+    if (!vistos.has(numero)) {
+      proximo = numero;
+      break;
+    }
+  }
+
+  if (proximo === null) {
+    return;
+  }
+
+  vistos.add(proximo);
+
+  item.vistos = [...vistos].sort((a, b) => a - b);
+
+  botao.disabled = true;
+
+  try {
+    const resposta = await fetch(`/obras/${id}`, {
+      method: "PATCH",
+
+      headers: {
+        "Content-Type": "application/json",
+
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+
+      body: JSON.stringify({
+        [chave]: itens,
+      }),
+    });
+
+    const resultado = await resposta.json().catch(() => ({}));
+
+    if (!resposta.ok) {
+      mostrarMensagem(
+        resultado.erro || "Não foi possível marcar como visto.",
+        "erro",
+      );
+
+      return;
+    }
+
+    await carregarObras();
+
+    mostrarMensagem(
+      `${
+        tipo === "anime" ? "Episódio" : "Capítulo"
+      } ${proximo} marcado como visto.`,
+      "sucesso",
+    );
+  } catch (erro) {
+    mostrarMensagem("Não foi possível marcar como visto.", "erro");
+  } finally {
+    botao.disabled = false;
+  }
+}
+
 document.addEventListener("click", async (evento) => {
+  const botaoVisto = evento.target.closest("button[data-visto-id]");
+
+  if (botaoVisto) {
+    const id = botaoVisto.dataset.vistoId;
+
+    const obra = obrasCarregadas.find((item) => String(item.id) === String(id));
+
+    if (!obra) {
+      return;
+    }
+
+    const pendencias = obterPendenciasVisto(obra);
+
+    if (!pendencias.length) {
+      mostrarMensagem("Não há episódios ou capítulos pendentes.", "aviso");
+
+      return;
+    }
+
+    if (pendencias.length === 1) {
+      const pendencia = pendencias[0];
+
+      await marcarProximoVisto(
+        id,
+        botaoVisto,
+        pendencia.tipo,
+        pendencia.indice,
+      );
+
+      return;
+    }
+
+    pendenciasVistoPendente = pendencias;
+
+    botaoVistoPendente = botaoVisto;
+
+    const popup = document.getElementById("popup-escolha-visto");
+
+    const opcoes = document.getElementById("opcoes-visto");
+
+    opcoes.innerHTML = pendencias
+      .map(
+        (pendencia, indice) => `
+              <button
+                type="button"
+                data-escolher-visto="${indice}"
+              >
+                ${pendencia.nome}
+                —
+                ${pendencia.tipo === "anime" ? "Episódio" : "Capítulo"}
+                ${pendencia.proximo}
+              </button>
+            `,
+      )
+      .join("");
+
+    popup.style.display = "flex";
+
+    return;
+  }
+
+  const botaoEscolherVisto = evento.target.closest(
+    "button[data-escolher-visto]",
+  );
+
+  if (botaoEscolherVisto && botaoVistoPendente) {
+    const indice = Number(botaoEscolherVisto.dataset.escolherVisto);
+
+    const pendencia = pendenciasVistoPendente[indice];
+
+    const botao = botaoVistoPendente;
+
+    pendenciasVistoPendente = [];
+
+    botaoVistoPendente = null;
+
+    document.getElementById("popup-escolha-visto").style.display = "none";
+
+    if (!pendencia) {
+      return;
+    }
+
+    await marcarProximoVisto(
+      botao.dataset.vistoId,
+      botao,
+      pendencia.tipo,
+      pendencia.indice,
+    );
+
+    return;
+  }
+
+  if (evento.target.matches("#fechar-escolha-visto")) {
+    pendenciasVistoPendente = [];
+
+    botaoVistoPendente = null;
+
+    document.getElementById("popup-escolha-visto").style.display = "none";
+
+    return;
+  }
+
   const botaoAvancar = evento.target.closest("button[data-avancar-id]");
 
   if (botaoAvancar) {
@@ -1171,12 +1686,20 @@ document.addEventListener("click", async (evento) => {
 
     const tipoObra = botaoAvancar.dataset.tipoObra || obra?.tipo;
 
+    if (obra?.status === "completa") {
+      mostrarMensagem("Esta obra está completa.", "aviso");
+      return;
+    }
+
     if (tipoObra === "ambos") {
       avancoPendente = {
         id: botaoAvancar.dataset.avancarId,
+
         botao: botaoAvancar,
       };
+
       document.getElementById("popup-escolha-avanco").style.display = "flex";
+
       return;
     }
 
@@ -1185,6 +1708,7 @@ document.addEventListener("click", async (evento) => {
       botaoAvancar,
       tipoObra === "manga" ? "manga" : "anime",
     );
+
     return;
   }
 
@@ -1192,16 +1716,23 @@ document.addEventListener("click", async (evento) => {
 
   if (botaoTipoAvanco && avancoPendente) {
     const { id, botao } = avancoPendente;
+
     const tipo = botaoTipoAvanco.dataset.avancarTipo;
+
     avancoPendente = null;
+
     document.getElementById("popup-escolha-avanco").style.display = "none";
+
     await avancarProgresso(id, botao, tipo);
+
     return;
   }
 
   if (evento.target.matches("#fechar-escolha-avanco")) {
     avancoPendente = null;
+
     document.getElementById("popup-escolha-avanco").style.display = "none";
+
     return;
   }
 
@@ -1209,9 +1740,17 @@ document.addEventListener("click", async (evento) => {
 
   if (botaoLimpar) {
     const campo = document.getElementById(botaoLimpar.dataset.limparCampo);
+
     campo.value = "";
-    campo.dispatchEvent(new Event("input", { bubbles: true }));
+
+    campo.dispatchEvent(
+      new Event("input", {
+        bubbles: true,
+      }),
+    );
+
     campo.focus();
+
     return;
   }
 
@@ -1222,16 +1761,21 @@ document.addEventListener("click", async (evento) => {
       botaoRemoverLink.dataset.removerLink === "criacao"
         ? linksLeituraCriacao
         : linksLeituraEdicao;
+
     lista.splice(Number(botaoRemoverLink.dataset.indiceLink), 1);
+
     renderizarListaLinks(
       lista,
+
       document.getElementById(
         botaoRemoverLink.dataset.removerLink === "criacao"
           ? "lista-links-leitura-obra"
           : "editar-lista-links-leitura",
       ),
+
       botaoRemoverLink.dataset.removerLink,
     );
+
     return;
   }
 
@@ -1242,44 +1786,62 @@ document.addEventListener("click", async (evento) => {
       (item) =>
         String(item.id) === String(botaoEscolherLink.dataset.escolherLink),
     );
+
     linksEscolhaAtual = obterLinksLeitura(obra || {});
+
     document.getElementById("opcoes-links-leitura").innerHTML =
       linksEscolhaAtual
         .map(
           (link, indice) =>
-            `<button type="button" data-abrir-link="${indice}">${link.nome || "Link de leitura"}</button>`,
+            `
+              <button
+                type="button"
+                data-abrir-link="${indice}"
+              >
+                ${link.nome || "Link de leitura"}
+              </button>
+              `,
         )
         .join("");
+
     document.getElementById("popup-escolha-link").style.display = "flex";
+
     return;
   }
 
   if (evento.target.matches("button[data-abrir-link]")) {
     const link = linksEscolhaAtual[Number(evento.target.dataset.abrirLink)];
+
     if (link) {
       window.open(link.url, "_blank", "noopener,noreferrer");
     }
+
     document.getElementById("popup-escolha-link").style.display = "none";
+
     return;
   }
 
   if (evento.target.matches("#fechar-escolha-link")) {
     document.getElementById("popup-escolha-link").style.display = "none";
+
     return;
   }
 
   if (evento.target.matches("button.botao-remover-item")) {
     evento.target.closest(".temporada, .volume")?.remove();
+
     return;
   }
 
   if (evento.target.matches("#botao-atualizacoes")) {
     document.getElementById("popup-atualizacoes").style.display = "flex";
+
     return;
   }
 
   if (evento.target.matches("#fechar-atualizacoes")) {
     document.getElementById("popup-atualizacoes").style.display = "none";
+
     return;
   }
 
@@ -1287,6 +1849,7 @@ document.addEventListener("click", async (evento) => {
 
   if (botaoEditar) {
     const id = botaoEditar.dataset.id;
+
     const obraDaLista = obrasCarregadas.find(
       (obra) => String(obra.id) === String(id),
     );
@@ -1302,6 +1865,7 @@ document.addEventListener("click", async (evento) => {
             "Não foi possível carregar os dados desta obra.",
             "erro",
           );
+
           return;
         }
 
@@ -1325,19 +1889,28 @@ document.addEventListener("click", async (evento) => {
           obra.titulo_exibicao || "principal";
 
         document.getElementById("editar-imagem").value = obra.imagem || "";
+
         document.getElementById("editar-preferencia-imagem").value =
           obra.imagem_preferencia || "url";
+
         document.getElementById("editar-link-leitura").value = "";
+
         linksLeituraEdicao = obterLinksLeitura(obra).map((link) => ({
           ...link,
         }));
+
         renderizarListaLinks(
           linksLeituraEdicao,
+
           document.getElementById("editar-lista-links-leitura"),
+
           "edicao",
         );
+
         popupEditar.dataset.imagemUrl = obra.imagem || "";
+
         popupEditar.dataset.imagemArquivo = obra.imagem_arquivo || "";
+
         document.getElementById("editar-arquivo-imagem").value = "";
 
         const editarCamposAnime = document.getElementById(
@@ -1370,13 +1943,42 @@ document.addEventListener("click", async (evento) => {
             !editarListaTemporadas.querySelector(".temporada")
           ) {
             editarListaTemporadas.innerHTML = `
-              <div class="temporada">
-                <button type="button" class="botao-remover-item" aria-label="Remover temporada">×</button>
-                <label>Temporada<input type="number" min="1" value="1"></label>
-                <label>Episódios<input type="number" min="0"></label>
-                <label>Começa no episódio<input type="number" min="1" value="1"></label>
-              </div>
-            `;
+                    <div class="temporada">
+                      <button
+                        type="button"
+                        class="botao-remover-item"
+                        aria-label="Remover temporada"
+                      >
+                        ×
+                      </button>
+
+                      <label>
+                        Temporada
+                        <input
+                          type="number"
+                          min="1"
+                          value="1"
+                        >
+                      </label>
+
+                      <label>
+                        Episódios
+                        <input
+                          type="number"
+                          min="0"
+                        >
+                      </label>
+
+                      <label>
+                        Começa no episódio
+                        <input
+                          type="number"
+                          min="1"
+                          value="1"
+                        >
+                      </label>
+                    </div>
+                  `;
           }
 
           if (
@@ -1384,13 +1986,42 @@ document.addEventListener("click", async (evento) => {
             !editarListaVolumes.querySelector(".volume")
           ) {
             editarListaVolumes.innerHTML = `
-              <div class="volume">
-                <button type="button" class="botao-remover-item" aria-label="Remover volume">×</button>
-                <label>Volume<input type="number" min="1" value="1"></label>
-                <label>Começa no capítulo<input type="number" min="1" value="1"></label>
-                <label>Termina no capítulo<input type="number" min="1"></label>
-              </div>
-            `;
+                    <div class="volume">
+                      <button
+                        type="button"
+                        class="botao-remover-item"
+                        aria-label="Remover volume"
+                      >
+                        ×
+                      </button>
+
+                      <label>
+                        Volume
+                        <input
+                          type="number"
+                          min="1"
+                          value="1"
+                        >
+                      </label>
+
+                      <label>
+                        Começa no capítulo
+                        <input
+                          type="number"
+                          min="1"
+                          value="1"
+                        >
+                      </label>
+
+                      <label>
+                        Termina no capítulo
+                        <input
+                          type="number"
+                          min="1"
+                        >
+                      </label>
+                    </div>
+                  `;
           }
         });
 
@@ -1407,32 +2038,45 @@ document.addEventListener("click", async (evento) => {
             const linha = document.createElement("div");
 
             linha.classList.add("temporada");
+
             linha.dataset.vistos = JSON.stringify(temporada.vistos || []);
 
             linha.innerHTML = `
-              <button type="button" class="botao-remover-item" aria-label="Remover temporada">×</button>
-              <label>
-                Temporada
-                <input
-                  type="number"
-                  min="1"
-                  value="${temporada.numero}"
-                >
-              </label>
+                    <button
+                      type="button"
+                      class="botao-remover-item"
+                      aria-label="Remover temporada"
+                    >
+                      ×
+                    </button>
 
-              <label>
-                Episódios
-                <input
-                  type="number"
-                  min="0"
-                  value="${temporada.episodios}"
-                >
-              </label>
-              <label>
-                Começa no episódio
-                <input type="number" min="1" value="${obterInicioTemporada(temporada)}">
-              </label>
-            `;
+                    <label>
+                      Temporada
+                      <input
+                        type="number"
+                        min="1"
+                        value="${temporada.numero}"
+                      >
+                    </label>
+
+                    <label>
+                      Episódios
+                      <input
+                        type="number"
+                        min="0"
+                        value="${temporada.episodios}"
+                      >
+                    </label>
+
+                    <label>
+                      Começa no episódio
+                      <input
+                        type="number"
+                        min="1"
+                        value="${obterInicioTemporada(temporada)}"
+                      >
+                    </label>
+                  `;
 
             editarListaTemporadas.appendChild(linha);
           });
@@ -1447,37 +2091,45 @@ document.addEventListener("click", async (evento) => {
             const linha = document.createElement("div");
 
             linha.classList.add("volume");
+
             linha.dataset.vistos = JSON.stringify(volume.vistos || []);
 
             linha.innerHTML = `
-              <button type="button" class="botao-remover-item" aria-label="Remover volume">×</button>
-  <label>
-    Volume
-    <input
-      type="number"
-      min="1"
-      value="${volume.numero}"
-    >
-  </label>
+                    <button
+                      type="button"
+                      class="botao-remover-item"
+                      aria-label="Remover volume"
+                    >
+                      ×
+                    </button>
 
-  <label>
-    Começa no capítulo
-    <input
-      type="number"
-      min="1"
-      value="${volume.inicio}"
-    >
-  </label>
+                    <label>
+                      Volume
+                      <input
+                        type="number"
+                        min="1"
+                        value="${volume.numero}"
+                      >
+                    </label>
 
-  <label>
-    Termina no capítulo
-    <input
-      type="number"
-      min="1"
-      value="${volume.fim}"
-    >
-  </label>
-`;
+                    <label>
+                      Começa no capítulo
+                      <input
+                        type="number"
+                        min="1"
+                        value="${volume.inicio}"
+                      >
+                    </label>
+
+                    <label>
+                      Termina no capítulo
+                      <input
+                        type="number"
+                        min="1"
+                        value="${volume.fim}"
+                      >
+                    </label>
+                  `;
 
             editarListaVolumes.appendChild(linha);
           });
@@ -1490,6 +2142,7 @@ document.addEventListener("click", async (evento) => {
         previewImagemEditar.src = obterImagemPreferida(obra).principal;
 
         previewImagemEditar.hidden = !obterImagemPreferida(obra).principal;
+
         document.getElementById("aviso-imagem-editar").hidden = true;
 
         popupEditar.style.display = "flex";
@@ -1500,21 +2153,27 @@ document.addEventListener("click", async (evento) => {
 
   if (botaoExcluir) {
     const popupExclusao = document.getElementById("popup-confirmar-exclusao");
+
     const obra = obrasCarregadas.find(
       (item) => String(item.id) === String(botaoExcluir.dataset.deleteId),
     );
 
     popupExclusao.dataset.id = botaoExcluir.dataset.deleteId;
+
     document.getElementById("nome-obra-exclusao").textContent =
       obra?.title || "";
+
     popupExclusao.hidden = false;
+
     popupExclusao.style.display = "flex";
   }
 
   if (evento.target.matches("button[data-progress-id]")) {
     abrirPopupProgresso(evento.target.dataset.progressId);
   }
+});
 
+document.addEventListener("click", async (evento) => {
   const botaoFavorito = evento.target.closest("button[data-favorito-id]");
 
   if (botaoFavorito) {
@@ -1533,10 +2192,13 @@ document.addEventListener("click", async (evento) => {
     try {
       const resposta = await fetch(`/obras/${id}/favorito`, {
         method: "PATCH",
+
         headers: {
           "Content-Type": "application/json",
+
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
+
         body: JSON.stringify({
           favorito: novoFavorito,
         }),
@@ -1559,11 +2221,15 @@ document.addEventListener("click", async (evento) => {
     } finally {
       botaoFavorito.disabled = false;
     }
+
+    return;
   }
 
   if (evento.target.matches("button[data-volumes-expandidos]")) {
     const botao = evento.target;
+
     const card = botao.closest(".cards");
+
     const mostrar = botao.dataset.volumesExpandidos !== "true";
 
     card.querySelectorAll("[data-volume-extra]").forEach((volume) => {
@@ -1571,12 +2237,17 @@ document.addEventListener("click", async (evento) => {
     });
 
     botao.dataset.volumesExpandidos = String(mostrar);
+
     botao.textContent = mostrar ? "Mostrar menos" : "Ler mais";
+
+    return;
   }
 
   if (evento.target.matches("button[data-temporadas-expandidas]")) {
     const botao = evento.target;
+
     const card = botao.closest(".cards");
+
     const mostrar = botao.dataset.temporadasExpandidas !== "true";
 
     card.querySelectorAll("[data-temporada-extra]").forEach((temporada) => {
@@ -1584,17 +2255,26 @@ document.addEventListener("click", async (evento) => {
     });
 
     botao.dataset.temporadasExpandidas = String(mostrar);
+
     botao.textContent = mostrar ? "Mostrar menos" : "Ler mais";
+
+    return;
   }
 
   if (evento.target.matches("button[data-marcar-todos]")) {
     const indice = Number(evento.target.dataset.marcarTodos);
+
     const tipo = evento.target.dataset.marcarTipo;
 
     const obra = obraProgressoAtual;
+
     const itens = obterItensDaObra(obra, tipo);
 
     const item = itens[indice];
+
+    if (!item) {
+      return;
+    }
 
     const inicio = tipo === "manga" ? item.inicio : obterInicioTemporada(item);
 
@@ -1610,24 +2290,36 @@ document.addEventListener("click", async (evento) => {
 
     item.vistos = todosMarcados
       ? []
-      : Array.from({ length: totalItens }, (_, numero) => inicio + numero);
+      : Array.from(
+          {
+            length: totalItens,
+          },
+          (_, numero) => inicio + numero,
+        );
 
     renderizarProgresso();
 
     salvarProgresso();
+
+    return;
   }
 
   if (evento.target.matches("#marcar-toda-obra")) {
     const obra = obraProgressoAtual;
+
     const tipos = [
       ...(tipoTemAnime(obra.tipo) ? ["anime"] : []),
+
       ...(tipoTemManga(obra.tipo) ? ["manga"] : []),
     ];
+
     const todosMarcados = tipos.every((tipo) =>
       obterItensDaObra(obra, tipo).every((item) => {
         const inicio =
           tipo === "manga" ? item.inicio : obterInicioTemporada(item);
+
         const fim = tipo === "manga" ? item.fim : inicio + item.episodios - 1;
+
         return (
           obterNumerosVistosValidos(item, inicio, fim).size === fim - inicio + 1
         );
@@ -1638,22 +2330,97 @@ document.addEventListener("click", async (evento) => {
       obterItensDaObra(obra, tipo).forEach((item) => {
         const inicio =
           tipo === "manga" ? item.inicio : obterInicioTemporada(item);
+
         const fim = tipo === "manga" ? item.fim : inicio + item.episodios - 1;
+
         item.vistos = todosMarcados
           ? []
           : Array.from(
-              { length: fim - inicio + 1 },
+              {
+                length: fim - inicio + 1,
+              },
               (_, numero) => inicio + numero,
             );
       }),
     );
 
     renderizarProgresso();
+
     salvarProgresso();
+
+    return;
   }
 
   if (evento.target.matches("button#fechar-popup-progresso")) {
     document.getElementById("popup-progresso").style.display = "none";
+
+    return;
+  }
+
+  if (evento.target.matches("button.botao-remover-item")) {
+    evento.target.closest(".temporada, .volume")?.remove();
+
+    return;
+  }
+
+  if (evento.target.matches("#botao-atualizacoes")) {
+    document.getElementById("popup-atualizacoes").style.display = "flex";
+
+    return;
+  }
+
+  if (evento.target.matches("#fechar-atualizacoes")) {
+    document.getElementById("popup-atualizacoes").style.display = "none";
+
+    return;
+  }
+
+  const botaoEscolherLink = evento.target.closest("button[data-escolher-link]");
+
+  if (botaoEscolherLink) {
+    const obra = obrasCarregadas.find(
+      (item) =>
+        String(item.id) === String(botaoEscolherLink.dataset.escolherLink),
+    );
+
+    linksEscolhaAtual = obterLinksLeitura(obra || {});
+
+    document.getElementById("opcoes-links-leitura").innerHTML =
+      linksEscolhaAtual
+        .map(
+          (link, indice) =>
+            `
+              <button
+                type="button"
+                data-abrir-link="${indice}"
+              >
+                ${link.nome || "Link de leitura"}
+              </button>
+              `,
+        )
+        .join("");
+
+    document.getElementById("popup-escolha-link").style.display = "flex";
+
+    return;
+  }
+
+  if (evento.target.matches("button[data-abrir-link]")) {
+    const link = linksEscolhaAtual[Number(evento.target.dataset.abrirLink)];
+
+    if (link) {
+      window.open(link.url, "_blank", "noopener,noreferrer");
+    }
+
+    document.getElementById("popup-escolha-link").style.display = "none";
+
+    return;
+  }
+
+  if (evento.target.matches("#fechar-escolha-link")) {
+    document.getElementById("popup-escolha-link").style.display = "none";
+
+    return;
   }
 });
 
@@ -1665,6 +2432,7 @@ document.addEventListener("change", async (evento) => {
   const obra = obraProgressoAtual;
 
   const tipo = evento.target.dataset.progressoTipo;
+
   const itens = obterItensDaObra(obra, tipo);
 
   const indice = Number(evento.target.dataset.progressoItem);
@@ -1711,10 +2479,11 @@ document
       const seletor = document.getElementById(
         botao.parentElement.dataset.seletorTipo,
       );
-      const valorAtual = seletor.value;
+
       const tipo = botao.dataset.tipoAtalho;
 
       seletor.value = tipo;
+
       seletor.dispatchEvent(new Event("change"));
     });
   });
@@ -1723,7 +2492,44 @@ adicionarTemporada.addEventListener("click", () => {
   const temporadas = listaTemporadas.querySelectorAll(".temporada");
 
   if (!temporadas.length) {
-    listaTemporadas.innerHTML = `<div class="temporada"><button type="button" class="botao-remover-item" aria-label="Remover temporada">×</button><label>Temporada<input type="number" min="1" value="1"></label><label>Episódios<input type="number" min="1"></label><label>Começa no episódio<input type="number" min="1" value="1"></label></div>`;
+    listaTemporadas.innerHTML = `
+        <div class="temporada">
+          <button
+            type="button"
+            class="botao-remover-item"
+            aria-label="Remover temporada"
+          >
+            ×
+          </button>
+
+          <label>
+            Temporada
+            <input
+              type="number"
+              min="1"
+              value="1"
+            >
+          </label>
+
+          <label>
+            Episódios
+            <input
+              type="number"
+              min="1"
+            >
+          </label>
+
+          <label>
+            Começa no episódio
+            <input
+              type="number"
+              min="1"
+              value="1"
+            >
+          </label>
+        </div>
+      `;
+
     return;
   }
 
@@ -1745,6 +2551,7 @@ adicionarTemporada.addEventListener("click", () => {
       "O episódio inicial não pode ser maior que a quantidade de episódios.",
       "erro",
     );
+
     return;
   }
 
@@ -1753,11 +2560,19 @@ adicionarTemporada.addEventListener("click", () => {
   novaTemporada.classList.add("temporada");
 
   const proximoNumero = Number(campos[0].value) + 1;
+
   const proximoInicio =
     (Number(campos[2].value) || 1) + Number(campos[1].value);
 
   novaTemporada.innerHTML = `
-      <button type="button" class="botao-remover-item" aria-label="Remover temporada">×</button>
+      <button
+        type="button"
+        class="botao-remover-item"
+        aria-label="Remover temporada"
+      >
+        ×
+      </button>
+
       <label>
         Temporada
         <input
@@ -1774,9 +2589,14 @@ adicionarTemporada.addEventListener("click", () => {
           min="0"
         >
       </label>
+
       <label>
         Começa no episódio
-        <input type="number" min="1" value="${proximoInicio}">
+        <input
+          type="number"
+          min="1"
+          value="${proximoInicio}"
+        >
       </label>
     `;
 
@@ -1787,7 +2607,44 @@ adicionarVolume.addEventListener("click", () => {
   const volumes = listaVolumes.querySelectorAll(".volume");
 
   if (!volumes.length) {
-    listaVolumes.innerHTML = `<div class="volume"><button type="button" class="botao-remover-item" aria-label="Remover volume">×</button><label>Volume<input type="number" min="1" value="1"></label><label>Começa no capítulo<input type="number" min="1" value="1"></label><label>Termina no capítulo<input type="number" min="1"></label></div>`;
+    listaVolumes.innerHTML = `
+        <div class="volume">
+          <button
+            type="button"
+            class="botao-remover-item"
+            aria-label="Remover volume"
+          >
+            ×
+          </button>
+
+          <label>
+            Volume
+            <input
+              type="number"
+              min="1"
+              value="1"
+            >
+          </label>
+
+          <label>
+            Começa no capítulo
+            <input
+              type="number"
+              min="1"
+              value="1"
+            >
+          </label>
+
+          <label>
+            Termina no capítulo
+            <input
+              type="number"
+              min="1"
+            >
+          </label>
+        </div>
+      `;
+
     return;
   }
 
@@ -1796,11 +2653,14 @@ adicionarVolume.addEventListener("click", () => {
   const campos = ultimoVolume.querySelectorAll("input");
 
   const numero = campos[0].value;
+
   const inicio = campos[1].value;
+
   const fim = campos[2].value;
 
   if (!numero || !inicio || !fim) {
     mostrarMensagem("Preencha todos os campos do volume.", "erro");
+
     return;
   }
 
@@ -1809,6 +2669,7 @@ adicionarVolume.addEventListener("click", () => {
       "O capítulo inicial não pode ser maior que o final.",
       "erro",
     );
+
     return;
   }
 
@@ -1816,37 +2677,45 @@ adicionarVolume.addEventListener("click", () => {
 
   novoVolume.classList.add("volume");
 
-  const proximoNumero = Number(campos[0].value) + 1;
-  const proximoInicio = Number(campos[2].value) + 1;
+  const proximoNumero = Number(numero) + 1;
+
+  const proximoInicio = Number(fim) + 1;
 
   novoVolume.innerHTML = `
-    <button type="button" class="botao-remover-item" aria-label="Remover volume">×</button>
-    <label>
-      Volume
-      <input
-        type="number"
-        min="1"
-        value="${proximoNumero}"
+      <button
+        type="button"
+        class="botao-remover-item"
+        aria-label="Remover volume"
       >
-    </label>
+        ×
+      </button>
 
-    <label>
-      Começa no capítulo
-      <input
-        type="number"
-        min="1"
-        value="${proximoInicio}"
-      >
-    </label>
+      <label>
+        Volume
+        <input
+          type="number"
+          min="1"
+          value="${proximoNumero}"
+        >
+      </label>
 
-    <label>
-      Termina no capítulo
-      <input
-        type="number"
-        min="1"
-      >
-    </label>
-  `;
+      <label>
+        Começa no capítulo
+        <input
+          type="number"
+          min="1"
+          value="${proximoInicio}"
+        >
+      </label>
+
+      <label>
+        Termina no capítulo
+        <input
+          type="number"
+          min="1"
+        >
+      </label>
+    `;
 
   listaVolumes.appendChild(novoVolume);
 });
@@ -1870,12 +2739,15 @@ const formCriar = document.getElementById("form-criar");
 let titulosAlternativos = [];
 
 const campoTituloAlternativo = document.getElementById("titulo-alternativo");
+
 const botaoAdicionarTituloAlternativo = document.getElementById(
   "adicionar-titulo-alternativo",
 );
+
 const listaTitulosAlternativos = document.getElementById(
   "lista-titulos-alternativos",
 );
+
 const selectTituloExibicao = document.getElementById("titulo-exibicao");
 
 botaoAdicionarTituloAlternativo.addEventListener("click", () => {
@@ -1883,6 +2755,7 @@ botaoAdicionarTituloAlternativo.addEventListener("click", () => {
 
   if (!titulo) {
     mostrarMensagem("Digite um título alternativo.", "aviso");
+
     return;
   }
 
@@ -1899,21 +2772,27 @@ function renderizarTitulosAlternativos() {
   listaTitulosAlternativos.innerHTML = "";
 
   selectTituloExibicao.innerHTML = `
-    <option value="principal">Título principal</option>
+    <option value="principal">
+      Título principal
+    </option>
   `;
 
   titulosAlternativos.forEach((titulo, indice) => {
     const item = document.createElement("div");
 
     const texto = document.createElement("span");
+
     texto.textContent = titulo;
 
     const botaoRemover = document.createElement("button");
+
     botaoRemover.type = "button";
+
     botaoRemover.textContent = "×";
 
     botaoRemover.addEventListener("click", () => {
       titulosAlternativos.splice(indice, 1);
+
       renderizarTitulosAlternativos();
     });
 
@@ -1922,7 +2801,9 @@ function renderizarTitulosAlternativos() {
     listaTitulosAlternativos.appendChild(item);
 
     const opcao = document.createElement("option");
+
     opcao.value = titulo;
+
     opcao.textContent = titulo;
 
     selectTituloExibicao.appendChild(opcao);
@@ -1943,17 +2824,22 @@ function renderizarTitulosAlternativosEdicao() {
   lista.innerHTML = "";
 
   select.innerHTML = `
-    <option value="principal">Título principal</option>
+    <option value="principal">
+      Título principal
+    </option>
   `;
 
   titulosAlternativosEdicao.forEach((titulo, indice) => {
     const item = document.createElement("div");
 
     const texto = document.createElement("span");
+
     texto.textContent = titulo;
 
     const botaoRemover = document.createElement("button");
+
     botaoRemover.type = "button";
+
     botaoRemover.textContent = "×";
 
     botaoRemover.addEventListener("click", () => {
@@ -1969,6 +2855,7 @@ function renderizarTitulosAlternativosEdicao() {
     const opcao = document.createElement("option");
 
     opcao.value = titulo;
+
     opcao.textContent = titulo;
 
     select.appendChild(opcao);
@@ -1983,20 +2870,25 @@ document
   .getElementById("editar-adicionar-titulo-alternativo")
   .addEventListener("click", () => {
     const campo = document.getElementById("editar-titulo-alternativo");
+
     const titulo = campo.value.trim();
 
     if (!titulo) {
       mostrarMensagem("Digite um título alternativo.", "aviso");
+
       return;
     }
 
     if (titulosAlternativosEdicao.includes(titulo)) {
       mostrarMensagem("Esse título alternativo já foi adicionado.", "aviso");
+
       return;
     }
 
     titulosAlternativosEdicao.push(titulo);
+
     campo.value = "";
+
     renderizarTitulosAlternativosEdicao();
   });
 
@@ -2004,23 +2896,32 @@ document
   .getElementById("adicionar-link-leitura-obra")
   .addEventListener("click", () => {
     const nome = document.getElementById("nome-link-leitura-obra");
+
     const url = document.getElementById("link-leitura-obra");
 
     if (!url.value.trim() || !url.checkValidity()) {
       mostrarMensagem("Informe uma URL válida para o link de leitura.", "erro");
+
       url.focus();
+
       return;
     }
 
     linksLeituraCriacao.push({
       nome: nome.value.trim(),
+
       url: url.value.trim(),
     });
+
     nome.value = "";
+
     url.value = "";
+
     renderizarListaLinks(
       linksLeituraCriacao,
+
       document.getElementById("lista-links-leitura-obra"),
+
       "criacao",
     );
   });
@@ -2047,16 +2948,21 @@ formCriar.addEventListener("submit", async (evento) => {
   if (linkLeituraObra.value.trim()) {
     if (!linkLeituraObra.checkValidity()) {
       mostrarMensagem("Informe uma URL válida para o link de leitura.", "erro");
+
       linkLeituraObra.focus();
       botaoCriar.disabled = false;
+
       return;
     }
 
     linksLeituraCriacao.push({
       nome: document.getElementById("nome-link-leitura-obra").value.trim(),
+
       url: linkLeituraObra.value.trim(),
     });
+
     document.getElementById("nome-link-leitura-obra").value = "";
+
     linkLeituraObra.value = "";
   }
 
@@ -2064,15 +2970,19 @@ formCriar.addEventListener("submit", async (evento) => {
 
   if (imagemObra.value && !imagemObra.checkValidity()) {
     mostrarMensagem("Informe uma URL válida para a imagem.", "erro");
+
     imagemObra.focus();
     botaoCriar.disabled = false;
+
     return;
   }
 
   if (linkLeituraObra.value && !linkLeituraObra.checkValidity()) {
     mostrarMensagem("Informe um link válido para ler a obra.", "erro");
+
     linkLeituraObra.focus();
     botaoCriar.disabled = false;
+
     return;
   }
 
@@ -2082,7 +2992,9 @@ formCriar.addEventListener("submit", async (evento) => {
     imagemArquivo = await lerArquivoComoDataUrl(arquivoImagemObra.files[0]);
   } catch (erro) {
     mostrarMensagem(erro.message, "erro");
+
     botaoCriar.disabled = false;
+
     return;
   }
 
@@ -2098,12 +3010,16 @@ formCriar.addEventListener("submit", async (evento) => {
         "Adicione pelo menos uma temporada para o anime.",
         "erro",
       );
+
       botaoCriar.disabled = false;
+
       return;
     }
 
     const primeira = temporadas[0].querySelectorAll("input");
+
     const primeiraVazia = [...primeira].every((campo) => campo.value === "");
+
     const primeiraIncompleta = [...primeira].some(
       (campo) => campo.value === "",
     );
@@ -2112,6 +3028,7 @@ formCriar.addEventListener("submit", async (evento) => {
       mostrarMensagem("Preencha a primeira temporada.", "erro");
 
       botaoCriar.disabled = false;
+
       return;
     }
 
@@ -2125,6 +3042,7 @@ formCriar.addEventListener("submit", async (evento) => {
       );
 
       botaoCriar.disabled = false;
+
       return;
     }
 
@@ -2134,6 +3052,7 @@ formCriar.addEventListener("submit", async (evento) => {
       const numero = campos[0].value;
 
       const episodios = campos[1].value;
+
       const inicio = campos[2].value;
 
       if (numero !== "" || episodios !== "" || inicio !== "") {
@@ -2144,8 +3063,10 @@ formCriar.addEventListener("submit", async (evento) => {
           );
 
           botaoCriar.disabled = false;
+
           return;
         }
+
         if (Number(inicio) > Number(episodios)) {
           mostrarMensagem(
             "O episódio inicial não pode ser maior que a quantidade de episódios.",
@@ -2153,6 +3074,7 @@ formCriar.addEventListener("submit", async (evento) => {
           );
 
           botaoCriar.disabled = false;
+
           return;
         }
       }
@@ -2164,7 +3086,9 @@ formCriar.addEventListener("submit", async (evento) => {
 
     if (!volumes.length) {
       mostrarMensagem("Adicione pelo menos um volume para o mangá.", "erro");
+
       botaoCriar.disabled = false;
+
       return;
     }
 
@@ -2178,6 +3102,7 @@ formCriar.addEventListener("submit", async (evento) => {
       mostrarMensagem("Preencha o primeiro volume.", "erro");
 
       botaoCriar.disabled = false;
+
       return;
     }
 
@@ -2188,6 +3113,7 @@ formCriar.addEventListener("submit", async (evento) => {
       );
 
       botaoCriar.disabled = false;
+
       return;
     }
 
@@ -2208,6 +3134,7 @@ formCriar.addEventListener("submit", async (evento) => {
           );
 
           botaoCriar.disabled = false;
+
           return;
         }
 
@@ -2218,6 +3145,7 @@ formCriar.addEventListener("submit", async (evento) => {
           );
 
           botaoCriar.disabled = false;
+
           return;
         }
       }
@@ -2228,11 +3156,14 @@ formCriar.addEventListener("submit", async (evento) => {
 
   if (tipoTemAnime(tipoObra.value)) {
     const linhasTemporadas = listaTemporadas.querySelectorAll(".temporada");
+
     for (let i = 0; i < linhasTemporadas.length; i++) {
       const campos = linhasTemporadas[i].querySelectorAll("input");
 
       const numero = campos[0].value;
+
       const episodios = campos[1].value;
+
       const inicio = campos[2].value;
 
       if (numero === "" && episodios === "" && inicio === "") {
@@ -2243,17 +3174,16 @@ formCriar.addEventListener("submit", async (evento) => {
         mostrarMensagem("Preencha todos os campos da temporada.", "erro");
 
         botaoCriar.disabled = false;
+
         return;
       }
 
-      const temporada = {
+      temporadas.push({
         numero: Number(numero),
         episodios: Number(episodios),
         inicio: Number(inicio),
         vistos: [],
-      };
-
-      temporadas.push(temporada);
+      });
     }
   }
 
@@ -2287,7 +3217,9 @@ formCriar.addEventListener("submit", async (evento) => {
         "Envie pelo menos um volume completo antes de criar a obra.",
         "erro",
       );
+
       botaoCriar.disabled = false;
+
       return;
     }
   }
@@ -2298,6 +3230,7 @@ formCriar.addEventListener("submit", async (evento) => {
 
       headers: {
         "Content-Type": "application/json",
+
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
 
@@ -2316,11 +3249,12 @@ formCriar.addEventListener("submit", async (evento) => {
 
         link_leitura:
           linksLeituraCriacao.length === 1 ? linksLeituraCriacao[0].url : null,
+
         link_leituras: linksLeituraCriacao,
 
-        temporadas: temporadas,
+        temporadas,
 
-        volumes: volumes,
+        volumes,
 
         titulos_alternativos: titulosAlternativos,
 
@@ -2330,10 +3264,12 @@ formCriar.addEventListener("submit", async (evento) => {
 
     if (!resposta.ok) {
       const resultado = await resposta.json().catch(() => ({}));
+
       throw new Error(resultado.erro || "Não foi possível criar a obra.");
     }
 
     mostrarMensagem("Obra criada com sucesso!", "sucesso");
+
     popupCriar.style.display = "none";
 
     renderizarTitulosAlternativos();
@@ -2351,10 +3287,14 @@ formCriar.addEventListener("submit", async (evento) => {
     document.getElementById("preferencia-imagem-obra").value = "url";
 
     linkLeituraObra.value = "";
+
     linksLeituraCriacao = [];
+
     renderizarListaLinks(
       linksLeituraCriacao,
+
       document.getElementById("lista-links-leitura-obra"),
+
       "criacao",
     );
 
@@ -2363,63 +3303,68 @@ formCriar.addEventListener("submit", async (evento) => {
     previewImagem.hidden = true;
 
     listaTemporadas.innerHTML = `
-        <div class="temporada">
+      <div class="temporada">
 
-          <label>
-            Temporada
-            <input
-              type="number"
-              value="1"
-              min="1"
-            >
-          </label>
+        <label>
+          Temporada
+          <input
+            type="number"
+            value="1"
+            min="1"
+          >
+        </label>
 
-          <label>
-            Episódios
-            <input
-              type="number"
-              min="0"
-            >
-          </label>
-          <label>
-            Começa no episódio
-            <input type="number" min="1" value="1">
-          </label>
+        <label>
+          Episódios
+          <input
+            type="number"
+            min="0"
+          >
+        </label>
 
-        </div>
-      `;
+        <label>
+          Começa no episódio
+          <input
+            type="number"
+            min="1"
+            value="1"
+          >
+        </label>
+
+      </div>
+    `;
 
     listaVolumes.innerHTML = `
-  <div class="volume">
+      <div class="volume">
 
-    <label>
-      Volume
-      <input
-        type="number"
-        value="1"
-        min="1"
-      >
-    </label>
+        <label>
+          Volume
+          <input
+            type="number"
+            value="1"
+            min="1"
+          >
+        </label>
 
-    <label>
-      Começa no capítulo
-      <input
-        type="number"
-        value="1"
-        min="1"
-      >
-    </label>
+        <label>
+          Começa no capítulo
+          <input
+            type="number"
+            value="1"
+            min="1"
+          >
+        </label>
 
-    <label>
-      Termina no capítulo
-      <input
-        type="number"
-        min="1"
-      >
-    </label>
+        <label>
+          Termina no capítulo
+          <input
+            type="number"
+            min="1"
+          >
+        </label>
 
-  </div>
-`;
+      </div>
+    `;
 
     camposAnime.style.display = "none";
 
@@ -2476,6 +3421,7 @@ document
     }
 
     previewImagem.src = await lerArquivoComoDataUrl(arquivo);
+
     previewImagem.hidden = false;
   });
 
@@ -2495,7 +3441,9 @@ document
     }
 
     const preview = document.getElementById("preview-imagem-editar");
+
     preview.src = await lerArquivoComoDataUrl(arquivo);
+
     preview.hidden = false;
   });
 
@@ -2531,7 +3479,14 @@ editarAdicionarTemporada.addEventListener("click", () => {
   if (!ultimaTemporada) {
     editarListaTemporadas.innerHTML = `
         <div class="temporada">
-        <button type="button" class="botao-remover-item" aria-label="Remover temporada">×</button>
+
+          <button
+            type="button"
+            class="botao-remover-item"
+            aria-label="Remover temporada"
+          >
+            ×
+          </button>
 
           <label>
             Temporada
@@ -2548,9 +3503,14 @@ editarAdicionarTemporada.addEventListener("click", () => {
               min="0"
             >
           </label>
+
           <label>
             Começa no episódio
-            <input type="number" min="1" value="1">
+            <input
+              type="number"
+              min="1"
+              value="1"
+            >
           </label>
 
         </div>
@@ -2575,11 +3535,19 @@ editarAdicionarTemporada.addEventListener("click", () => {
   novaTemporada.classList.add("temporada");
 
   const proximoNumero = Number(campos[0].value) + 1;
+
   const proximoInicio =
     (Number(campos[2].value) || 1) + Number(campos[1].value);
 
   novaTemporada.innerHTML = `
-      <button type="button" class="botao-remover-item" aria-label="Remover temporada">×</button>
+      <button
+        type="button"
+        class="botao-remover-item"
+        aria-label="Remover temporada"
+      >
+        ×
+      </button>
+
       <label>
         Temporada
         <input
@@ -2596,9 +3564,14 @@ editarAdicionarTemporada.addEventListener("click", () => {
           min="0"
         >
       </label>
+
       <label>
         Começa no episódio
-        <input type="number" min="1" value="${proximoInicio}">
+        <input
+          type="number"
+          min="1"
+          value="${proximoInicio}"
+        >
       </label>
     `;
 
@@ -2612,24 +3585,45 @@ editarAdicionarVolume.addEventListener("click", () => {
 
   if (!ultimoVolume) {
     editarListaVolumes.innerHTML = `
-    <div class="volume">
-      <button type="button" class="botao-remover-item" aria-label="Remover volume">×</button>
-      <label>
-        Volume
-        <input type="number" min="1" value="1">
-      </label>
+        <div class="volume">
 
-      <label>
-        Começa no capítulo
-        <input type="number" min="1" value="1">
-      </label>
+          <button
+            type="button"
+            class="botao-remover-item"
+            aria-label="Remover volume"
+          >
+            ×
+          </button>
 
-      <label>
-        Termina no capítulo
-        <input type="number" min="1">
-      </label>
-    </div>
-  `;
+          <label>
+            Volume
+            <input
+              type="number"
+              min="1"
+              value="1"
+            >
+          </label>
+
+          <label>
+            Começa no capítulo
+            <input
+              type="number"
+              min="1"
+              value="1"
+            >
+          </label>
+
+          <label>
+            Termina no capítulo
+            <input
+              type="number"
+              min="1"
+            >
+          </label>
+
+        </div>
+      `;
+
     return;
   }
 
@@ -2644,6 +3638,7 @@ editarAdicionarVolume.addEventListener("click", () => {
       "Preencha o volume, o início e o fim dos capítulos.",
       "erro",
     );
+
     return;
   }
 
@@ -2652,6 +3647,7 @@ editarAdicionarVolume.addEventListener("click", () => {
       "O início do capítulo não pode ser maior que o fim.",
       "erro",
     );
+
     return;
   }
 
@@ -2660,36 +3656,45 @@ editarAdicionarVolume.addEventListener("click", () => {
   novoVolume.classList.add("volume");
 
   const proximoNumero = Number(campos[0].value) + 1;
+
   const proximoInicio = Number(campos[2].value) + 1;
 
   novoVolume.innerHTML = `
-  <button type="button" class="botao-remover-item" aria-label="Remover volume">×</button>
-  <label>
-    Volume
-    <input
-      type="number"
-      min="1"
-      value="${proximoNumero}"
-    >
-  </label>
+      <button
+        type="button"
+        class="botao-remover-item"
+        aria-label="Remover volume"
+      >
+        ×
+      </button>
 
-  <label>
-    Começa no capítulo
-    <input
-      type="number"
-      min="1"
-      value="${proximoInicio}"
-    >
-  </label>
+      <label>
+        Volume
+        <input
+          type="number"
+          min="1"
+          value="${proximoNumero}"
+        >
+      </label>
 
-  <label>
-    Termina no capítulo
-    <input
-      type="number"
-      min="1"
-    >
-  </label>
-`;
+      <label>
+        Começa no capítulo
+        <input
+          type="number"
+          min="1"
+          value="${proximoInicio}"
+        >
+      </label>
+
+      <label>
+        Termina no capítulo
+        <input
+          type="number"
+          min="1"
+        >
+      </label>
+    `;
+
   editarListaVolumes.appendChild(novoVolume);
 });
 
@@ -2697,20 +3702,32 @@ document
   .getElementById("editar-adicionar-link-leitura")
   .addEventListener("click", () => {
     const nome = document.getElementById("editar-nome-link-leitura");
+
     const url = document.getElementById("editar-link-leitura");
 
     if (!url.value.trim() || !url.checkValidity()) {
       mostrarMensagem("Informe uma URL válida para o link de leitura.", "erro");
+
       url.focus();
+
       return;
     }
 
-    linksLeituraEdicao.push({ nome: nome.value.trim(), url: url.value.trim() });
+    linksLeituraEdicao.push({
+      nome: nome.value.trim(),
+
+      url: url.value.trim(),
+    });
+
     nome.value = "";
+
     url.value = "";
+
     renderizarListaLinks(
       linksLeituraEdicao,
+
       document.getElementById("editar-lista-links-leitura"),
+
       "edicao",
     );
   });
@@ -2741,15 +3758,20 @@ formEditar.addEventListener("submit", async (evento) => {
   if (linkLeitura.value.trim()) {
     if (!linkLeitura.checkValidity()) {
       mostrarMensagem("Informe uma URL válida para o link de leitura.", "erro");
+
       linkLeitura.focus();
+
       return;
     }
 
     linksLeituraEdicao.push({
       nome: document.getElementById("editar-nome-link-leitura").value.trim(),
+
       url: linkLeitura.value.trim(),
     });
+
     document.getElementById("editar-nome-link-leitura").value = "";
+
     linkLeitura.value = "";
   }
 
@@ -2757,14 +3779,9 @@ formEditar.addEventListener("submit", async (evento) => {
 
   if (imagem.value && !imagem.checkValidity()) {
     mostrarMensagem("Informe uma URL válida para a imagem.", "erro");
+
     imagem.focus();
 
-    return;
-  }
-
-  if (linkLeitura.value && !linkLeitura.checkValidity()) {
-    mostrarMensagem("Informe um link válido para ler a obra.", "erro");
-    linkLeitura.focus();
     return;
   }
 
@@ -2778,6 +3795,7 @@ formEditar.addEventListener("submit", async (evento) => {
     }
   } catch (erro) {
     mostrarMensagem(erro.message, "erro");
+
     return;
   }
 
@@ -2795,6 +3813,7 @@ formEditar.addEventListener("submit", async (evento) => {
     const numero = campos[0].value;
 
     const episodios = campos[1].value;
+
     const inicio = campos[2].value;
 
     if (numero === "" && episodios === "" && inicio === "") {
@@ -2814,6 +3833,7 @@ formEditar.addEventListener("submit", async (evento) => {
       numero: Number(numero),
 
       episodios: Number(episodios),
+
       inicio: Number(inicio),
 
       vistos: JSON.parse(linha.dataset.vistos || "[]"),
@@ -2871,6 +3891,7 @@ formEditar.addEventListener("submit", async (evento) => {
 
     headers: {
       "Content-Type": "application/json",
+
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
 
@@ -2889,6 +3910,7 @@ formEditar.addEventListener("submit", async (evento) => {
 
       link_leitura:
         linksLeituraEdicao.length === 1 ? linksLeituraEdicao[0].url : null,
+
       link_leituras: linksLeituraEdicao,
 
       temporadas: tipoTemAnime(tipo.value) ? temporadas : null,
@@ -2912,6 +3934,7 @@ formEditar.addEventListener("submit", async (evento) => {
     }
 
     await carregarObras();
+
     popupEditar.style.display = "none";
 
     mostrarMensagem("Obra editada com sucesso!", "sucesso");
@@ -2922,7 +3945,9 @@ const botaoOrganizar = document.getElementById("botao-organizar");
 
 botaoOrganizar.addEventListener("click", () => {
   const popupOrganizar = document.getElementById("popup-organizar");
+
   carregarListaOrganizar();
+
   popupOrganizar.style.display = "flex";
 });
 
@@ -2941,7 +3966,9 @@ function carregarListaOrganizar() {
     const item = document.createElement("div");
 
     item.className = "item-organizar";
+
     item.dataset.id = obra.id;
+
     item.draggable = true;
 
     item.addEventListener("dragstart", () => {
@@ -2950,27 +3977,61 @@ function carregarListaOrganizar() {
 
     item.addEventListener("dragend", () => {
       item.classList.remove("arrastando");
+
       atualizarBotoesOrganizar();
     });
 
     const titulo = obterTituloExibicao(obra);
+
     const imagem = obterImagemPreferida(obra).principal;
 
     item.innerHTML = `
-      <span class="organizar-alca" aria-hidden="true">☷</span>
-      <img src="${imagem}" referrerpolicy="no-referrer" alt="">
-      <span class="organizar-titulo">${titulo}</span>
-      <div class="organizar-acoes">
-        <button type="button" data-mover="cima" aria-label="Subir ${titulo}" title="Subir">↑</button>
-        <button type="button" data-mover="baixo" aria-label="Descer ${titulo}" title="Descer">↓</button>
-      </div>
-    `;
+        <span
+          class="organizar-alca"
+          aria-hidden="true"
+        >
+          ☷
+        </span>
+
+        <img
+          src="${imagem}"
+          referrerpolicy="no-referrer"
+          alt=""
+        >
+
+        <span class="organizar-titulo">
+          ${titulo}
+        </span>
+
+        <div class="organizar-acoes">
+
+          <button
+            type="button"
+            data-mover="cima"
+            aria-label="Subir ${titulo}"
+            title="Subir"
+          >
+            ↑
+          </button>
+
+          <button
+            type="button"
+            data-mover="baixo"
+            aria-label="Descer ${titulo}"
+            title="Descer"
+          >
+            ↓
+          </button>
+
+        </div>
+      `;
 
     item.querySelector('[data-mover="cima"]').addEventListener("click", () => {
       const itemAnterior = item.previousElementSibling;
 
       if (itemAnterior) {
         lista.insertBefore(item, itemAnterior);
+
         atualizarBotoesOrganizar();
       }
     });
@@ -2980,6 +4041,7 @@ function carregarListaOrganizar() {
 
       if (itemSeguinte) {
         lista.insertBefore(itemSeguinte, item);
+
         atualizarBotoesOrganizar();
       }
     });
@@ -3029,14 +4091,14 @@ function atualizarBotoesOrganizar() {
 
   itens.forEach((item, indice) => {
     item.querySelector('[data-mover="cima"]').disabled = indice === 0;
-    item.querySelector('[data-mover="baixo"]').disabled = indice === itens.length - 1;
+
+    item.querySelector('[data-mover="baixo"]').disabled =
+      indice === itens.length - 1;
   });
 }
 
 async function salvarOrdemObras() {
-  const itens = document.querySelectorAll(
-    "#lista-organizar .item-organizar"
-  );
+  const itens = document.querySelectorAll("#lista-organizar .item-organizar");
 
   const obras = Array.from(itens).map((item) => ({
     id: Number(item.dataset.id),
@@ -3044,10 +4106,13 @@ async function salvarOrdemObras() {
 
   const resposta = await fetch("/obras/ordem", {
     method: "PATCH",
+
     headers: {
       "Content-Type": "application/json",
+
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
+
     body: JSON.stringify({
       obras,
     }),
@@ -3060,6 +4125,7 @@ async function salvarOrdemObras() {
       resultado.erro || "Não foi possível salvar a ordem.",
       "erro",
     );
+
     return;
   }
 
@@ -3083,7 +4149,10 @@ document.getElementById("botao-sair").addEventListener("click", () => {
 const nomePerfil = localStorage.getItem("nomeUsuario") || "usuário";
 
 document.getElementById("nome-perfil").textContent = nomePerfil;
+
 document.getElementById("nome-perfil-popup").textContent = nomePerfil;
+
+document.getElementById("mudar-nick").placeholder = nomePerfil;
 
 document.getElementById("botao-perfil").addEventListener("click", () => {
   document.getElementById("popup-perfil").style.display = "flex";
@@ -3097,6 +4166,7 @@ const popupExclusao = document.getElementById("popup-confirmar-exclusao");
 
 document.getElementById("cancelar-exclusao").addEventListener("click", () => {
   popupExclusao.hidden = true;
+
   popupExclusao.style.display = "none";
 });
 
@@ -3104,8 +4174,10 @@ document
   .getElementById("confirmar-exclusao")
   .addEventListener("click", async () => {
     const id = popupExclusao.dataset.id;
+
     const resposta = await fetch(`/obras/${id}`, {
       method: "DELETE",
+
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -3113,11 +4185,14 @@ document
 
     if (!resposta.ok) {
       mostrarMensagem("Não foi possível excluir a obra.", "erro");
+
       return;
     }
 
     popupExclusao.hidden = true;
+
     popupExclusao.style.display = "none";
+
     await carregarObras();
 
     mostrarMensagem("Obra excluída com sucesso!", "sucesso");

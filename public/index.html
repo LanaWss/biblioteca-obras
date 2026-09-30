@@ -423,11 +423,12 @@
           <br>
           <li>Colocado botão para organizar as obras.</li>
           <li>Melhorar a interface do usuário mobile com aumento dos elementos.</li>
+          <li>Botão para visualizar eps/caps ja criados.</li>
           <br>
           <h3>Sendo trabalhado:</h3>
           <p>Parte de conta pessoal personalizada.</p>
           <br>
-          </p><strong>V 18.1.3</strong></p>
+          </p><strong>V 18.1.4</strong></p>
           <p><i>Atualização feita em 29/09/2026</i></p>
         </ul>
       </div>
@@ -448,6 +449,9 @@
         <h2>Perfil</h2>
         <br>
         <p>Usuário: <strong id="nome-perfil-popup"></strong></p>
+        <br>
+        <h3>Mudar Nick:</h3>
+        <input type="text" id="mudar-nick" />
       </div>
     </div>
   </div>
@@ -465,6 +469,26 @@
           <button type="button" data-avancar-tipo="manga">Mangá</button>
           <button type="button" data-avancar-tipo="ambos">Ambos</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="popup-escolha-visto">
+    <div class="popup-shell">
+      <button id="fechar-escolha-visto" class="popup-fechar" type="button" aria-label="Fechar escolha">
+        X
+      </button>
+
+      <div>
+        <h2>Marcar como visto</h2>
+
+        <br>
+
+        <p>Qual parte deseja avançar?</p>
+
+        <br>
+
+        <div id="opcoes-visto"></div>
       </div>
     </div>
   </div>
