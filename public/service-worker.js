@@ -38,3 +38,22 @@ self.addEventListener("push", (evento) => {
     self.registration.showNotification(titulo, opcoes),
   );
 });
+
+self.addEventListener("notificationclick", (evento) => {
+  evento.notification.close();
+
+  evento.waitUntil(
+    clients.matchAll({
+      type: "window",
+      includeUncontrolled: true,
+    }).then((clientes) => {
+      for (const cliente of clientes) {
+        if (cliente.url === self.location.origin + "/" && "focus" in cliente) {
+          return cliente.focus();
+        }
+      }
+
+      return clients.openWindow("/");
+    }),
+  );
+});
