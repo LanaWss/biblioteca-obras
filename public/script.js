@@ -1,11 +1,152 @@
 let obraProgressoAtual = null;
-
+let obraNotificacaoAtual = null;
 let obrasCarregadas = [];
 let carregamentoObrasAtual = 0;
 let controladorCarregamentoObras = null;
 let linksLeituraCriacao = [];
 let linksLeituraEdicao = [];
 let linksEscolhaAtual = [];
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/service-worker.js");
+}
+
+function base64ParaUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+
+  const base64 = (base64String + padding)
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+
+  const dados = window.atob(base64);
+  const array = new Uint8Array(dados.length);
+
+  for (let i = 0; i < dados.length; i++) {
+    array[i] = dados.charCodeAt(i);
+  }
+
+  return array;
+}
+
+async function inscreverPush() {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    throw new Error("Push não é suportado neste navegador.");
+  }
+
+  const permissao = await Notification.requestPermission();
+
+  if (permissao !== "granted") {
+    throw new Error("Permissão para notificações não concedida.");
+  }
+
+  const registro = await navigator.serviceWorker.ready;
+
+  let inscricao = await registro.pushManager.getSubscription();
+
+  if (!inscricao) {
+    const chavePublica = "BAwMnTAnDS1jrgdKhnqinsOWcPhSaRf62BSLmFzMnCuF-1mTOhLENtXNoismUgCrnsAdiOITvPbYlghgcq_h4cs";
+
+    inscricao = await registro.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: base64ParaUint8Array(chavePublica),
+    });
+  }
+
+  const resposta = await fetch("/notificacoes/inscricao", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify({
+      inscricao: inscricao.toJSON(),
+    }),
+  });
+
+  const resultado = await resposta.json().catch(() => ({}));
+
+  if (!resposta.ok) {
+    throw new Error(
+      resultado.erro || "Não foi possível salvar a inscrição Push.",
+    );
+  }
+
+  return inscricao;
+}
+
+async function testarNotificacao() {
+  const registro = await navigator.serviceWorker.ready;
+
+  registro.active.postMessage({
+    tipo: "teste-notificacao",
+  });
+}
+
+async function abrirConfiguracaoNotificacao(id) {
+  const obra = obrasCarregadas.find((item) => String(item.id) === String(id));
+
+  if (!obra) {
+    return;
+  }
+
+  obraNotificacaoAtual = obra;
+
+  const resposta = await fetch(`/obras/${id}/notificacoes`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+
+  const configuracoes = resposta.ok ? await resposta.json() : {};
+
+  preencherConfiguracaoNotificacao("anime", configuracoes.anime);
+  preencherConfiguracaoNotificacao("manga", configuracoes.manga);
+
+  document.getElementById("titulo-notificacao-configuracao").textContent =
+    obterTituloExibicao(obra);
+
+  document.getElementById("configuracao-anime-notificacao").style.display =
+    tipoTemAnime(obra.tipo) ? "block" : "none";
+
+  document.getElementById("configuracao-manga-notificacao").style.display =
+    tipoTemManga(obra.tipo) ? "block" : "none";
+
+  document.getElementById("popup-configurar-notificacao").style.display =
+    "flex";
+}
+
+function preencherConfiguracaoNotificacao(tipo, configuracao) {
+  const ativar = document.getElementById(`ativar-notificacao-${tipo}`);
+
+  const semanal = document.getElementById(`notificacao-${tipo}-semanal`);
+
+  const mensal = document.getElementById(`notificacao-${tipo}-mensal`);
+
+  const diaMes = document.getElementById(`dia-notificacao-${tipo}`);
+
+  const hora = document.getElementById(`hora-notificacao-${tipo}`);
+
+  ativar.checked = !!configuracao;
+
+  semanal.checked = !!configuracao?.diasSemana?.length;
+
+  mensal.checked =
+    configuracao?.diaMes !== null && configuracao?.diaMes !== undefined;
+
+  diaMes.value = configuracao?.diaMes || "";
+
+  hora.value = configuracao?.hora || "";
+
+  document
+    .querySelectorAll(`#dias-semana-${tipo} input[type="checkbox"]`)
+    .forEach((checkbox) => {
+      checkbox.checked = (configuracao?.diasSemana || []).includes(
+        Number(checkbox.value),
+      );
+    });
+
+  atualizarFrequenciaNotificacao(tipo);
+}
 
 const boasVindas = document.getElementById("boas-vindas");
 
@@ -136,6 +277,202 @@ function lerConteudoObra(valor) {
     return [];
   }
 }
+
+function atualizarPopupConfiguracaoNotificacao(obra) {
+  const camposAnime = document.getElementById("configuracao-anime-notificacao");
+
+  const camposManga = document.getElementById("configuracao-manga-notificacao");
+
+  camposAnime.style.display = tipoTemAnime(obra.tipo) ? "block" : "none";
+
+  camposManga.style.display = tipoTemManga(obra.tipo) ? "block" : "none";
+}
+
+function atualizarFrequenciaNotificacao(tipo) {
+  const semanal = document.getElementById(`notificacao-${tipo}-semanal`);
+
+  const mensal = document.getElementById(`notificacao-${tipo}-mensal`);
+
+  const diasSemana = document.getElementById(`dias-semana-${tipo}`);
+
+  const diaMes = document.getElementById(`dia-mes-${tipo}`);
+
+  diasSemana.hidden = !semanal.checked;
+  diaMes.hidden = !mensal.checked;
+}
+
+["anime", "manga"].forEach((tipo) => {
+  document
+    .getElementById(`notificacao-${tipo}-semanal`)
+    .addEventListener("change", () => {
+      atualizarFrequenciaNotificacao(tipo);
+    });
+
+  document
+    .getElementById(`notificacao-${tipo}-mensal`)
+    .addEventListener("change", () => {
+      atualizarFrequenciaNotificacao(tipo);
+    });
+});
+
+function obterConfiguracaoNotificacao(tipo) {
+  const ativo = document.getElementById(`ativar-notificacao-${tipo}`).checked;
+
+  const semanal = document.getElementById(
+    `notificacao-${tipo}-semanal`,
+  ).checked;
+
+  const mensal = document.getElementById(`notificacao-${tipo}-mensal`).checked;
+
+  const diasSemana = semanal
+    ? [
+        ...document.querySelectorAll(
+          `#dias-semana-${tipo} input[type="checkbox"]:checked`,
+        ),
+      ].map((checkbox) => Number(checkbox.value))
+    : [];
+
+  const campoDiaMes = document.getElementById(`dia-notificacao-${tipo}`);
+
+  const campoHora = document.getElementById(`hora-notificacao-${tipo}`);
+
+  const diaMes = mensal && campoDiaMes.value ? Number(campoDiaMes.value) : null;
+
+  const hora = campoHora.value || null;
+
+  return {
+    ativo,
+    diasSemana,
+    diaMes,
+    hora,
+  };
+}
+
+document
+  .getElementById("salvar-configuracao-notificacao")
+  .addEventListener("click", async () => {
+    if (!obraNotificacaoAtual) {
+      return;
+    }
+
+    const erro = document.getElementById("erro-configuracao-notificacao");
+
+    erro.textContent = "";
+
+    const configuracoes = {};
+
+    if (tipoTemAnime(obraNotificacaoAtual.tipo)) {
+      configuracoes.anime = obterConfiguracaoNotificacao("anime");
+    }
+
+    if (tipoTemManga(obraNotificacaoAtual.tipo)) {
+      configuracoes.manga = obterConfiguracaoNotificacao("manga");
+    }
+
+    const tiposAtivos = Object.values(configuracoes).filter(
+      (configuracao) => configuracao.ativo,
+    );
+
+    if (!tiposAtivos.length) {
+      erro.textContent = "Ative pelo menos um tipo de notificação.";
+
+      return;
+    }
+
+    if (!("Notification" in window)) {
+      erro.textContent = "Este navegador não suporta notificações.";
+
+      return;
+    }
+
+    if (Notification.permission !== "granted") {
+      const permissao = await Notification.requestPermission();
+
+      if (permissao !== "granted") {
+        erro.textContent = "Permissão para notificações não concedida.";
+
+        return;
+      }
+    }
+
+    for (const [tipo, configuracao] of Object.entries(configuracoes)) {
+      if (!configuracao.ativo) {
+        continue;
+      }
+
+      if (!configuracao.diasSemana.length && configuracao.diaMes === null) {
+        erro.textContent = `Configure a frequência de ${
+          tipo === "anime" ? "Anime" : "Mangá"
+        }.`;
+
+        return;
+      }
+
+      if (!configuracao.hora) {
+        erro.textContent = `Informe o horário de ${
+          tipo === "anime" ? "Anime" : "Mangá"
+        }.`;
+
+        return;
+      }
+    }
+
+    await inscreverPush();
+
+    const resposta = await fetch(
+      `/obras/${obraNotificacaoAtual.id}/notificacoes`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          configuracoes,
+        }),
+      },
+    );
+
+    const resultado = await resposta.json().catch(() => ({}));
+
+    if (!resposta.ok) {
+      erro.textContent =
+        resultado.erro || "Não foi possível salvar a configuração.";
+
+      return;
+    }
+
+    document.getElementById("popup-configurar-notificacao").style.display =
+      "none";
+
+    await carregarObras();
+
+    mostrarMensagem("Lembrete salvo!", "sucesso");
+  });
+
+document
+  .getElementById("dia-notificacao-anime")
+  .addEventListener("input", (evento) => {
+    if (Number(evento.target.value) > 31) {
+      evento.target.value = 31;
+    }
+
+    if (Number(evento.target.value) < 1) {
+      evento.target.value = 1;
+    }
+  });
+
+document
+  .getElementById("dia-notificacao-manga")
+  .addEventListener("input", (evento) => {
+    if (Number(evento.target.value) > 31) {
+      evento.target.value = 31;
+    }
+
+    if (Number(evento.target.value) < 1) {
+      evento.target.value = 1;
+    }
+  });
 
 function obterLinksLeitura(obra) {
   let links = lerConteudoObra(obra.link_leituras);
@@ -1237,6 +1574,16 @@ function carregarObras() {
               <i class="fa-solid fa-check"></i>
             </button>
 
+            <button
+             type="button"
+             class="botao-notificar"
+             data-notificar-id="${obra.id}"
+             title="Notificar"
+             aria-label="Notificar"
+            >
+              <i class="${obra.notificacao_ativa ? "fa-solid" : "fa-regular"} fa-bell"></i>
+            </button>
+
             <p
               class="aviso-imagem-card"
               hidden
@@ -1375,7 +1722,7 @@ document.getElementById("limpar-filtros").addEventListener("click", () => {
 
 document
   .querySelectorAll(
-    "#popup-filtros, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-perfil, #popup-escolha-avanco, #popup-escolha-link, #popup-escolha-visto",
+    "#popup-filtros,#popup-configurar-notificacao, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-perfil, #popup-escolha-avanco, #popup-escolha-link, #popup-lista-notificacoes, #popup-escolha-visto",
   )
   .forEach((popup) => {
     popup.addEventListener("click", (evento) => {
@@ -2173,7 +2520,194 @@ document.addEventListener("click", async (evento) => {
   }
 });
 
+function obterTextoDiasSemana(dias) {
+  const nomes = [
+    "Domingo",
+    "Segunda-feira",
+    "Terça-feira",
+    "Quarta-feira",
+    "Quinta-feira",
+    "Sexta-feira",
+    "Sábado",
+  ];
+
+  return dias
+    .map((dia) => nomes[Number(dia)])
+    .filter(Boolean)
+    .join(", ");
+}
+
+async function abrirListaNotificacoes() {
+  const lista = document.getElementById("lista-notificacoes");
+
+  lista.innerHTML = "<p>Carregando...</p>";
+
+  document.getElementById("popup-lista-notificacoes").style.display = "flex";
+
+  try {
+    const resposta = await fetch("/notificacoes", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    const resultado = await resposta.json().catch(() => []);
+
+    if (!resposta.ok) {
+      throw new Error(
+        resultado.erro || "Não foi possível carregar as notificações.",
+      );
+    }
+
+    if (!resultado.length) {
+      lista.innerHTML = `
+        <p>
+          Nenhum lembrete configurado.
+        </p>
+      `;
+
+      return;
+    }
+
+    lista.innerHTML = resultado
+      .map((notificacao) => {
+        const nomeObra =
+          notificacao.tituloExibicao &&
+          notificacao.tituloExibicao !== "principal"
+            ? notificacao.tituloExibicao
+            : notificacao.title;
+
+        const tipo = notificacao.tipo === "anime" ? "Anime" : "Mangá";
+
+        const partes = [];
+
+        if (notificacao.diasSemana.length) {
+          partes.push(
+            `Semanalmente: ${obterTextoDiasSemana(notificacao.diasSemana)}`,
+          );
+        }
+
+        if (notificacao.diaMes !== null) {
+          partes.push(`Mensalmente: dia ${notificacao.diaMes}`);
+        }
+
+        if (notificacao.hora) {
+          partes.push(`Horário: ${notificacao.hora}`);
+        }
+
+        return `
+          <div class="item-notificacao">
+
+            <h3>${nomeObra}</h3>
+
+            <p>
+              <strong>Tipo:</strong> ${tipo}
+            </p>
+
+            ${partes.map((parte) => `<p>${parte}</p>`).join("")}
+
+            <button
+              type="button"
+              data-editar-notificacao="${notificacao.obraId}"
+            >
+              Configurar
+            </button>
+
+          </div>
+        `;
+      })
+      .join("");
+  } catch (erro) {
+    lista.innerHTML = `
+      <p>
+        ${erro.message}
+      </p>
+    `;
+  }
+}
+
+document
+  .getElementById("botao-notificacao")
+  .addEventListener("click", abrirListaNotificacoes);
+
+document
+  .getElementById("fechar-lista-notificacoes")
+  .addEventListener("click", () => {
+    document.getElementById("popup-lista-notificacoes").style.display = "none";
+  });
+
+document
+  .getElementById("fechar-configurar-notificacao")
+  .addEventListener("click", () => {
+    document.getElementById("popup-configurar-notificacao").style.display =
+      "none";
+
+    obraNotificacaoAtual = null;
+  });
+
 document.addEventListener("click", async (evento) => {
+  const botaoEditarNotificacao = evento.target.closest(
+    "button[data-editar-notificacao]",
+  );
+
+  if (botaoEditarNotificacao) {
+    const id = botaoEditarNotificacao.dataset.editarNotificacao;
+
+    document.getElementById("popup-lista-notificacoes").style.display = "none";
+
+    await abrirConfiguracaoNotificacao(id);
+
+    return;
+  }
+
+  const botaoNotificar = evento.target.closest("button[data-notificar-id]");
+
+  if (botaoNotificar) {
+    const id = botaoNotificar.dataset.notificarId;
+
+    const obra = obrasCarregadas.find((item) => String(item.id) === String(id));
+
+    if (!obra) {
+      return;
+    }
+
+    // Se já existe lembrete, clicar novamente desativa.
+    if (obra.notificacao_ativa) {
+      try {
+        const resposta = await fetch(`/obras/${id}/notificacoes`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        const resultado = await resposta.json().catch(() => ({}));
+
+        if (!resposta.ok) {
+          mostrarMensagem(
+            resultado.erro || "Não foi possível desativar o lembrete.",
+            "erro",
+          );
+
+          return;
+        }
+
+        await carregarObras();
+
+        mostrarMensagem("Lembrete desativado.", "sucesso");
+      } catch (erro) {
+        mostrarMensagem("Não foi possível desativar o lembrete.", "erro");
+      }
+
+      return;
+    }
+
+    // Se não existe lembrete, abre a configuração.
+    await abrirConfiguracaoNotificacao(id);
+
+    return;
+  }
+
   const botaoFavorito = evento.target.closest("button[data-favorito-id]");
 
   if (botaoFavorito) {

@@ -3,6 +3,7 @@ const Database = require("better-sqlite3");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const path = require("path");
+const webpush = require("web-push");
 
 const app = express();
 
@@ -109,6 +110,12 @@ function verificarToken(req, res, next) {
 
 const caminhoBanco = process.env.DB_PATH || path.join(__dirname, "obras.db");
 const db = new Database(caminhoBanco);
+
+webpush.setVapidDetails(
+  "mailto:lanawinna11@gmail.com",
+  process.env.VAPID_PUBLIC_KEY,
+  process.env.VAPID_PRIVATE_KEY
+);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS obras (
@@ -218,6 +225,40 @@ db.exec(`
     data_aceite TEXT
   );
 `);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS notificacoes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    obra_id INTEGER NOT NULL,
+    usuario_id INTEGER NOT NULL,
+    tipo TEXT NOT NULL CHECK (tipo IN ('anime', 'manga')),
+    dias_semana TEXT NOT NULL DEFAULT '[]',
+    dia_mes INTEGER,
+    hora TEXT,
+    UNIQUE (obra_id, usuario_id, tipo)
+  );
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS inscricoes_push (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL,
+    endpoint TEXT NOT NULL UNIQUE,
+    p256dh TEXT NOT NULL,
+    auth TEXT NOT NULL
+  );
+`);
+
+try {
+  db.exec(`
+    ALTER TABLE notificacoes
+    ADD COLUMN hora TEXT
+  `);
+} catch (erro) {
+  if (!erro.message.includes("duplicate column name")) {
+    throw erro;
+  }
+}
 
 for (const coluna of [
   "ALTER TABLE usuarios ADD COLUMN termos_aceitos INTEGER NOT NULL DEFAULT 0",
@@ -334,16 +375,60 @@ app.post("/login", async (req, res) => {
   });
 });
 
+app.get("/notificacoes", verificarToken, (req, res) => {
+  const registros = db
+    .prepare(
+      `
+      SELECT
+        n.id,
+        n.obra_id,
+        n.tipo,
+        n.dias_semana,
+        n.dia_mes,
+        n.hora,
+        o.title,
+        o.titulo_exibicao
+      FROM notificacoes n
+      INNER JOIN obras o
+        ON o.id = n.obra_id
+      WHERE n.usuario_id = ?
+        AND o.usuario_id = ?
+      ORDER BY o.ordem ASC, n.tipo ASC
+    `,
+    )
+    .all(req.usuario.id, req.usuario.id);
+
+  const notificacoes = registros.map((registro) => ({
+    id: registro.id,
+    obraId: registro.obra_id,
+    tipo: registro.tipo,
+    diasSemana: JSON.parse(registro.dias_semana || "[]"),
+    diaMes: registro.dia_mes,
+    hora: registro.hora,
+    title: registro.title,
+    tituloExibicao: registro.titulo_exibicao,
+  }));
+
+  res.json(notificacoes);
+});
+
 app.get("/obras", verificarToken, (req, res) => {
   normalizarOrdemDoUsuario(req.usuario.id);
 
   const obras = db
     .prepare(
       `
-      SELECT *
-      FROM obras
-      WHERE usuario_id = ?
-      ORDER BY ordem ASC, id ASC
+      SELECT
+        o.*,
+        EXISTS (
+          SELECT 1
+          FROM notificacoes n
+          WHERE n.obra_id = o.id
+            AND n.usuario_id = o.usuario_id
+        ) AS notificacao_ativa
+      FROM obras o
+      WHERE o.usuario_id = ?
+      ORDER BY o.ordem ASC, o.id ASC
     `,
     )
     .all(req.usuario.id);
@@ -351,15 +436,233 @@ app.get("/obras", verificarToken, (req, res) => {
   res.json(obras);
 });
 
-app.get("/obras/:id", verificarToken, (req, res) => {
-  const id = req.params.id;
+app.post("/notificacoes/inscricao", verificarToken, (req, res) => {
+  const inscricao = req.body?.inscricao;
+
+  if (
+    !inscricao ||
+    !inscricao.endpoint ||
+    !inscricao.keys?.p256dh ||
+    !inscricao.keys?.auth
+  ) {
+    return responderErro(res, 400, "Inscrição Push inválida.");
+  }
+
+  db.prepare(`
+    INSERT INTO inscricoes_push (
+      usuario_id, endpoint, p256dh, auth
+    )
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT(endpoint) DO UPDATE SET
+      usuario_id = excluded.usuario_id,
+      p256dh = excluded.p256dh,
+      auth = excluded.auth
+  `).run(
+    req.usuario.id,
+    inscricao.endpoint,
+    inscricao.keys.p256dh,
+    inscricao.keys.auth
+  );
+
+  res.json({ mensagem: "Inscrição Push salva." });
+});
+
+app.get("/obras/:id/notificacoes", verificarToken, (req, res) => {
+  const id = Number(req.params.id);
 
   const obra = db
     .prepare(
       `
-    SELECT * FROM obras
-    WHERE id = ? AND usuario_id = ?
+      SELECT id, tipo
+      FROM obras
+      WHERE id = ? AND usuario_id = ?
+    `,
+    )
+    .get(id, req.usuario.id);
+
+  if (!obra) {
+    return responderErro(res, 404, "Obra não encontrada");
+  }
+
+  const registros = db
+    .prepare(
+      `
+      SELECT tipo, dias_semana, dia_mes, hora
+      FROM notificacoes
+      WHERE obra_id = ? AND usuario_id = ?
+    `,
+    )
+    .all(id, req.usuario.id);
+
+  const configuracoes = {};
+
+  registros.forEach((registro) => {
+    configuracoes[registro.tipo] = {
+      diasSemana: JSON.parse(registro.dias_semana || "[]"),
+      diaMes: registro.dia_mes,
+      hora: registro.hora,
+    };
+  });
+
+  res.json(configuracoes);
+});
+
+app.put("/obras/:id/notificacoes", verificarToken, (req, res) => {
+  const id = Number(req.params.id);
+
+  const obra = db
+    .prepare(
+      `
+      SELECT id, tipo
+      FROM obras
+      WHERE id = ? AND usuario_id = ?
+    `,
+    )
+    .get(id, req.usuario.id);
+
+  if (!obra) {
+    return responderErro(res, 404, "Obra não encontrada");
+  }
+
+  const configuracoes = req.body?.configuracoes;
+
+  if (!configuracoes || typeof configuracoes !== "object") {
+    return responderErro(res, 400, "Configuração de notificações inválida");
+  }
+
+  const tiposPermitidos = [];
+
+  if (obra.tipo === "anime" || obra.tipo === "ambos") {
+    tiposPermitidos.push("anime");
+  }
+
+  if (obra.tipo === "manga" || obra.tipo === "ambos") {
+    tiposPermitidos.push("manga");
+  }
+
+  const dados = [];
+
+  for (const tipo of tiposPermitidos) {
+    const configuracao = configuracoes[tipo];
+
+    if (!configuracao?.ativo) {
+      continue;
+    }
+
+    const diasSemana = Array.isArray(configuracao.diasSemana)
+      ? [
+          ...new Set(
+            configuracao.diasSemana
+              .map(Number)
+              .filter((dia) => Number.isInteger(dia) && dia >= 0 && dia <= 6),
+          ),
+        ]
+      : [];
+
+    let diaMes = configuracao.diaMes;
+
+    if (diaMes === "" || diaMes === undefined || diaMes === null) {
+      diaMes = null;
+    } else {
+      diaMes = Number(diaMes);
+
+      if (!Number.isInteger(diaMes) || diaMes < 1 || diaMes > 31) {
+        return responderErro(res, 400, `Dia do mês inválido para ${tipo}.`);
+      }
+    }
+
+    if (!diasSemana.length && diaMes === null) {
+      return responderErro(
+        res,
+        400,
+        `Escolha semanalmente ou mensalmente para ${tipo}.`,
+      );
+    }
+
+    dados.push({
+      tipo,
+      diasSemana,
+      diaMes,
+      hora: configuracao.hora,
+    });
+  }
+
+  if (!dados.length) {
+    return responderErro(res, 400, "Ative pelo menos um tipo de notificação.");
+  }
+
+  const salvar = db.transaction((lista) => {
+    db.prepare(
+      `
+      DELETE FROM notificacoes
+      WHERE obra_id = ? AND usuario_id = ?
+    `,
+    ).run(id, req.usuario.id);
+
+    const inserir = db.prepare(`
+      INSERT INTO notificacoes (
+        obra_id,
+        usuario_id,
+        tipo,
+        dias_semana,
+        dia_mes,
+        hora
+      )
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+
+    lista.forEach((configuracao) => {
+      inserir.run(
+        id,
+        req.usuario.id,
+        configuracao.tipo,
+        JSON.stringify(configuracao.diasSemana),
+        configuracao.diaMes,
+        configuracao.hora,
+      );
+    });
+  });
+
+  salvar(dados);
+
+  res.json({
+    mensagem: "Notificações salvas",
+  });
+});
+
+app.delete("/obras/:id/notificacoes", verificarToken, (req, res) => {
+  const id = Number(req.params.id);
+
+  db.prepare(
+    `
+    DELETE FROM notificacoes
+    WHERE obra_id = ? AND usuario_id = ?
   `,
+  ).run(id, req.usuario.id);
+
+  res.json({
+    mensagem: "Notificações desativadas",
+  });
+});
+
+app.get("/obras/:id", verificarToken, (req, res) => {
+  const id = Number(req.params.id);
+
+  const obra = db
+    .prepare(
+      `
+      SELECT
+        o.*,
+        EXISTS (
+          SELECT 1
+          FROM notificacoes n
+          WHERE n.obra_id = o.id
+            AND n.usuario_id = o.usuario_id
+        ) AS notificacao_ativa
+      FROM obras o
+      WHERE o.id = ?
+        AND o.usuario_id = ?
+      `,
     )
     .get(id, req.usuario.id);
 
@@ -510,6 +813,192 @@ app.post("/obras", verificarToken, async (req, res) => {
     favorito: obra.favorito || 0,
     titulo_exibicao: obra.titulo_exibicao || "principal",
     done: 0,
+  });
+});
+
+app.get("/obras/:id/notificacoes", verificarToken, (req, res) => {
+  const id = Number(req.params.id);
+
+  const obra = db
+    .prepare(
+      `
+      SELECT id, tipo
+      FROM obras
+      WHERE id = ? AND usuario_id = ?
+    `,
+    )
+    .get(id, req.usuario.id);
+
+  if (!obra) {
+    return responderErro(res, 404, "Obra não encontrada");
+  }
+
+  const registros = db
+    .prepare(
+      `
+      SELECT tipo, dias_semana, dia_mes
+      FROM notificacoes
+      WHERE obra_id = ? AND usuario_id = ?
+    `,
+    )
+    .all(id, req.usuario.id);
+
+  const configuracoes = {};
+
+  registros.forEach((registro) => {
+    configuracoes[registro.tipo] = {
+      diasSemana: JSON.parse(registro.dias_semana || "[]"),
+      diaMes: registro.dia_mes,
+    };
+  });
+
+  res.json(configuracoes);
+});
+
+app.put("/obras/:id/notificacoes", verificarToken, (req, res) => {
+  const id = Number(req.params.id);
+
+  const obra = db
+    .prepare(
+      `
+      SELECT id, tipo
+      FROM obras
+      WHERE id = ? AND usuario_id = ?
+    `,
+    )
+    .get(id, req.usuario.id);
+
+  if (!obra) {
+    return responderErro(res, 404, "Obra não encontrada");
+  }
+
+  const configuracoes = req.body?.configuracoes;
+
+  if (!configuracoes || typeof configuracoes !== "object") {
+    return responderErro(res, 400, "Configuração de notificações inválida");
+  }
+
+  const tiposPermitidos = [];
+
+  if (obra.tipo === "anime" || obra.tipo === "ambos") {
+    tiposPermitidos.push("anime");
+  }
+
+  if (obra.tipo === "manga" || obra.tipo === "ambos") {
+    tiposPermitidos.push("manga");
+  }
+
+  const tiposConfigurados = Object.keys(configuracoes).filter((tipo) =>
+    tiposPermitidos.includes(tipo),
+  );
+
+  if (!tiposConfigurados.length) {
+    return responderErro(
+      res,
+      400,
+      "Configure pelo menos um tipo de notificação.",
+    );
+  }
+
+  const dadosProntos = [];
+
+  for (const tipo of tiposConfigurados) {
+    const configuracao = configuracoes[tipo];
+
+    const ativo = configuracao?.ativo === true;
+
+    if (!ativo) {
+      continue;
+    }
+
+    const hora = configuracao?.hora;
+
+    if (!hora || !/^\d{2}:\d{2}$/.test(hora)) {
+      return responderErro(
+        res,
+        400,
+        `Informe um horário válido para ${tipo === "anime" ? "Anime" : "Mangá"}.`,
+      );
+    }
+
+    // Tipo desativado não precisa de frequência.
+    if (!ativo) {
+      continue;
+    }
+
+    const diasSemana = Array.isArray(configuracao.diasSemana)
+      ? [
+          ...new Set(
+            configuracao.diasSemana
+              .map(Number)
+              .filter((dia) => Number.isInteger(dia) && dia >= 0 && dia <= 6),
+          ),
+        ]
+      : [];
+
+    let diaMes = configuracao.diaMes;
+
+    if (diaMes === "" || diaMes === undefined || diaMes === null) {
+      diaMes = null;
+    } else {
+      diaMes = Number(diaMes);
+
+      if (!Number.isInteger(diaMes) || diaMes < 1 || diaMes > 31) {
+        return responderErro(res, 400, `Dia do mês inválido para ${tipo}.`);
+      }
+    }
+
+    if (!diasSemana.length && diaMes === null) {
+      return responderErro(
+        res,
+        400,
+        `Configure semanalmente ou mensalmente para ${tipo}.`,
+      );
+    }
+
+    dadosProntos.push({
+      tipo,
+      diasSemana,
+      diaMes,
+      hora,
+    });
+  }
+
+  const salvar = db.transaction((dados) => {
+    db.prepare(
+      `
+      DELETE FROM notificacoes
+      WHERE obra_id = ? AND usuario_id = ?
+    `,
+    ).run(id, req.usuario.id);
+
+    const inserir = db.prepare(`
+      INSERT INTO notificacoes (
+        obra_id,
+        usuario_id,
+        tipo,
+        dias_semana,
+        dia_mes, hora
+      )
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+
+    dados.forEach((configuracao) => {
+      inserir.run(
+        id,
+        req.usuario.id,
+        configuracao.tipo,
+        JSON.stringify(configuracao.diasSemana),
+        configuracao.diaMes,
+        configuracao.hora,
+      );
+    });
+  });
+
+  salvar(dadosProntos);
+
+  res.json({
+    mensagem: "Notificações salvas",
   });
 });
 
@@ -734,6 +1223,31 @@ app.delete("/obras/:id", verificarToken, (req, res) => {
 
   res.json({
     mensagem: "Obra apagada",
+  });
+});
+
+app.delete("/obras/:id/notificacoes", verificarToken, (req, res) => {
+  const id = Number(req.params.id);
+
+  const resultado = db
+    .prepare(
+      `
+      DELETE FROM notificacoes
+      WHERE obra_id = ? AND usuario_id = ?
+    `,
+    )
+    .run(id, req.usuario.id);
+
+  if (resultado.changes === 0) {
+    return responderErro(
+      res,
+      404,
+      "Nenhuma notificação encontrada para esta obra.",
+    );
+  }
+
+  res.json({
+    mensagem: "Notificações desativadas",
   });
 });
 

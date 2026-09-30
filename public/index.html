@@ -40,7 +40,9 @@
         <i class="fa-solid fa-arrows-up-down-left-right"></i> Organizar
       </button>
 
-      <button id="botao-sair">Sair</button>
+      <button id="botao-notificacao" type="button" aria-label="Notificações" title="Notificações">
+        <i class="fa-solid fa-bell"></i> Notificações
+      </button>
     </div>
 
     <div id="popup-filtros">
@@ -424,12 +426,13 @@
           <li>Colocado botão para organizar as obras.</li>
           <li>Melhorar a interface do usuário mobile com aumento dos elementos.</li>
           <li>Botão para visualizar eps/caps ja criados.</li>
+          <li>Botão de criar lembretes, e ver lista deles.</li>
           <br>
           <h3>Sendo trabalhado:</h3>
           <p>Parte de conta pessoal personalizada.</p>
           <br>
-          </p><strong>V 18.1.4</strong></p>
-          <p><i>Atualização feita em 29/09/2026</i></p>
+          </p><strong>V 18.1.5</strong></p>
+          <p><i>Atualização feita em 30/09/2026</i></p>
         </ul>
       </div>
     </div>
@@ -453,6 +456,8 @@
         <h3>Mudar Nick:</h3>
         <input type="text" id="mudar-nick" />
       </div>
+
+      <button id="botao-sair">Sair</button>
     </div>
   </div>
 
@@ -469,6 +474,133 @@
           <button type="button" data-avancar-tipo="manga">Mangá</button>
           <button type="button" data-avancar-tipo="ambos">Ambos</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="popup-configurar-notificacao">
+    <div class="popup-shell">
+
+      <button id="fechar-configurar-notificacao" class="popup-fechar" type="button" aria-label="Fechar configuração">
+        X
+      </button>
+
+      <div>
+        <h2>Configurar lembrete</h2>
+
+        <p id="titulo-notificacao-configuracao"></p>
+
+        <div id="configuracao-anime-notificacao">
+
+          <h3>Anime</h3>
+
+          <label>
+            <input type="checkbox" id="ativar-notificacao-anime">
+            Ativar lembrete
+          </label>
+
+          <br>
+
+          <label>
+            <input type="checkbox" id="notificacao-anime-semanal">
+            Semanalmente
+          </label>
+
+          <div id="dias-semana-anime" hidden>
+
+            <p>Dias da semana:</p>
+
+            <label><input type="checkbox" value="0"> Domingo</label>
+            <label><input type="checkbox" value="1"> Segunda</label>
+            <label><input type="checkbox" value="2"> Terça</label>
+            <label><input type="checkbox" value="3"> Quarta</label>
+            <label><input type="checkbox" value="4"> Quinta</label>
+            <label><input type="checkbox" value="5"> Sexta</label>
+            <label><input type="checkbox" value="6"> Sábado</label>
+
+          </div>
+
+          <label>
+            <input type="checkbox" id="notificacao-anime-mensal">
+            Mensalmente
+          </label>
+
+          <div id="dia-mes-anime" hidden>
+
+            <label for="dia-notificacao-anime">
+              Dia do mês:
+            </label>
+
+            <input id="dia-notificacao-anime" type="number" min="1" max="31">
+          </div>
+
+          <label for="hora-notificacao-anime">
+            Horário:
+          </label>
+
+          <input id="hora-notificacao-anime" type="time">
+
+        </div>
+
+        <div id="configuracao-manga-notificacao">
+
+          <h3>Mangá</h3>
+
+          <label>
+            <input type="checkbox" id="ativar-notificacao-manga">
+            Ativar lembrete
+          </label>
+
+          <br>
+
+          <label>
+            <input type="checkbox" id="notificacao-manga-semanal">
+            Semanalmente
+          </label>
+
+          <div id="dias-semana-manga" hidden>
+
+            <p>Dias da semana:</p>
+
+            <label><input type="checkbox" value="0"> Domingo</label>
+            <label><input type="checkbox" value="1"> Segunda</label>
+            <label><input type="checkbox" value="2"> Terça</label>
+            <label><input type="checkbox" value="3"> Quarta</label>
+            <label><input type="checkbox" value="4"> Quinta</label>
+            <label><input type="checkbox" value="5"> Sexta</label>
+            <label><input type="checkbox" value="6"> Sábado</label>
+
+          </div>
+
+          <label>
+            <input type="checkbox" id="notificacao-manga-mensal">
+            Mensalmente
+          </label>
+
+          <div id="dia-mes-manga" hidden>
+
+            <label for="dia-notificacao-manga">
+              Dia do mês:
+            </label>
+
+            <input id="dia-notificacao-manga" type="number" min="1" max="31">
+
+          </div>
+
+          <label for="hora-notificacao-manga">
+            Horário:
+          </label>
+
+          <input id="hora-notificacao-manga" type="time">
+
+        </div>
+
+        <p id="erro-configuracao-notificacao" class="aviso-form"></p>
+
+        <button id="salvar-configuracao-notificacao" type="button">
+          Salvar
+        </button>
+
       </div>
     </div>
   </div>
@@ -492,6 +624,7 @@
       </div>
     </div>
   </div>
+  </div>
 
   <div id="popup-escolha-link">
     <div class="popup-shell">
@@ -504,7 +637,23 @@
     </div>
   </div>
 
-  <script src="script.js?v=14"></script>
+  <div id="popup-lista-notificacoes">
+    <div class="popup-shell">
+
+      <button id="fechar-lista-notificacoes" class="popup-fechar" type="button" aria-label="Fechar notificações">
+        X
+      </button>
+
+      <div>
+        <h2>Notificações</h2>
+
+        <div id="lista-notificacoes"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js?v=15"></script>
 </body>
 
 </html>

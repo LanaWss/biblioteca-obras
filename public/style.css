@@ -603,6 +603,19 @@ button {
   margin-top: -30px;
 }
 
+.botao-notificar {
+  align-self: flex-end;
+  flex: 0 0 auto;
+  margin: -47px 0 0;
+  min-width: 42px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.cards > .botao-notificar {
+  margin-top: -40px;
+}
+
 #popup-escolha-visto {
   display: none;
   position: fixed;
@@ -739,6 +752,7 @@ button {
 .botao-avancar,
 .botao-mais-itens,
 .botao-ler,
+.botao-notificar,
 .botoes-card button {
   box-sizing: border-box;
   border: 1px solid #fff;
@@ -1379,6 +1393,23 @@ button {
   gap: 6px;
 }
 
+.linha-visto-notificar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: -30px;
+}
+
+.linha-visto-notificar .botao-visto,
+.linha-visto-notificar .botao-notificar {
+  flex: 0 0 auto;
+  min-width: 42px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
 .linha-link-leitura input {
   min-width: 0;
 }
@@ -1746,6 +1777,144 @@ button {
   color: white;
   font-weight: 700;
   cursor: pointer;
+}
+#fechar-configurar-notificacao {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: #ccc;
+  color: #333;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#popup-configurar-notificacao {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+#popup-lista-notificacoes {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+#popup-lista-notificacoes .popup-shell {
+  max-width: 500px;
+}
+
+#popup-lista-notificacoes .popup-shell > div {
+  max-height: 85vh;
+  padding: 24px;
+  overflow-y: auto;
+  border-radius: 10px;
+  color: #17263a;
+  background: #fff;
+}
+
+#popup-lista-notificacoes h2 {
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+#lista-notificacoes {
+  display: grid;
+  gap: 10px;
+}
+
+.item-notificacao {
+  padding: 12px;
+  border: 1px solid #d5d8d8;
+  border-radius: 8px;
+  color: #17263a;
+  background: #f4f0e8;
+  text-align: left;
+}
+
+.item-notificacao h3 {
+  margin-bottom: 6px;
+}
+
+.item-notificacao p {
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+.item-notificacao button {
+  width: 100%;
+  margin-top: 8px;
+}
+
+#popup-configurar-notificacao .popup-shell {
+  max-width: 400px;
+}
+
+#popup-configurar-notificacao .popup-shell > div {
+  max-height: 90vh;
+  padding: 24px;
+  overflow-y: auto;
+  border-radius: 10px;
+  color: #17263a;
+  background: #fff;
+  text-align: left;
+}
+
+#popup-configurar-notificacao h2 {
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+#titulo-notificacao-configuracao {
+  margin-bottom: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
+#configuracao-anime-notificacao,
+#configuracao-manga-notificacao {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid #d5d8d8;
+  border-radius: 8px;
+}
+
+#configuracao-anime-notificacao h3,
+#configuracao-manga-notificacao h3 {
+  margin-bottom: 10px;
+}
+
+#configuracao-anime-notificacao label,
+#configuracao-manga-notificacao label {
+  display: block;
+  margin: 7px 0;
+}
+
+#dias-semana-anime,
+#dias-semana-manga,
+#dia-mes-anime,
+#dia-mes-manga {
+  margin: 10px 0 14px 20px;
+}
+
+#dia-notificacao-anime,
+#dia-notificacao-manga {
+  width: 80px;
+  margin-left: 5px;
 }
 
 #confirmar-exclusao {
