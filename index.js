@@ -114,7 +114,7 @@ const db = new Database(caminhoBanco);
 webpush.setVapidDetails(
   "mailto:lanawinna11@gmail.com",
   process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
+  process.env.VAPID_PRIVATE_KEY,
 );
 
 db.exec(`
@@ -186,6 +186,187 @@ for (const obra of obrasSemOrdem) {
   ordemPorUsuario.set(usuarioId, proximaOrdem);
 }
 
+function obterDataHoraSaoPaulo() {
+  const agora = new Date();
+
+  const partes = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(agora);
+
+  const valores = {};
+
+  partes.forEach((parte) => {
+    if (parte.type !== "literal") {
+      valores[parte.type] = parte.value;
+    }
+  });
+
+  return {
+    ano: Number(valores.year),
+    mes: Number(valores.month),
+    dia: Number(valores.day),
+    diaSemana: new Date(
+      Number(valores.year),
+      Number(valores.month) - 1,
+      Number(valores.day),
+    ).getDay(),
+    hora: valores.hour,
+    minuto: valores.minute,
+  };
+}
+
+function obterChaveEnvio(dataHora) {
+  return (
+    `${dataHora.ano}-` +
+    `${String(dataHora.mes).padStart(2, "0")}-` +
+    `${String(dataHora.dia).padStart(2, "0")} ` +
+    `${dataHora.hora}:` +
+    `${String(dataHora.minuto).padStart(2, "0")}`
+  );
+}
+
+function notificacaoDeveSerEnviada(notificacao, dataHora) {
+  if (!notificacao.hora) {
+    return false;
+  }
+
+  const horaAtual = `${dataHora.hora}:${String(dataHora.minuto).padStart(2, "0")}`;
+
+  if (notificacao.hora !== horaAtual) {
+    return false;
+  }
+
+  const chaveAtual = obterChaveEnvio(dataHora);
+
+  if (notificacao.ultima_envio === chaveAtual) {
+    return false;
+  }
+
+  const diasSemana = JSON.parse(notificacao.dias_semana || "[]").map(Number);
+
+  const correspondeSemana = diasSemana.includes(dataHora.diaSemana);
+
+  const correspondeMes =
+    notificacao.dia_mes !== null &&
+    Number(notificacao.dia_mes) === dataHora.dia;
+
+  return correspondeSemana || correspondeMes;
+}
+
+async function enviarPushDaNotificacao(notificacao) {
+  const inscricoes = db
+    .prepare(`
+      SELECT endpoint, p256dh, auth
+      FROM inscricoes_push
+      WHERE usuario_id = ?
+    `)
+    .all(notificacao.usuario_id);
+
+  if (!inscricoes.length) {
+    return false;
+  }
+
+  const nomeObra =
+    notificacao.titulo_exibicao &&
+    notificacao.titulo_exibicao !== "principal"
+      ? notificacao.titulo_exibicao
+      : notificacao.title;
+
+  const tipoTexto = notificacao.tipo === "anime" ? "Anime" : "Mangá";
+
+  const payload = JSON.stringify({
+    titulo: nomeObra,
+    corpo: `Seu lembrete de ${tipoTexto} está na hora.`,
+    obraId: notificacao.obra_id,
+  });
+
+  let enviou = false;
+
+  for (const inscricao of inscricoes) {
+    try {
+      await webpush.sendNotification(
+        {
+          endpoint: inscricao.endpoint,
+          keys: {
+            p256dh: inscricao.p256dh,
+            auth: inscricao.auth,
+          },
+        },
+        payload,
+        {
+          TTL: 60,
+        },
+      );
+
+      enviou = true;
+    } catch (erro) {
+      console.error("Erro ao enviar Push:", erro);
+
+      if (erro.statusCode === 404 || erro.statusCode === 410) {
+        db.prepare(`
+          DELETE FROM inscricoes_push
+          WHERE endpoint = ?
+        `).run(inscricao.endpoint);
+      }
+    }
+  }
+
+  return enviou;
+}
+
+async function verificarNotificacoesAgendadas() {
+  const dataHora = obterDataHoraSaoPaulo();
+
+  const notificacoes = db
+    .prepare(`
+      SELECT
+        n.*,
+        o.title,
+        o.titulo_exibicao
+      FROM notificacoes n
+      INNER JOIN obras o
+        ON o.id = n.obra_id
+      WHERE n.usuario_id = o.usuario_id
+    `)
+    .all();
+
+  for (const notificacao of notificacoes) {
+    if (!notificacaoDeveSerEnviada(notificacao, dataHora)) {
+      continue;
+    }
+
+    const enviou = await enviarPushDaNotificacao(notificacao);
+
+    if (!enviou) {
+      continue;
+    }
+
+    const chaveAtual = obterChaveEnvio(dataHora);
+
+    db.prepare(`
+      UPDATE notificacoes
+      SET ultima_envio = ?
+      WHERE id = ?
+    `).run(chaveAtual, notificacao.id);
+  }
+}
+
+setInterval(() => {
+  verificarNotificacoesAgendadas().catch((erro) => {
+    console.error("Erro ao verificar notificações:", erro);
+  });
+}, 30000);
+
+verificarNotificacoesAgendadas().catch((erro) => {
+  console.error("Erro ao iniciar verificação de notificações:", erro);
+});
+
 function normalizarOrdemDoUsuario(usuarioId) {
   const obras = db
     .prepare(
@@ -253,6 +434,17 @@ try {
   db.exec(`
     ALTER TABLE notificacoes
     ADD COLUMN hora TEXT
+  `);
+} catch (erro) {
+  if (!erro.message.includes("duplicate column name")) {
+    throw erro;
+  }
+}
+
+try {
+  db.exec(`
+    ALTER TABLE notificacoes
+    ADD COLUMN ultima_envio TEXT
   `);
 } catch (erro) {
   if (!erro.message.includes("duplicate column name")) {
@@ -448,7 +640,8 @@ app.post("/notificacoes/inscricao", verificarToken, (req, res) => {
     return responderErro(res, 400, "Inscrição Push inválida.");
   }
 
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO inscricoes_push (
       usuario_id, endpoint, p256dh, auth
     )
@@ -457,11 +650,12 @@ app.post("/notificacoes/inscricao", verificarToken, (req, res) => {
       usuario_id = excluded.usuario_id,
       p256dh = excluded.p256dh,
       auth = excluded.auth
-  `).run(
+  `,
+  ).run(
     req.usuario.id,
     inscricao.endpoint,
     inscricao.keys.p256dh,
-    inscricao.keys.auth
+    inscricao.keys.auth,
   );
 
   res.json({ mensagem: "Inscrição Push salva." });

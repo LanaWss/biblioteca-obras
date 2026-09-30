@@ -44,7 +44,7 @@ async function inscreverPush() {
   let inscricao = await registro.pushManager.getSubscription();
 
   if (!inscricao) {
-    const chavePublica = "BAwMnTAnDS1jrgdKhnqinsOWcPhSaRf62BSLmFzMnCuF-1mTOhLENtXNoismUgCrnsAdiOITvPbYlghgcq_h4cs";
+    const chavePublica = "BHu5tqRESey0Uv5_I0KCKH3PZ-5J8rgWx1AsdoKsPpQBoV_UGcrjsZoE0dTBg8LQZDaGoP5PIZROBM4dXzUTvS0";
 
     inscricao = await registro.pushManager.subscribe({
       userVisibleOnly: true,
