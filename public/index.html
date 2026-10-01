@@ -26,7 +26,7 @@
     <div class="barra-ferramentas">
       <label class="campo-busca" for="buscar-obras">
         <span class="icone-busca">🔍</span>
-        <input id="buscar-obras" type="search" placeholder="Buscar obra pelo nome" autocomplete="off" />
+        <input id="buscar-obras" name="busca-obras" type="search" placeholder="Buscar obra pelo nome" autocomplete="search" />
       </label>
       <button id="abrir-filtros" type="button">
         <i class="fa-solid fa-filter"></i> Filtro
@@ -42,6 +42,10 @@
 
       <button id="botao-notificacao" type="button" aria-label="Notificações" title="Notificações">
         <i class="fa-solid fa-bell"></i> Notificações
+      </button>
+
+      <button id="botao-amigos" type="button" aria-label="Abrir amigos" title="Amigos">
+        <i class="fa-solid fa-user-group"></i> Amigos
       </button>
     </div>
 
@@ -443,7 +447,8 @@
   <div id="perfil-fixo">
     <span id="nome-perfil"></span>
     <button id="botao-perfil" type="button" aria-label="Abrir perfil" title="Perfil">
-      <i class="fa-solid fa-user"></i>
+      <img id="foto-perfil-cabecalho" class="foto-perfil-cabecalho" alt="" hidden />
+      <i id="icone-perfil-cabecalho" class="fa-solid fa-user"></i>
     </button>
   </div>
 
@@ -500,29 +505,46 @@
           <input type="color" id="cor-titulos" value="#ffffff" />
         </div>
 
-        <div class="perfil-secao">
-          <h3>Privacidade e amigos</h3>
+        <p id="erro-perfil" class="erro-perfil" role="alert"></p>
+      </div>
+
+      <div class="perfil-acoes">
+        <button id="salvar-perfil" type="button">Salvar alterações</button>
+        <button id="restaurar-visuais" type="button">Restaurar visuais</button>
+      </div>
+      <button id="botao-sair">Sair</button>
+    </div>
+  </div>
+
+  <div id="popup-amigos">
+    <div class="popup-shell">
+      <button id="fechar-amigos" class="popup-fechar" type="button" aria-label="Fechar amigos">X</button>
+      <div>
+        <h2>Amigos</h2>
+        <div class="perfil-secao amigos-secao">
+          <h3>Privacidade</h3>
           <label class="controle-checkbox" for="biblioteca-publica">
             <input type="checkbox" id="biblioteca-publica" />
             Permitir que amigos vejam minha biblioteca
           </label>
+        </div>
+        <div class="perfil-secao amigos-secao">
+          <h3>Adicionar amigo</h3>
           <div class="linha-adicionar-amigo">
             <input type="text" id="id-amigo" inputmode="numeric" maxlength="4" placeholder="ID com 4 dígitos" />
-            <button id="adicionar-amigo" type="button">Adicionar</button>
+            <button id="adicionar-amigo" type="button">Enviar solicitação</button>
           </div>
           <p id="mensagem-amigo" class="mensagem-amigo" role="status"></p>
-          <h4>Solicitações recebidas</h4>
+        </div>
+        <div class="perfil-secao amigos-secao">
+          <h3>Solicitações recebidas</h3>
           <div id="lista-solicitacoes-amizade" class="lista-amizades"></div>
-          <h4>Meus amigos</h4>
+        </div>
+        <div class="perfil-secao amigos-secao">
+          <h3>Meus amigos</h3>
           <div id="lista-amigos" class="lista-amizades"></div>
         </div>
-
-        <p id="erro-perfil" class="erro-perfil" role="alert"></p>
-        <button id="salvar-perfil" type="button">Salvar alterações</button>
-        <button id="restaurar-visuais" type="button">Restaurar visuais</button>
       </div>
-
-      <button id="botao-sair">Sair</button>
     </div>
   </div>
 

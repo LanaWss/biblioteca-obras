@@ -1683,12 +1683,10 @@ function carregarObras(atualizarDados = true) {
 
 let temporizadorBusca;
 
-carregarObras();
-
-window.addEventListener("pageshow", (evento) => {
-  if (evento.persisted) {
-    carregarObras();
-  }
+window.addEventListener("pageshow", () => {
+  clearTimeout(temporizadorBusca);
+  buscarObras.value = "";
+  carregarObras();
 });
 
 buscarObras.addEventListener("input", () => {
@@ -4751,16 +4749,23 @@ let fotoPerfilSelecionada;
 function atualizarPreviewFotoPerfil(foto) {
   const preview = document.getElementById("foto-perfil-preview");
   const vazio = document.getElementById("foto-perfil-vazia");
+  const cabecalho = document.getElementById("foto-perfil-cabecalho");
+  const iconeCabecalho = document.getElementById("icone-perfil-cabecalho");
 
   if (foto) {
     preview.src = foto;
     preview.hidden = false;
     vazio.hidden = true;
+    cabecalho.src = foto;
+    cabecalho.hidden = false;
+    iconeCabecalho.hidden = true;
     return;
   }
 
   preview.hidden = true;
   vazio.hidden = false;
+  cabecalho.hidden = true;
+  iconeCabecalho.hidden = false;
 }
 
 function lerFotoPerfil(arquivo) {
@@ -4780,6 +4785,12 @@ function mensagemAmigo(texto, tipo = "") {
   elemento.dataset.tipo = tipo;
 }
 
+function formatarAvatarAmigo(amizade) {
+  return amizade.fotoPerfil
+    ? `<img class="avatar-amigo" src="${amizade.fotoPerfil}" alt="" />`
+    : '<span class="avatar-amigo avatar-amigo-vazio"><i class="fa-solid fa-user"></i></span>';
+}
+
 function renderizarAmizades(amizades) {
   const solicitacoes = document.getElementById("lista-solicitacoes-amizade");
   const amigos = document.getElementById("lista-amigos");
@@ -4793,7 +4804,10 @@ function renderizarAmizades(amizades) {
         .map(
           (amizade) => `
             <div class="item-amizade">
-              <span>${amizade.nome} (#${amizade.identificadorPublico})</span>
+              <div class="identidade-amigo">
+                ${formatarAvatarAmigo(amizade)}
+                <span>${amizade.nome} (#${amizade.identificadorPublico})</span>
+              </div>
               <div class="item-amizade-acoes">
                 <button type="button" data-aceitar-amizade="${amizade.id}">Aceitar</button>
                 <button type="button" data-recusar-amizade="${amizade.id}">Recusar</button>
@@ -4809,7 +4823,10 @@ function renderizarAmizades(amizades) {
         .map(
           (amizade) => `
             <div class="item-amizade">
-              <span>${amizade.nome} (#${amizade.identificadorPublico})</span>
+              <div class="identidade-amigo">
+                ${formatarAvatarAmigo(amizade)}
+                <span>${amizade.nome} (#${amizade.identificadorPublico})</span>
+              </div>
               <div class="item-amizade-acoes">
                 <button type="button" data-ver-biblioteca="${amizade.identificadorPublico}" ${amizade.bibliotecaPublica ? "" : "disabled"}>
                   ${amizade.bibliotecaPublica ? "Ver biblioteca" : "Biblioteca privada"}
@@ -4855,12 +4872,21 @@ async function abrirBibliotecaAmigo(identificador) {
   lista.innerHTML = resultado.obras.length
     ? resultado.obras
         .map(
-          (obra) => `
-            <div class="obra-publica">
-              <strong>${obra.title}</strong>
-              <span>${obra.tipo || "Obra"} · ${obra.status || "Sem status"}</span>
-            </div>
-          `,
+          (obra) => {
+            const imagem = obterImagemPreferida(obra).principal;
+
+            return `
+            <article class="obra-publica">
+              <div class="obra-publica-imagem">
+                ${imagem ? `<img src="${imagem}" alt="" loading="lazy" />` : '<i class="fa-solid fa-book"></i>'}
+              </div>
+              <div>
+                <strong>${obra.title}</strong>
+                <span>${obra.tipo || "Obra"} · ${obra.status || "Sem status"}</span>
+              </div>
+          </article>
+          `;
+          },
         )
         .join("")
     : '<p class="lista-vazia">Esta biblioteca ainda não possui obras.</p>';
@@ -4898,6 +4924,16 @@ async function carregarPerfil() {
 }
 
 document.getElementById("botao-perfil").addEventListener("click", async () => {
+
+  document.getElementById("botao-amigos").addEventListener("click", async () => {
+    document.getElementById("popup-amigos").style.display = "flex";
+
+    try {
+      await carregarPerfil();
+    } catch (erro) {
+      mensagemAmigo("Não foi possível carregar seus amigos.", "erro");
+    }
+  });
   document.getElementById("popup-perfil").style.display = "flex";
 
   try {
@@ -4908,6 +4944,11 @@ document.getElementById("botao-perfil").addEventListener("click", async () => {
 });
 
 document.getElementById("fechar-perfil").addEventListener("click", () => {
+
+  document.getElementById("fechar-amigos").addEventListener("click", () => {
+    document.getElementById("popup-amigos").style.display = "none";
+  });
+    "#popup-filtros,#popup-configurar-notificacao, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-perfil, #popup-amigos, #popup-biblioteca-amigo, #popup-escolha-avanco, #popup-escolha-link, #popup-lista-notificacoes, #popup-escolha-visto",
   document.getElementById("popup-perfil").style.display = "none";
 });
 
