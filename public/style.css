@@ -615,7 +615,12 @@ body:not(.pagina-login) [role="button"] {
   align-self: flex-start;
   flex: 0 0 auto;
   margin: -8px 0 0;
-  min-width: 42px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  max-width: 44px;
+  padding: 0;
+  line-height: 1;
   font-size: 14px;
   font-weight: bold;
 }
@@ -628,7 +633,12 @@ body:not(.pagina-login) [role="button"] {
   align-self: flex-end;
   flex: 0 0 auto;
   margin: -47px 0 0;
-  min-width: 42px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  max-width: 44px;
+  padding: 0;
+  line-height: 1;
   font-size: 14px;
   font-weight: bold;
 }
@@ -751,9 +761,18 @@ body:not(.pagina-login) [role="button"] {
 }
 
 .titulo-card h2 {
+  display: -webkit-box;
+  width: 100%;
+  height: 65px;
+  overflow: hidden;
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.2;
+  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .status-card {
@@ -941,7 +960,8 @@ body:not(.pagina-login) [role="button"] {
 #popup-perfil,
 #popup-amigos,
 #popup-biblioteca-amigo,
-#popup-lista-itens {
+#popup-lista-itens,
+#popup-detalhe-obra-publica {
   display: none;
   position: fixed;
   inset: 0;
@@ -985,6 +1005,50 @@ body:not(.pagina-login) [role="button"] {
   border-radius: 10px;
   color: #17263a;
   background: #fff;
+  text-align: left;
+}
+
+#popup-detalhe-obra-publica > .popup-shell {
+  max-width: 430px;
+}
+
+#conteudo-detalhe-obra-publica {
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px;
+  border-radius: 10px;
+  color: #17263a;
+  background: #fff;
+}
+
+.obra-publica-detalhe {
+  display: grid;
+  gap: 12px;
+  text-align: center;
+}
+
+.obra-publica-detalhe h2 {
+  color: #17263a !important;
+}
+
+.obra-publica-detalhe-imagem {
+  width: 100%;
+  height: 260px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #e9f1ef;
+}
+
+.obra-publica-detalhe .progresso-texto {
+  justify-content: center;
+  color: #17263a;
+  box-shadow: none;
+}
+
+.obra-publica-detalhe-lista {
+  margin: 0;
+  padding-left: 20px;
+  color: #17263a;
   text-align: left;
 }
 
@@ -1197,6 +1261,13 @@ body:not(.pagina-login) .botao-ler {
   border: 1px solid #d5d8d8;
   border-radius: 7px;
   background: #f8f8f8;
+  cursor: pointer;
+}
+
+.obra-publica:hover,
+.obra-publica:focus-visible {
+  border-color: #2d7180;
+  outline: none;
 }
 
 .identidade-amigo {

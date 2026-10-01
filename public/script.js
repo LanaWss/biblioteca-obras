@@ -903,6 +903,7 @@ function configurarImagemCard(card, obra) {
 
 let filaSalvamentoProgresso = Promise.resolve();
 let botaoListaItensAberta = null;
+let obrasPublicasAtual = [];
 
 function fecharListaItens() {
   if (botaoListaItensAberta) {
@@ -1778,7 +1779,7 @@ document.getElementById("limpar-filtros").addEventListener("click", () => {
 
 document
   .querySelectorAll(
-    "#popup-filtros,#popup-configurar-notificacao, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-perfil, #popup-amigos, #popup-biblioteca-amigo, #popup-lista-itens, #popup-escolha-avanco, #popup-escolha-link, #popup-lista-notificacoes, #popup-escolha-visto",
+    "#popup-filtros,#popup-configurar-notificacao, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-perfil, #popup-amigos, #popup-biblioteca-amigo, #popup-lista-itens, #popup-detalhe-obra-publica, #popup-escolha-avanco, #popup-escolha-link, #popup-lista-notificacoes, #popup-escolha-visto",
   )
   .forEach((popup) => {
     popup.addEventListener("click", (evento) => {
@@ -4962,6 +4963,7 @@ async function abrirBibliotecaAmigo(identificador) {
 
   document.getElementById("titulo-biblioteca-amigo").textContent =
     `Biblioteca de ${resultado.nome}`;
+  obrasPublicasAtual = resultado.obras;
   const lista = document.getElementById("lista-biblioteca-amigo");
 
   lista.innerHTML = resultado.obras.length
@@ -4971,7 +4973,7 @@ async function abrirBibliotecaAmigo(identificador) {
             const imagem = obterImagemPreferida(obra).principal;
 
             return `
-            <article class="obra-publica">
+            <article class="obra-publica" data-publica-obra="${obrasPublicasAtual.indexOf(obra)}" tabindex="0" role="button">
               <div class="obra-publica-imagem">
                 ${imagem ? `<img src="${imagem}" alt="" loading="lazy" />` : '<i class="fa-solid fa-book"></i>'}
               </div>
@@ -4987,6 +4989,38 @@ async function abrirBibliotecaAmigo(identificador) {
     : '<p class="lista-vazia">Esta biblioteca ainda não possui obras.</p>';
 
   document.getElementById("popup-biblioteca-amigo").style.display = "flex";
+}
+
+function abrirDetalheObraPublica(obra) {
+  const progresso = calcularProgresso(obra);
+  const imagem = obterImagemPreferida(obra).principal;
+  const temporadas = lerConteudoObra(obra.temporadas);
+  const volumes = lerConteudoObra(obra.volumes);
+  const itens = [
+    ...temporadas.map(
+      (temporada) =>
+        `<li>Temporada ${temporada.numero}: ${temporada.episodios || 0} episódios</li>`,
+    ),
+    ...volumes.map(
+      (volume) =>
+        `<li>Volume ${volume.numero}: capítulos ${volume.inicio}-${volume.fim}</li>`,
+    ),
+  ].join("");
+
+  document.getElementById("conteudo-detalhe-obra-publica").innerHTML = `
+    <article class="obra-publica-detalhe">
+      <h2>${obra.title}</h2>
+      ${imagem ? `<img class="obra-publica-detalhe-imagem" src="${imagem}" alt="" />` : ""}
+      <strong>${obra.status || "Sem status"}</strong>
+      <div class="progresso-texto">Progresso ${progresso.vistos}/${progresso.total}</div>
+      <div class="barra-progresso">
+        <div class="barra-progresso-preenchida" style="width: ${progresso.total ? (progresso.vistos / progresso.total) * 100 : 0}%"></div>
+      </div>
+      ${itens ? `<ul class="obra-publica-detalhe-lista">${itens}</ul>` : ""}
+    </article>
+  `;
+
+  document.getElementById("popup-detalhe-obra-publica").style.display = "flex";
 }
 
 async function carregarPerfil() {
@@ -5114,6 +5148,12 @@ document.getElementById("fechar-biblioteca-amigo").addEventListener("click", () 
   document.getElementById("popup-biblioteca-amigo").style.display = "none";
 });
 
+document
+  .getElementById("fechar-detalhe-obra-publica")
+  .addEventListener("click", () => {
+    document.getElementById("popup-detalhe-obra-publica").style.display = "none";
+  });
+
 document.getElementById("fechar-lista-itens").addEventListener("click", () => {
   fecharListaItens();
 });
@@ -5123,6 +5163,14 @@ document.addEventListener("click", async (evento) => {
   const recusar = evento.target.closest("[data-recusar-amizade]");
   const remover = evento.target.closest("[data-remover-amizade]");
   const verBiblioteca = evento.target.closest("[data-ver-biblioteca]");
+  const obraPublica = evento.target.closest("[data-publica-obra]");
+
+  if (obraPublica) {
+    abrirDetalheObraPublica(
+      obrasPublicasAtual[Number(obraPublica.dataset.publicaObra)],
+    );
+    return;
+  }
 
   if (verBiblioteca) {
     await abrirBibliotecaAmigo(verBiblioteca.dataset.verBiblioteca);
