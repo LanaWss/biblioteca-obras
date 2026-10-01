@@ -4,6 +4,10 @@
   margin: 20px;
   --primary-color: #ffef0e;
   --secundary-color: #175d69;
+  --fundo-personalizado: linear-gradient(135deg, #4287f5, #196cf3, #404cf7, #0a0253);
+  --cor-textos-personalizada: #ffffff;
+  --cor-titulos-personalizada: #ffffff;
+  --fonte-textos-personalizada: Arial, sans-serif;
 }
 
 * {
@@ -42,10 +46,18 @@ body {
 
 body {
   min-height: 100vh;
-  background: linear-gradient(135deg, #4287f5, #196cf3, #404cf7, #0a0253);
-  color: white;
+  background: var(--fundo-personalizado);
+  color: var(--cor-textos-personalizada);
   text-align: center;
   background-attachment: fixed;
+  font-family: var(--fonte-textos-personalizada);
+}
+
+body:not(.pagina-login) h1,
+body:not(.pagina-login) h2,
+body:not(.pagina-login) h3,
+body:not(.pagina-login) h4 {
+  color: var(--cor-titulos-personalizada);
 }
 
 .pagina-login {
@@ -503,7 +515,7 @@ button {
   padding: 6px 10px;
   margin: 3px;
   color: var(--primary-color);
-  background-color: var(--secundary-color);
+  background-color: var(--cor-botoes-personalizada, var(--secundary-color));
   border-radius: 10px;
   cursor: pointer;
   transition: 0.2s;
@@ -941,6 +953,49 @@ button {
   border-radius: 12px;
   color: #17263a;
   background: #fff;
+}
+
+.perfil-identificacao {
+  margin-top: 12px;
+}
+
+.perfil-secao {
+  display: grid;
+  gap: 7px;
+  margin-top: 22px;
+  text-align: left;
+}
+
+.perfil-secao h3 {
+  margin-bottom: 3px;
+  color: #17263a !important;
+}
+
+.perfil-secao input,
+.perfil-secao select {
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 8px;
+  border: 1px solid #aeb6bd;
+  border-radius: 6px;
+  font: inherit;
+}
+
+.perfil-secao input[type="color"] {
+  width: 58px;
+  padding: 2px;
+}
+
+.erro-perfil {
+  min-height: 20px;
+  margin-top: 12px;
+  color: #b33a32;
+}
+
+#salvar-perfil,
+#restaurar-visuais {
+  width: calc(100% - 6px);
+  margin-top: 5px;
 }
 
 #perfil-fixo {
@@ -1657,7 +1712,7 @@ button {
   }
 
   #lista-obras {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     margin-top: 18px;
     padding-bottom: 12px;

@@ -427,12 +427,14 @@
           <li>Melhorar a interface do usuário mobile com aumento dos elementos.</li>
           <li>Botão para visualizar eps/caps ja criados.</li>
           <li>Botão de criar lembretes, e ver lista deles.</li>
+          <li>Parte de conta pessoal personalizada.</li>
+          <li>Melhora na lentidão do sistema.</li>
+          <li>Opção de amigos para compartilhar obras.</li>
           <br>
           <h3>Sendo trabalhado:</h3>
-          <p>Parte de conta pessoal personalizada.</p>
           <br>
-          </p><strong>V 18.1.6</strong></p>
-          <p><i>Atualização feita em 30/09/2026</i></p>
+          </p><strong>V 19</strong></p>
+          <p><i>Atualização feita em 01/10/2026</i></p>
         </ul>
       </div>
     </div>
@@ -450,11 +452,44 @@
       <button id="fechar-perfil" class="popup-fechar" type="button" aria-label="Fechar atualizações">X</button>
       <div>
         <h2>Perfil</h2>
-        <br>
-        <p>Usuário: <strong id="nome-perfil-popup"></strong></p>
-        <br>
-        <h3>Mudar Nick:</h3>
-        <input type="text" id="mudar-nick" />
+        <p class="perfil-identificacao">Usuário: <strong id="nome-perfil-popup"></strong></p>
+
+        <div class="perfil-secao">
+          <h3>Dados da conta</h3>
+          <label for="mudar-nick">Nick</label>
+          <input type="text" id="mudar-nick" autocomplete="name" />
+          <label for="mudar-email">Email</label>
+          <input type="email" id="mudar-email" autocomplete="email" />
+          <label for="senha-atual">Senha atual</label>
+          <input type="password" id="senha-atual" autocomplete="current-password" />
+          <label for="nova-senha">Nova senha</label>
+          <input type="password" id="nova-senha" minlength="6" autocomplete="new-password" />
+          <label for="confirmar-nova-senha">Confirmar nova senha</label>
+          <input type="password" id="confirmar-nova-senha" minlength="6" autocomplete="new-password" />
+        </div>
+
+        <div class="perfil-secao">
+          <h3>Opções visuais</h3>
+          <label for="cor-fundo">Fundo</label>
+          <input type="color" id="cor-fundo" value="#196cf3" />
+          <label for="fonte-textos">Fonte dos textos</label>
+          <select id="fonte-textos">
+            <option value="Arial, sans-serif">Arial</option>
+            <option value="Georgia, serif">Georgia</option>
+            <option value="Verdana, sans-serif">Verdana</option>
+            <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+          </select>
+          <label for="cor-botoes">Cor dos botões</label>
+          <input type="color" id="cor-botoes" value="#175d69" />
+          <label for="cor-textos">Cor das letras</label>
+          <input type="color" id="cor-textos" value="#ffffff" />
+          <label for="cor-titulos">Cor dos títulos</label>
+          <input type="color" id="cor-titulos" value="#ffffff" />
+        </div>
+
+        <p id="erro-perfil" class="erro-perfil" role="alert"></p>
+        <button id="salvar-perfil" type="button">Salvar alterações</button>
+        <button id="restaurar-visuais" type="button">Restaurar visuais</button>
       </div>
 
       <button id="botao-sair">Sair</button>

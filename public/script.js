@@ -1293,7 +1293,7 @@ function obterTituloExibicao(obra) {
   return obra.titulo_exibicao;
 }
 
-function carregarObras() {
+function carregarObras(atualizarDados = true) {
   const token = localStorage.getItem("token");
 
   if (!token) {
@@ -1302,21 +1302,32 @@ function carregarObras() {
     return;
   }
 
-  const numeroCarregamento = ++carregamentoObrasAtual;
+  const numeroCarregamento = atualizarDados
+    ? ++carregamentoObrasAtual
+    : carregamentoObrasAtual;
 
-  controladorCarregamentoObras?.abort();
+  if (atualizarDados) {
+    controladorCarregamentoObras?.abort();
 
-  controladorCarregamentoObras = new AbortController();
+    controladorCarregamentoObras = new AbortController();
+  }
 
-  return fetch("/obras", {
-    cache: "no-store",
+  const requisicao = atualizarDados
+    ? fetch("/obras", {
+        cache: "no-store",
 
-    signal: controladorCarregamentoObras.signal,
+        signal: controladorCarregamentoObras.signal,
 
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+    : Promise.resolve({
+        ok: true,
+        json: async () => obrasCarregadas,
+      });
+
+  return requisicao
     .then(async (resposta) => {
       const resultado = await resposta.json().catch(() => ({}));
 
@@ -1670,6 +1681,8 @@ function carregarObras() {
     });
 }
 
+let temporizadorBusca;
+
 carregarObras();
 
 window.addEventListener("pageshow", (evento) => {
@@ -1679,23 +1692,27 @@ window.addEventListener("pageshow", (evento) => {
 });
 
 buscarObras.addEventListener("input", () => {
-  carregarObras();
+  clearTimeout(temporizadorBusca);
+
+  temporizadorBusca = setTimeout(() => {
+    carregarObras(false);
+  }, 120);
 });
 
 filtroTipo.addEventListener("change", () => {
-  carregarObras();
+  carregarObras(false);
 });
 
 filtroStatus.addEventListener("change", () => {
-  carregarObras();
+  carregarObras(false);
 });
 
 filtroProgresso.addEventListener("change", () => {
-  carregarObras();
+  carregarObras(false);
 });
 
 filtroFavorito.addEventListener("change", () => {
-  carregarObras();
+  carregarObras(false);
 });
 
 document.getElementById("abrir-filtros").addEventListener("click", () => {
@@ -1717,7 +1734,7 @@ document.getElementById("limpar-filtros").addEventListener("click", () => {
 
   filtroFavorito.value = "";
 
-  carregarObras();
+  carregarObras(false);
 });
 
 document
@@ -4688,13 +4705,147 @@ document.getElementById("nome-perfil-popup").textContent = nomePerfil;
 
 document.getElementById("mudar-nick").placeholder = nomePerfil;
 
-document.getElementById("botao-perfil").addEventListener("click", () => {
+const configuracoesVisuaisPadrao = {
+  fundo: "#196cf3",
+  fonte: "Arial, sans-serif",
+  botoes: "#175d69",
+  textos: "#ffffff",
+  titulos: "#ffffff",
+};
+
+function aplicarConfiguracoesVisuais(configuracoes = {}) {
+  const valores = {
+    ...configuracoesVisuaisPadrao,
+    ...configuracoes,
+  };
+  const raiz = document.documentElement;
+
+  raiz.style.setProperty("--fundo-personalizado", valores.fundo);
+  raiz.style.setProperty("--fonte-textos-personalizada", valores.fonte);
+  raiz.style.setProperty("--cor-botoes-personalizada", valores.botoes);
+  raiz.style.setProperty("--cor-textos-personalizada", valores.textos);
+  raiz.style.setProperty("--cor-titulos-personalizada", valores.titulos);
+}
+
+function preencherConfiguracoesVisuais(configuracoes = {}) {
+  const valores = {
+    ...configuracoesVisuaisPadrao,
+    ...configuracoes,
+  };
+
+  document.getElementById("cor-fundo").value = valores.fundo;
+  document.getElementById("fonte-textos").value = valores.fonte;
+  document.getElementById("cor-botoes").value = valores.botoes;
+  document.getElementById("cor-textos").value = valores.textos;
+  document.getElementById("cor-titulos").value = valores.titulos;
+}
+
+async function carregarPerfil() {
+  const resposta = await fetch("/perfil", {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+
+  if (!resposta.ok) {
+    return;
+  }
+
+  const perfil = await resposta.json();
+  const configuracoes = perfil.configuracoesVisuais || {};
+
+  document.getElementById("nome-perfil").textContent = perfil.nome;
+  document.getElementById("nome-perfil-popup").textContent = perfil.nome;
+  document.getElementById("mudar-nick").value = perfil.nome;
+  document.getElementById("mudar-email").value = perfil.email;
+  preencherConfiguracoesVisuais(configuracoes);
+  aplicarConfiguracoesVisuais(configuracoes);
+}
+
+document.getElementById("botao-perfil").addEventListener("click", async () => {
   document.getElementById("popup-perfil").style.display = "flex";
+
+  try {
+    await carregarPerfil();
+  } catch (erro) {
+    mostrarMensagem("Não foi possível carregar o perfil.", "erro");
+  }
 });
 
 document.getElementById("fechar-perfil").addEventListener("click", () => {
   document.getElementById("popup-perfil").style.display = "none";
 });
+
+document.getElementById("restaurar-visuais").addEventListener("click", () => {
+  preencherConfiguracoesVisuais(configuracoesVisuaisPadrao);
+  aplicarConfiguracoesVisuais(configuracoesVisuaisPadrao);
+});
+
+document.getElementById("salvar-perfil").addEventListener("click", async () => {
+  const erro = document.getElementById("erro-perfil");
+  const novaSenha = document.getElementById("nova-senha").value;
+  const senhaAtual = document.getElementById("senha-atual").value;
+  const confirmarNovaSenha = document.getElementById(
+    "confirmar-nova-senha",
+  ).value;
+
+  erro.textContent = "";
+
+  if (novaSenha !== confirmarNovaSenha) {
+    erro.textContent = "As novas senhas não conferem.";
+    return;
+  }
+
+  const configuracoesVisuais = {
+    fundo: document.getElementById("cor-fundo").value,
+    fonte: document.getElementById("fonte-textos").value,
+    botoes: document.getElementById("cor-botoes").value,
+    textos: document.getElementById("cor-textos").value,
+    titulos: document.getElementById("cor-titulos").value,
+  };
+  const botao = document.getElementById("salvar-perfil");
+
+  botao.disabled = true;
+
+  try {
+    const resposta = await fetch("/perfil", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({
+        nome: document.getElementById("mudar-nick").value,
+        email: document.getElementById("mudar-email").value,
+        senhaAtual,
+        novaSenha,
+        configuracoesVisuais,
+      }),
+    });
+    const resultado = await resposta.json().catch(() => ({}));
+
+    if (!resposta.ok) {
+      erro.textContent = resultado.erro || "Não foi possível salvar o perfil.";
+      return;
+    }
+
+    localStorage.setItem("nomeUsuario", resultado.nome);
+    document.getElementById("nome-perfil").textContent = resultado.nome;
+    document.getElementById("nome-perfil-popup").textContent = resultado.nome;
+    document.getElementById("senha-atual").value = "";
+    document.getElementById("nova-senha").value = "";
+    document.getElementById("confirmar-nova-senha").value = "";
+    aplicarConfiguracoesVisuais(resultado.configuracoesVisuais);
+    document.getElementById("popup-perfil").style.display = "none";
+    mostrarMensagem("Perfil salvo com sucesso!", "sucesso");
+  } catch (erroRequisicao) {
+    erro.textContent = "Não foi possível salvar o perfil.";
+  } finally {
+    botao.disabled = false;
+  }
+});
+
+carregarPerfil().catch(() => {});
 
 const popupExclusao = document.getElementById("popup-confirmar-exclusao");
 

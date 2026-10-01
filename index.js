@@ -403,7 +403,8 @@ db.exec(`
     termos_aceitos INTEGER NOT NULL DEFAULT 0,
     versao_termos TEXT,
     versao_privacidade TEXT,
-    data_aceite TEXT
+    data_aceite TEXT,
+    configuracoes_visuais TEXT NOT NULL DEFAULT '{}'
   );
 `);
 
@@ -457,6 +458,7 @@ for (const coluna of [
   "ALTER TABLE usuarios ADD COLUMN versao_termos TEXT",
   "ALTER TABLE usuarios ADD COLUMN versao_privacidade TEXT",
   "ALTER TABLE usuarios ADD COLUMN data_aceite TEXT",
+  "ALTER TABLE usuarios ADD COLUMN configuracoes_visuais TEXT NOT NULL DEFAULT '{}'",
 ]) {
   try {
     db.exec(coluna);
@@ -564,6 +566,108 @@ app.post("/login", async (req, res) => {
     id: usuario.id,
     nome: usuario.nome,
     email: usuario.email,
+    configuracoesVisuais: JSON.parse(usuario.configuracoes_visuais || "{}"),
+  });
+});
+
+app.get("/perfil", verificarToken, (req, res) => {
+  const usuario = db
+    .prepare(
+      `
+      SELECT nome, email, configuracoes_visuais
+      FROM usuarios
+      WHERE id = ?
+    `,
+    )
+    .get(req.usuario.id);
+
+  if (!usuario) {
+    return responderErro(res, 404, "Usuário não encontrado");
+  }
+
+  res.json({
+    nome: usuario.nome,
+    email: usuario.email,
+    configuracoesVisuais: JSON.parse(usuario.configuracoes_visuais || "{}"),
+  });
+});
+
+app.patch("/perfil", verificarToken, async (req, res) => {
+  const { nome, email, senhaAtual, novaSenha, configuracoesVisuais } =
+    req.body || {};
+  const usuario = db
+    .prepare("SELECT * FROM usuarios WHERE id = ?")
+    .get(req.usuario.id);
+
+  if (!usuario) {
+    return responderErro(res, 404, "Usuário não encontrado");
+  }
+
+  const novoNome = typeof nome === "string" ? nome.trim() : usuario.nome;
+  const novoEmail = typeof email === "string" ? email.trim() : usuario.email;
+
+  if (!novoNome || !novoEmail) {
+    return responderErro(res, 400, "Nome e email são obrigatórios");
+  }
+
+  if (novaSenha || senhaAtual) {
+    if (!senhaAtual || !novaSenha || novaSenha.length < 6) {
+      return responderErro(
+        res,
+        400,
+        "Informe a senha atual e uma nova senha com pelo menos 6 caracteres",
+      );
+    }
+
+    if (!(await bcrypt.compare(senhaAtual, usuario.senha))) {
+      return responderErro(res, 401, "A senha atual está incorreta");
+    }
+  }
+
+  let novasConfiguracoes = {};
+
+  if (configuracoesVisuais && typeof configuracoesVisuais === "object") {
+    novasConfiguracoes = {
+      fundo: configuracoesVisuais.fundo,
+      fonte: configuracoesVisuais.fonte,
+      botoes: configuracoesVisuais.botoes,
+      textos: configuracoesVisuais.textos,
+      titulos: configuracoesVisuais.titulos,
+    };
+  } else {
+    novasConfiguracoes = JSON.parse(usuario.configuracoes_visuais || "{}");
+  }
+
+  try {
+    const senha = novaSenha
+      ? await bcrypt.hash(novaSenha, 10)
+      : usuario.senha;
+
+    db.prepare(
+      `
+      UPDATE usuarios
+      SET nome = ?, email = ?, senha = ?, configuracoes_visuais = ?
+      WHERE id = ?
+    `,
+    ).run(
+      novoNome,
+      novoEmail,
+      senha,
+      JSON.stringify(novasConfiguracoes),
+      req.usuario.id,
+    );
+  } catch (erro) {
+    if (erro.code === "SQLITE_CONSTRAINT_UNIQUE") {
+      return responderErro(res, 400, "Este email já está cadastrado");
+    }
+
+    throw erro;
+  }
+
+  res.json({
+    nome: novoNome,
+    email: novoEmail,
+    configuracoesVisuais: novasConfiguracoes,
   });
 });
 
@@ -605,8 +709,6 @@ app.get("/notificacoes", verificarToken, (req, res) => {
 });
 
 app.get("/obras", verificarToken, (req, res) => {
-  normalizarOrdemDoUsuario(req.usuario.id);
-
   const obras = db
     .prepare(
       `
