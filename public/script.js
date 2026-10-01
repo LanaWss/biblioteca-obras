@@ -1783,7 +1783,11 @@ document
   .forEach((popup) => {
     popup.addEventListener("click", (evento) => {
       if (evento.target === popup) {
-        popup.style.display = "none";
+        if (popup.id === "popup-lista-itens") {
+          fecharListaItens();
+        } else {
+          popup.style.display = "none";
+        }
       }
     });
   });

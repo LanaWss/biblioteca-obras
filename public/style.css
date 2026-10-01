@@ -602,7 +602,7 @@ body:not(.pagina-login) [role="button"] {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  height: 620px;
+  height: 720px;
 }
 
 .botao-favorito {
@@ -747,6 +747,7 @@ body:not(.pagina-login) [role="button"] {
   width: 100%;
   box-sizing: border-box;
   min-height: 64px;
+  flex-shrink: 0;
 }
 
 .titulo-card h2 {
@@ -756,6 +757,7 @@ body:not(.pagina-login) [role="button"] {
 }
 
 .status-card {
+  flex-shrink: 0;
   font-size: 13px;
   padding: 3px 10px;
   border-radius: 12px;
@@ -838,6 +840,7 @@ body:not(.pagina-login) [role="button"] {
   border-radius: 0;
   margin: 8px auto 12px;
   aspect-ratio: 3 / 4;
+  flex-shrink: 0;
 }
 
 .lista-temporadas-card,
@@ -864,6 +867,7 @@ body:not(.pagina-login) [role="button"] {
 }
 
 .progresso-card {
+  flex-shrink: 0;
   width: 100px;
   margin: 8px 0;
 }
@@ -873,6 +877,7 @@ body:not(.pagina-login) [role="button"] {
   gap: 6px;
   width: 100%;
   margin: 0 0 4px;
+  flex-shrink: 0;
 }
 
 .progresso-tipo-card {
@@ -2047,7 +2052,7 @@ body:not(.pagina-login) .botao-ler {
     max-width: none;
     padding: 10px;
     margin: 5px 0 12px;
-    height: 540px;
+    height: 640px;
   }
 
   #lista-obras {
