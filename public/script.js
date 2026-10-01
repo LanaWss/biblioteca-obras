@@ -4690,6 +4690,12 @@ document
   .addEventListener("click", salvarOrdemObras);
 
 document.getElementById("botao-sair").addEventListener("click", () => {
+  const confirmouSaida = window.confirm("Tem certeza de que deseja sair?");
+
+  if (!confirmouSaida) {
+    return;
+  }
+
   localStorage.removeItem("token");
 
   window.location.href = "/login.html";
