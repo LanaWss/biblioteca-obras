@@ -4798,6 +4798,49 @@ function atualizarPrivacidade(bibliotecaPublica) {
     .setAttribute("aria-pressed", String(!bibliotecaPublica));
 }
 
+async function salvarPrivacidadeAutomaticamente(bibliotecaPublicaAnterior) {
+  const botoes = document.querySelectorAll("[data-privacidade]");
+
+  botoes.forEach((botao) => {
+    botao.disabled = true;
+  });
+
+  try {
+    const resposta = await fetch("/perfil", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({
+        bibliotecaPublica: bibliotecaPublicaSelecionada,
+      }),
+    });
+
+    const resultado = await resposta.json().catch(() => ({}));
+
+    if (!resposta.ok) {
+      atualizarPrivacidade(bibliotecaPublicaAnterior);
+      mensagemAmigo(resultado.erro || "Não foi possível alterar a privacidade.", "erro");
+      return;
+    }
+
+    mensagemAmigo(
+      bibliotecaPublicaSelecionada
+        ? "Biblioteca agora pública para seus amigos."
+        : "Biblioteca agora privada.",
+      "sucesso",
+    );
+  } catch (erro) {
+    atualizarPrivacidade(bibliotecaPublicaAnterior);
+    mensagemAmigo("Não foi possível alterar a privacidade.", "erro");
+  } finally {
+    botoes.forEach((botao) => {
+      botao.disabled = false;
+    });
+  }
+}
+
 function formatarAvatarAmigo(amizade) {
   return amizade.fotoPerfil
     ? `<img class="avatar-amigo" src="${amizade.fotoPerfil}" alt="" />`
@@ -4970,8 +5013,11 @@ document.getElementById("fechar-amigos").addEventListener("click", () => {
 });
 
 document.querySelectorAll("[data-privacidade]").forEach((botao) => {
-  botao.addEventListener("click", () => {
+  botao.addEventListener("click", async () => {
+    const privacidadeAnterior = bibliotecaPublicaSelecionada;
+
     atualizarPrivacidade(botao.dataset.privacidade === "publica");
+    await salvarPrivacidadeAutomaticamente(privacidadeAnterior);
   });
 });
 

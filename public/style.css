@@ -1045,6 +1045,10 @@ body:not(.pagina-login) [role="button"] {
   display: none;
 }
 
+.foto-perfil-vazia[hidden] {
+  display: none;
+}
+
 .botao-foto-perfil {
   display: inline-block;
   padding: 8px 10px;
