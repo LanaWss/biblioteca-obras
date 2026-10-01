@@ -852,10 +852,16 @@ function configurarImagemCard(card, obra) {
 
   const imagens = obterImagemPreferida(obra);
 
-  card.style.setProperty(
-    "--imagem-obra",
-    imagens.principal ? obterImagemParaCss(imagens.principal) : "none",
-  );
+  const definirFundo = (url) => {
+    const fundo = url ? obterImagemParaCss(url) : "none";
+
+    card.style.setProperty("--imagem-obra", fundo);
+    card.style.backgroundImage = fundo;
+    card.style.backgroundSize = "cover";
+    card.style.backgroundPosition = "center";
+  };
+
+  definirFundo(imagens.principal);
 
   if (!imagem || !imagens.principal) {
     return;
@@ -867,10 +873,7 @@ function configurarImagemCard(card, obra) {
 
       imagem.src = imagens.fallback;
 
-      card.style.setProperty(
-        "--imagem-obra",
-        obterImagemParaCss(imagens.fallback),
-      );
+      definirFundo(imagens.fallback);
 
       ajustarCorDoTexto(card, imagens.fallback);
 
