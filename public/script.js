@@ -2814,6 +2814,10 @@ document.addEventListener("click", async (evento) => {
       }
 
       await carregarObras();
+      mostrarMensagem(
+        novoFavorito ? "Obra adicionada aos favoritos." : "Obra removida dos favoritos.",
+        "sucesso",
+      );
     } catch (erro) {
       mostrarMensagem("Não foi possível atualizar o favorito.", "erro");
     } finally {

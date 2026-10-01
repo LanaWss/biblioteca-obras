@@ -852,12 +852,12 @@ body:not(.pagina-login) [role="button"] {
 .cards img {
   display: block;
   width: 100%;
-  height: 240px;
+  height: 210px;
   object-fit: contain;
   background: transparent;
   border: none;
   border-radius: 0;
-  margin: 8px auto 12px;
+  margin: 4px auto 6px;
   aspect-ratio: 3 / 4;
   flex-shrink: 0;
 }
@@ -888,7 +888,7 @@ body:not(.pagina-login) [role="button"] {
 .progresso-card {
   flex-shrink: 0;
   width: 100px;
-  margin: 8px 0;
+  margin: 2px 0;
 }
 
 .progressos-separados-card {
@@ -2156,8 +2156,8 @@ body:not(.pagina-login) .botao-ler {
   }
 
   .cards img {
-    height: 180px;
-    max-height: 280px;
+    height: 160px !important;
+    max-height: 160px;
   }
 
   #popup-lista-itens {
