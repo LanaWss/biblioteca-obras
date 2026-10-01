@@ -590,6 +590,7 @@ body:not(.pagina-login) [role="button"] {
   margin-bottom: 20px;
   border-radius: 5px;
   background-color: transparent;
+  background: #1f2937;
   overflow: hidden;
   align-items: center;
   align-content: auto;
@@ -601,6 +602,7 @@ body:not(.pagina-login) [role="button"] {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  height: 620px;
 }
 
 .botao-favorito {
@@ -744,6 +746,7 @@ body:not(.pagina-login) [role="button"] {
   padding-right: 42px;
   width: 100%;
   box-sizing: border-box;
+  min-height: 64px;
 }
 
 .titulo-card h2 {
@@ -834,6 +837,18 @@ body:not(.pagina-login) [role="button"] {
   border: none;
   border-radius: 0;
   margin: 8px auto 12px;
+  aspect-ratio: 3 / 4;
+}
+
+.lista-temporadas-card,
+.lista-volumes-card {
+  width: 100%;
+  max-height: 44px;
+  overflow: hidden;
+}
+
+.botoes-card {
+  margin-top: auto;
 }
 
 .cards.imagem-indisponivel::after {
@@ -1990,6 +2005,7 @@ body:not(.pagina-login) .botao-ler {
     max-width: none;
     padding: 10px;
     margin: 5px 0 12px;
+    height: 540px;
   }
 
   #lista-obras {
@@ -2006,6 +2022,7 @@ body:not(.pagina-login) .botao-ler {
   }
 
   .cards img {
+    height: 180px;
     max-height: 280px;
   }
 
