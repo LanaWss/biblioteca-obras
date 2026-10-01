@@ -452,7 +452,18 @@
       <button id="fechar-perfil" class="popup-fechar" type="button" aria-label="Fechar atualizações">X</button>
       <div>
         <h2>Perfil</h2>
+        <div class="perfil-cabecalho">
+          <img id="foto-perfil-preview" class="foto-perfil" alt="Foto de perfil" hidden />
+          <div class="foto-perfil-vazia" id="foto-perfil-vazia" aria-hidden="true">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <label class="botao-foto-perfil" for="foto-perfil-input">
+            Alterar foto
+            <input id="foto-perfil-input" type="file" accept="image/png,image/jpeg,image/webp" />
+          </label>
+        </div>
         <p class="perfil-identificacao">Usuário: <strong id="nome-perfil-popup"></strong></p>
+        <p class="perfil-identificacao">Seu ID: <strong id="identificador-publico"></strong></p>
 
         <div class="perfil-secao">
           <h3>Dados da conta</h3>
@@ -481,10 +492,29 @@
           </select>
           <label for="cor-botoes">Cor dos botões</label>
           <input type="color" id="cor-botoes" value="#175d69" />
+          <label for="cor-conteudo-botoes">Cor do conteúdo dos botões</label>
+          <input type="color" id="cor-conteudo-botoes" value="#ffef0e" />
           <label for="cor-textos">Cor das letras</label>
           <input type="color" id="cor-textos" value="#ffffff" />
           <label for="cor-titulos">Cor dos títulos</label>
           <input type="color" id="cor-titulos" value="#ffffff" />
+        </div>
+
+        <div class="perfil-secao">
+          <h3>Privacidade e amigos</h3>
+          <label class="controle-checkbox" for="biblioteca-publica">
+            <input type="checkbox" id="biblioteca-publica" />
+            Permitir que amigos vejam minha biblioteca
+          </label>
+          <div class="linha-adicionar-amigo">
+            <input type="text" id="id-amigo" inputmode="numeric" maxlength="4" placeholder="ID com 4 dígitos" />
+            <button id="adicionar-amigo" type="button">Adicionar</button>
+          </div>
+          <p id="mensagem-amigo" class="mensagem-amigo" role="status"></p>
+          <h4>Solicitações recebidas</h4>
+          <div id="lista-solicitacoes-amizade" class="lista-amizades"></div>
+          <h4>Meus amigos</h4>
+          <div id="lista-amigos" class="lista-amizades"></div>
         </div>
 
         <p id="erro-perfil" class="erro-perfil" role="alert"></p>
@@ -493,6 +523,16 @@
       </div>
 
       <button id="botao-sair">Sair</button>
+    </div>
+  </div>
+
+  <div id="popup-biblioteca-amigo">
+    <div class="popup-shell">
+      <button id="fechar-biblioteca-amigo" class="popup-fechar" type="button" aria-label="Fechar biblioteca">X</button>
+      <div>
+        <h2 id="titulo-biblioteca-amigo">Biblioteca</h2>
+        <div id="lista-biblioteca-amigo" class="lista-biblioteca-amigo"></div>
+      </div>
     </div>
   </div>
 

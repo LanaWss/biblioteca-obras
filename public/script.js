@@ -1739,7 +1739,7 @@ document.getElementById("limpar-filtros").addEventListener("click", () => {
 
 document
   .querySelectorAll(
-    "#popup-filtros,#popup-configurar-notificacao, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-perfil, #popup-escolha-avanco, #popup-escolha-link, #popup-lista-notificacoes, #popup-escolha-visto",
+    "#popup-filtros,#popup-configurar-notificacao, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-perfil, #popup-biblioteca-amigo, #popup-escolha-avanco, #popup-escolha-link, #popup-lista-notificacoes, #popup-escolha-visto",
   )
   .forEach((popup) => {
     popup.addEventListener("click", (evento) => {
@@ -4709,6 +4709,7 @@ const configuracoesVisuaisPadrao = {
   fundo: "#196cf3",
   fonte: "Arial, sans-serif",
   botoes: "#175d69",
+  botoesTexto: "#ffef0e",
   textos: "#ffffff",
   titulos: "#ffffff",
 };
@@ -4723,6 +4724,10 @@ function aplicarConfiguracoesVisuais(configuracoes = {}) {
   raiz.style.setProperty("--fundo-personalizado", valores.fundo);
   raiz.style.setProperty("--fonte-textos-personalizada", valores.fonte);
   raiz.style.setProperty("--cor-botoes-personalizada", valores.botoes);
+  raiz.style.setProperty(
+    "--cor-conteudo-botoes-personalizada",
+    valores.botoesTexto,
+  );
   raiz.style.setProperty("--cor-textos-personalizada", valores.textos);
   raiz.style.setProperty("--cor-titulos-personalizada", valores.titulos);
 }
@@ -4736,8 +4741,131 @@ function preencherConfiguracoesVisuais(configuracoes = {}) {
   document.getElementById("cor-fundo").value = valores.fundo;
   document.getElementById("fonte-textos").value = valores.fonte;
   document.getElementById("cor-botoes").value = valores.botoes;
+  document.getElementById("cor-conteudo-botoes").value = valores.botoesTexto;
   document.getElementById("cor-textos").value = valores.textos;
   document.getElementById("cor-titulos").value = valores.titulos;
+}
+
+let fotoPerfilSelecionada;
+
+function atualizarPreviewFotoPerfil(foto) {
+  const preview = document.getElementById("foto-perfil-preview");
+  const vazio = document.getElementById("foto-perfil-vazia");
+
+  if (foto) {
+    preview.src = foto;
+    preview.hidden = false;
+    vazio.hidden = true;
+    return;
+  }
+
+  preview.hidden = true;
+  vazio.hidden = false;
+}
+
+function lerFotoPerfil(arquivo) {
+  return new Promise((resolve, reject) => {
+    const leitor = new FileReader();
+
+    leitor.onload = () => resolve(leitor.result);
+    leitor.onerror = reject;
+    leitor.readAsDataURL(arquivo);
+  });
+}
+
+function mensagemAmigo(texto, tipo = "") {
+  const elemento = document.getElementById("mensagem-amigo");
+
+  elemento.textContent = texto;
+  elemento.dataset.tipo = tipo;
+}
+
+function renderizarAmizades(amizades) {
+  const solicitacoes = document.getElementById("lista-solicitacoes-amizade");
+  const amigos = document.getElementById("lista-amigos");
+  const recebidas = amizades.filter(
+    (amizade) => amizade.direcao === "recebida" && amizade.status === "pendente",
+  );
+  const aceitas = amizades.filter((amizade) => amizade.status === "aceita");
+
+  solicitacoes.innerHTML = recebidas.length
+    ? recebidas
+        .map(
+          (amizade) => `
+            <div class="item-amizade">
+              <span>${amizade.nome} (#${amizade.identificadorPublico})</span>
+              <div class="item-amizade-acoes">
+                <button type="button" data-aceitar-amizade="${amizade.id}">Aceitar</button>
+                <button type="button" data-recusar-amizade="${amizade.id}">Recusar</button>
+              </div>
+            </div>
+          `,
+        )
+        .join("")
+    : '<p class="lista-vazia">Nenhuma solicitação pendente.</p>';
+
+  amigos.innerHTML = aceitas.length
+    ? aceitas
+        .map(
+          (amizade) => `
+            <div class="item-amizade">
+              <span>${amizade.nome} (#${amizade.identificadorPublico})</span>
+              <div class="item-amizade-acoes">
+                <button type="button" data-ver-biblioteca="${amizade.identificadorPublico}" ${amizade.bibliotecaPublica ? "" : "disabled"}>
+                  ${amizade.bibliotecaPublica ? "Ver biblioteca" : "Biblioteca privada"}
+                </button>
+                <button type="button" data-remover-amizade="${amizade.id}">Remover</button>
+              </div>
+            </div>
+          `,
+        )
+        .join("")
+    : '<p class="lista-vazia">Você ainda não adicionou amigos.</p>';
+}
+
+async function carregarAmizades() {
+  const resposta = await fetch("/amizades", {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+
+  if (resposta.ok) {
+    renderizarAmizades(await resposta.json());
+  }
+}
+
+async function abrirBibliotecaAmigo(identificador) {
+  const resposta = await fetch(`/usuarios/${identificador}/biblioteca`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  const resultado = await resposta.json().catch(() => ({}));
+
+  if (!resposta.ok) {
+    mensagemAmigo(resultado.erro || "Não foi possível abrir a biblioteca.", "erro");
+    return;
+  }
+
+  document.getElementById("titulo-biblioteca-amigo").textContent =
+    `Biblioteca de ${resultado.nome}`;
+  const lista = document.getElementById("lista-biblioteca-amigo");
+
+  lista.innerHTML = resultado.obras.length
+    ? resultado.obras
+        .map(
+          (obra) => `
+            <div class="obra-publica">
+              <strong>${obra.title}</strong>
+              <span>${obra.tipo || "Obra"} · ${obra.status || "Sem status"}</span>
+            </div>
+          `,
+        )
+        .join("")
+    : '<p class="lista-vazia">Esta biblioteca ainda não possui obras.</p>';
+
+  document.getElementById("popup-biblioteca-amigo").style.display = "flex";
 }
 
 async function carregarPerfil() {
@@ -4758,8 +4886,15 @@ async function carregarPerfil() {
   document.getElementById("nome-perfil-popup").textContent = perfil.nome;
   document.getElementById("mudar-nick").value = perfil.nome;
   document.getElementById("mudar-email").value = perfil.email;
+  document.getElementById("identificador-publico").textContent =
+    perfil.identificadorPublico;
+  document.getElementById("biblioteca-publica").checked =
+    perfil.bibliotecaPublica;
+  fotoPerfilSelecionada = perfil.fotoPerfil || null;
+  atualizarPreviewFotoPerfil(fotoPerfilSelecionada);
   preencherConfiguracoesVisuais(configuracoes);
   aplicarConfiguracoesVisuais(configuracoes);
+  await carregarAmizades();
 }
 
 document.getElementById("botao-perfil").addEventListener("click", async () => {
@@ -4774,6 +4909,105 @@ document.getElementById("botao-perfil").addEventListener("click", async () => {
 
 document.getElementById("fechar-perfil").addEventListener("click", () => {
   document.getElementById("popup-perfil").style.display = "none";
+});
+
+document
+  .getElementById("foto-perfil-input")
+  .addEventListener("change", async (evento) => {
+    const arquivo = evento.target.files[0];
+
+    if (!arquivo) {
+      return;
+    }
+
+    if (arquivo.size > 1.5 * 1024 * 1024) {
+      document.getElementById("erro-perfil").textContent =
+        "Escolha uma foto de até 1,5 MB.";
+      evento.target.value = "";
+      return;
+    }
+
+    fotoPerfilSelecionada = await lerFotoPerfil(arquivo);
+    atualizarPreviewFotoPerfil(fotoPerfilSelecionada);
+  });
+
+document.getElementById("adicionar-amigo").addEventListener("click", async () => {
+  const campo = document.getElementById("id-amigo");
+  const identificadorPublico = campo.value.trim();
+
+  mensagemAmigo("");
+
+  try {
+    const resposta = await fetch("/amizades", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({ identificadorPublico }),
+    });
+    const resultado = await resposta.json().catch(() => ({}));
+
+    if (!resposta.ok) {
+      mensagemAmigo(resultado.erro || "Não foi possível enviar a solicitação.", "erro");
+      return;
+    }
+
+    campo.value = "";
+    mensagemAmigo(`Solicitação enviada para ${resultado.nome}.`, "sucesso");
+    await carregarAmizades();
+  } catch (erro) {
+    mensagemAmigo("Não foi possível enviar a solicitação.", "erro");
+  }
+});
+
+document.getElementById("fechar-biblioteca-amigo").addEventListener("click", () => {
+  document.getElementById("popup-biblioteca-amigo").style.display = "none";
+});
+
+document.addEventListener("click", async (evento) => {
+  const aceitar = evento.target.closest("[data-aceitar-amizade]");
+  const recusar = evento.target.closest("[data-recusar-amizade]");
+  const remover = evento.target.closest("[data-remover-amizade]");
+  const verBiblioteca = evento.target.closest("[data-ver-biblioteca]");
+
+  if (verBiblioteca) {
+    await abrirBibliotecaAmigo(verBiblioteca.dataset.verBiblioteca);
+    return;
+  }
+
+  const acao = aceitar || recusar;
+
+  if (acao) {
+    const status = aceitar ? "aceita" : "recusada";
+    const resposta = await fetch(`/amizades/${acao.dataset[aceitar ? "aceitarAmizade" : "recusarAmizade"]}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({ status }),
+    });
+
+    if (resposta.ok) {
+      await carregarAmizades();
+    }
+
+    return;
+  }
+
+  if (remover) {
+    const resposta = await fetch(`/amizades/${remover.dataset.removerAmizade}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (resposta.ok) {
+      await carregarAmizades();
+    }
+  }
 });
 
 document.getElementById("restaurar-visuais").addEventListener("click", () => {
@@ -4800,6 +5034,7 @@ document.getElementById("salvar-perfil").addEventListener("click", async () => {
     fundo: document.getElementById("cor-fundo").value,
     fonte: document.getElementById("fonte-textos").value,
     botoes: document.getElementById("cor-botoes").value,
+    botoesTexto: document.getElementById("cor-conteudo-botoes").value,
     textos: document.getElementById("cor-textos").value,
     titulos: document.getElementById("cor-titulos").value,
   };
@@ -4819,6 +5054,8 @@ document.getElementById("salvar-perfil").addEventListener("click", async () => {
         email: document.getElementById("mudar-email").value,
         senhaAtual,
         novaSenha,
+        bibliotecaPublica: document.getElementById("biblioteca-publica").checked,
+        fotoPerfil: fotoPerfilSelecionada,
         configuracoesVisuais,
       }),
     });
@@ -4832,6 +5069,10 @@ document.getElementById("salvar-perfil").addEventListener("click", async () => {
     localStorage.setItem("nomeUsuario", resultado.nome);
     document.getElementById("nome-perfil").textContent = resultado.nome;
     document.getElementById("nome-perfil-popup").textContent = resultado.nome;
+    document.getElementById("identificador-publico").textContent =
+      resultado.identificadorPublico;
+    fotoPerfilSelecionada = resultado.fotoPerfil || null;
+    atualizarPreviewFotoPerfil(fotoPerfilSelecionada);
     document.getElementById("senha-atual").value = "";
     document.getElementById("nova-senha").value = "";
     document.getElementById("confirmar-nova-senha").value = "";

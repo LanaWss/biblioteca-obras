@@ -10,6 +10,7 @@ const app = express();
 const VERSAO_TERMOS = "1.0";
 const VERSAO_PRIVACIDADE = "1.0";
 const TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024;
+const TAMANHO_MAXIMO_FOTO_PERFIL = 2 * 1024 * 1024;
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static("public"));
@@ -404,7 +405,10 @@ db.exec(`
     versao_termos TEXT,
     versao_privacidade TEXT,
     data_aceite TEXT,
-    configuracoes_visuais TEXT NOT NULL DEFAULT '{}'
+    configuracoes_visuais TEXT NOT NULL DEFAULT '{}',
+    identificador_publico TEXT,
+    biblioteca_publica INTEGER NOT NULL DEFAULT 0,
+    foto_perfil TEXT
   );
 `);
 
@@ -459,6 +463,9 @@ for (const coluna of [
   "ALTER TABLE usuarios ADD COLUMN versao_privacidade TEXT",
   "ALTER TABLE usuarios ADD COLUMN data_aceite TEXT",
   "ALTER TABLE usuarios ADD COLUMN configuracoes_visuais TEXT NOT NULL DEFAULT '{}'",
+  "ALTER TABLE usuarios ADD COLUMN identificador_publico TEXT",
+  "ALTER TABLE usuarios ADD COLUMN biblioteca_publica INTEGER NOT NULL DEFAULT 0",
+  "ALTER TABLE usuarios ADD COLUMN foto_perfil TEXT",
 ]) {
   try {
     db.exec(coluna);
@@ -466,6 +473,58 @@ for (const coluna of [
     // A coluna já existe
   }
 }
+
+db.exec(`
+  CREATE UNIQUE INDEX IF NOT EXISTS indice_identificador_publico
+  ON usuarios (identificador_publico)
+`);
+
+function gerarIdentificadorPublico() {
+  let identificador;
+
+  do {
+    identificador = String(Math.floor(1000 + Math.random() * 9000));
+  } while (
+    db
+      .prepare(
+        "SELECT 1 FROM usuarios WHERE identificador_publico = ?",
+      )
+      .get(identificador)
+  );
+
+  return identificador;
+}
+
+const usuariosSemIdentificador = db
+  .prepare(
+    `
+    SELECT id
+    FROM usuarios
+    WHERE identificador_publico IS NULL
+  `,
+  )
+  .all();
+
+const definirIdentificadorPublico = db.prepare(
+  "UPDATE usuarios SET identificador_publico = ? WHERE id = ?",
+);
+
+for (const usuario of usuariosSemIdentificador) {
+  definirIdentificadorPublico.run(gerarIdentificadorPublico(), usuario.id);
+}
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS amizades (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    solicitante_id INTEGER NOT NULL,
+    destinatario_id INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pendente'
+      CHECK (status IN ('pendente', 'aceita', 'recusada')),
+    criado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (solicitante_id, destinatario_id),
+    CHECK (solicitante_id <> destinatario_id)
+  );
+`);
 
 app.post("/usuarios", async (req, res) => {
   const { nome, email, senha, aceitouTermos } = req.body;
@@ -491,9 +550,10 @@ app.post("/usuarios", async (req, res) => {
         termos_aceitos,
         versao_termos,
         versao_privacidade,
-        data_aceite
+        data_aceite,
+        identificador_publico
       )
-      VALUES (?, ?, ?, 1, ?, ?, ?)
+      VALUES (?, ?, ?, 1, ?, ?, ?, ?)
     `);
 
     const senhaHash = await bcrypt.hash(senha, 10);
@@ -506,6 +566,7 @@ app.post("/usuarios", async (req, res) => {
       VERSAO_TERMOS,
       VERSAO_PRIVACIDADE,
       dataAceite,
+      gerarIdentificadorPublico(),
     );
 
     res.json({
@@ -566,6 +627,9 @@ app.post("/login", async (req, res) => {
     id: usuario.id,
     nome: usuario.nome,
     email: usuario.email,
+    identificadorPublico: usuario.identificador_publico,
+    bibliotecaPublica: usuario.biblioteca_publica === 1,
+    fotoPerfil: usuario.foto_perfil,
     configuracoesVisuais: JSON.parse(usuario.configuracoes_visuais || "{}"),
   });
 });
@@ -574,7 +638,13 @@ app.get("/perfil", verificarToken, (req, res) => {
   const usuario = db
     .prepare(
       `
-      SELECT nome, email, configuracoes_visuais
+      SELECT
+        nome,
+        email,
+        identificador_publico,
+        biblioteca_publica,
+        foto_perfil,
+        configuracoes_visuais
       FROM usuarios
       WHERE id = ?
     `,
@@ -588,12 +658,23 @@ app.get("/perfil", verificarToken, (req, res) => {
   res.json({
     nome: usuario.nome,
     email: usuario.email,
+    identificadorPublico: usuario.identificador_publico,
+    bibliotecaPublica: usuario.biblioteca_publica === 1,
+    fotoPerfil: usuario.foto_perfil,
     configuracoesVisuais: JSON.parse(usuario.configuracoes_visuais || "{}"),
   });
 });
 
 app.patch("/perfil", verificarToken, async (req, res) => {
-  const { nome, email, senhaAtual, novaSenha, configuracoesVisuais } =
+  const {
+    nome,
+    email,
+    senhaAtual,
+    novaSenha,
+    configuracoesVisuais,
+    bibliotecaPublica,
+    fotoPerfil,
+  } =
     req.body || {};
   const usuario = db
     .prepare("SELECT * FROM usuarios WHERE id = ?")
@@ -608,6 +689,15 @@ app.patch("/perfil", verificarToken, async (req, res) => {
 
   if (!novoNome || !novoEmail) {
     return responderErro(res, 400, "Nome e email são obrigatórios");
+  }
+
+  if (
+    fotoPerfil !== undefined &&
+    fotoPerfil !== null &&
+    (!String(fotoPerfil).startsWith("data:image/") ||
+      String(fotoPerfil).length > TAMANHO_MAXIMO_FOTO_PERFIL)
+  ) {
+    return responderErro(res, 400, "A foto de perfil é inválida ou muito grande");
   }
 
   if (novaSenha || senhaAtual) {
@@ -631,12 +721,21 @@ app.patch("/perfil", verificarToken, async (req, res) => {
       fundo: configuracoesVisuais.fundo,
       fonte: configuracoesVisuais.fonte,
       botoes: configuracoesVisuais.botoes,
+      botoesTexto: configuracoesVisuais.botoesTexto,
       textos: configuracoesVisuais.textos,
       titulos: configuracoesVisuais.titulos,
     };
   } else {
     novasConfiguracoes = JSON.parse(usuario.configuracoes_visuais || "{}");
   }
+
+  const novaFotoPerfil = fotoPerfil === undefined ? usuario.foto_perfil : fotoPerfil;
+  const novaVisibilidade =
+    bibliotecaPublica === undefined
+      ? usuario.biblioteca_publica
+      : bibliotecaPublica === true
+        ? 1
+        : 0;
 
   try {
     const senha = novaSenha
@@ -646,7 +745,13 @@ app.patch("/perfil", verificarToken, async (req, res) => {
     db.prepare(
       `
       UPDATE usuarios
-      SET nome = ?, email = ?, senha = ?, configuracoes_visuais = ?
+      SET
+        nome = ?,
+        email = ?,
+        senha = ?,
+        configuracoes_visuais = ?,
+        biblioteca_publica = ?,
+        foto_perfil = ?
       WHERE id = ?
     `,
     ).run(
@@ -654,6 +759,8 @@ app.patch("/perfil", verificarToken, async (req, res) => {
       novoEmail,
       senha,
       JSON.stringify(novasConfiguracoes),
+      novaVisibilidade,
+      novaFotoPerfil,
       req.usuario.id,
     );
   } catch (erro) {
@@ -667,7 +774,209 @@ app.patch("/perfil", verificarToken, async (req, res) => {
   res.json({
     nome: novoNome,
     email: novoEmail,
+    identificadorPublico: usuario.identificador_publico,
+    bibliotecaPublica: novaVisibilidade === 1,
+    fotoPerfil: novaFotoPerfil,
     configuracoesVisuais: novasConfiguracoes,
+  });
+});
+
+function formatarAmizade(registro, usuarioId) {
+  const ehSolicitante = registro.solicitante_id === usuarioId;
+
+  return {
+    id: registro.id,
+    status: registro.status,
+    direcao: ehSolicitante ? "enviada" : "recebida",
+    identificadorPublico: ehSolicitante
+      ? registro.destinatario_identificador
+      : registro.solicitante_identificador,
+    nome: ehSolicitante ? registro.destinatario_nome : registro.solicitante_nome,
+    fotoPerfil: ehSolicitante
+      ? registro.destinatario_foto
+      : registro.solicitante_foto,
+    bibliotecaPublica: ehSolicitante
+      ? registro.destinatario_biblioteca === 1
+      : registro.solicitante_biblioteca === 1,
+  };
+}
+
+const consultaAmizades = `
+  SELECT
+    a.id,
+    a.solicitante_id,
+    a.destinatario_id,
+    a.status,
+    solicitante.identificador_publico AS solicitante_identificador,
+    solicitante.nome AS solicitante_nome,
+    solicitante.foto_perfil AS solicitante_foto,
+    solicitante.biblioteca_publica AS solicitante_biblioteca,
+    destinatario.identificador_publico AS destinatario_identificador,
+    destinatario.nome AS destinatario_nome,
+    destinatario.foto_perfil AS destinatario_foto,
+    destinatario.biblioteca_publica AS destinatario_biblioteca
+  FROM amizades a
+  INNER JOIN usuarios solicitante ON solicitante.id = a.solicitante_id
+  INNER JOIN usuarios destinatario ON destinatario.id = a.destinatario_id
+  WHERE a.solicitante_id = ? OR a.destinatario_id = ?
+  ORDER BY a.id DESC
+`;
+
+app.get("/amizades", verificarToken, (req, res) => {
+  const registros = db
+    .prepare(consultaAmizades)
+    .all(req.usuario.id, req.usuario.id);
+
+  res.json(registros.map((registro) => formatarAmizade(registro, req.usuario.id)));
+});
+
+app.post("/amizades", verificarToken, (req, res) => {
+  const identificador = String(req.body?.identificadorPublico || "").trim();
+
+  if (!/^\d{4}$/.test(identificador)) {
+    return responderErro(res, 400, "Informe um ID público com 4 dígitos");
+  }
+
+  const destinatario = db
+    .prepare(
+      `
+      SELECT id, nome, identificador_publico, foto_perfil, biblioteca_publica
+      FROM usuarios
+      WHERE identificador_publico = ?
+    `,
+    )
+    .get(identificador);
+
+  if (!destinatario) {
+    return responderErro(res, 404, "Nenhum usuário encontrado com esse ID");
+  }
+
+  if (destinatario.id === req.usuario.id) {
+    return responderErro(res, 400, "Você não pode adicionar a si mesmo");
+  }
+
+  const existente = db
+    .prepare(
+      `
+      SELECT *
+      FROM amizades
+      WHERE (solicitante_id = ? AND destinatario_id = ?)
+         OR (solicitante_id = ? AND destinatario_id = ?)
+    `,
+    )
+    .get(req.usuario.id, destinatario.id, destinatario.id, req.usuario.id);
+
+  if (existente) {
+    return responderErro(res, 400, `Esta amizade já está ${existente.status}`);
+  }
+
+  const resultado = db
+    .prepare(
+      `
+      INSERT INTO amizades (solicitante_id, destinatario_id)
+      VALUES (?, ?)
+    `,
+    )
+    .run(req.usuario.id, destinatario.id);
+
+  res.json({
+    id: resultado.lastInsertRowid,
+    status: "pendente",
+    nome: destinatario.nome,
+    identificadorPublico: destinatario.identificador_publico,
+  });
+});
+
+app.patch("/amizades/:id", verificarToken, (req, res) => {
+  const status = req.body?.status;
+
+  if (!['aceita', 'recusada'].includes(status)) {
+    return responderErro(res, 400, "Status de amizade inválido");
+  }
+
+  const resultado = db
+    .prepare(
+      `
+      UPDATE amizades
+      SET status = ?
+      WHERE id = ? AND destinatario_id = ? AND status = 'pendente'
+    `,
+    )
+    .run(status, Number(req.params.id), req.usuario.id);
+
+  if (!resultado.changes) {
+    return responderErro(res, 404, "Solicitação de amizade não encontrada");
+  }
+
+  res.json({ mensagem: status === "aceita" ? "Amizade aceita" : "Solicitação recusada" });
+});
+
+app.delete("/amizades/:id", verificarToken, (req, res) => {
+  const resultado = db
+    .prepare(
+      `
+      DELETE FROM amizades
+      WHERE id = ? AND (solicitante_id = ? OR destinatario_id = ?)
+    `,
+    )
+    .run(Number(req.params.id), req.usuario.id, req.usuario.id);
+
+  if (!resultado.changes) {
+    return responderErro(res, 404, "Amizade não encontrada");
+  }
+
+  res.json({ mensagem: "Amizade removida" });
+});
+
+app.get("/usuarios/:identificadorPublico/biblioteca", verificarToken, (req, res) => {
+  const identificador = String(req.params.identificadorPublico);
+  const usuario = db
+    .prepare(
+      `
+      SELECT id, nome, identificador_publico, biblioteca_publica, foto_perfil
+      FROM usuarios
+      WHERE identificador_publico = ?
+    `,
+    )
+    .get(identificador);
+
+  if (!usuario) {
+    return responderErro(res, 404, "Usuário não encontrado");
+  }
+
+  const ehProprioPerfil = usuario.id === req.usuario.id;
+  const amizade = db
+    .prepare(
+      `
+      SELECT 1
+      FROM amizades
+      WHERE status = 'aceita'
+        AND ((solicitante_id = ? AND destinatario_id = ?)
+          OR (solicitante_id = ? AND destinatario_id = ?))
+    `,
+    )
+    .get(req.usuario.id, usuario.id, usuario.id, req.usuario.id);
+
+  if (!ehProprioPerfil && (!amizade || usuario.biblioteca_publica !== 1)) {
+    return responderErro(res, 403, "Esta biblioteca não está disponível para você");
+  }
+
+  const obras = db
+    .prepare(
+      `
+      SELECT *
+      FROM obras
+      WHERE usuario_id = ?
+      ORDER BY ordem ASC, id ASC
+    `,
+    )
+    .all(usuario.id);
+
+  res.json({
+    nome: usuario.nome,
+    identificadorPublico: usuario.identificador_publico,
+    fotoPerfil: usuario.foto_perfil,
+    obras,
   });
 });
 
