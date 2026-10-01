@@ -638,10 +638,6 @@ function itemEstaCompleto(item, tipo) {
 }
 
 function renderizarProgressoTipo(obra, tipo) {
-  if (obra.tipo !== "ambos") {
-    return "";
-  }
-
   const itens =
     tipo === "anime"
       ? lerConteudoObra(obra.temporadas)
