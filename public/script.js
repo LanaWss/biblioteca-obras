@@ -8,7 +8,9 @@ let linksLeituraEdicao = [];
 let linksEscolhaAtual = [];
 
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/service-worker.js");
+  navigator.serviceWorker.register("/service-worker.js?v=18", {
+    updateViaCache: "none",
+  });
 }
 
 function base64ParaUint8Array(base64String) {
@@ -870,9 +872,6 @@ function configurarImagemCard(card, obra) {
     const fundo = url ? obterImagemParaCss(url) : "none";
 
     card.style.setProperty("--imagem-obra", fundo);
-    card.style.backgroundImage = fundo;
-    card.style.backgroundSize = "cover";
-    card.style.backgroundPosition = "center";
   };
 
   definirFundo(imagens.principal);
@@ -1448,7 +1447,7 @@ function carregarObras(atualizarDados = true) {
             lerConteudoObra(obra.temporadas),
 
             "anime",
-          ).filter((temporada) => !itemEstaCompleto(temporada, "anime"));
+          );
 
           if (temporadas.length) {
             conteudo = `
@@ -1500,7 +1499,7 @@ function carregarObras(atualizarDados = true) {
             lerConteudoObra(obra.volumes),
 
             "manga",
-          ).filter((volume) => !itemEstaCompleto(volume, "manga"));
+          );
 
           if (volumes.length) {
             conteudo += `
