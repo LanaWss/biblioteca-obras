@@ -1737,7 +1737,7 @@ document.getElementById("limpar-filtros").addEventListener("click", () => {
 
 document
   .querySelectorAll(
-    "#popup-filtros,#popup-configurar-notificacao, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-perfil, #popup-biblioteca-amigo, #popup-escolha-avanco, #popup-escolha-link, #popup-lista-notificacoes, #popup-escolha-visto",
+    "#popup-filtros,#popup-configurar-notificacao, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-perfil, #popup-amigos, #popup-biblioteca-amigo, #popup-escolha-avanco, #popup-escolha-link, #popup-lista-notificacoes, #popup-escolha-visto",
   )
   .forEach((popup) => {
     popup.addEventListener("click", (evento) => {
@@ -4745,6 +4745,8 @@ function preencherConfiguracoesVisuais(configuracoes = {}) {
 }
 
 let fotoPerfilSelecionada;
+let bibliotecaPublicaSelecionada = false;
+let perfilFoiCarregado = false;
 
 function atualizarPreviewFotoPerfil(foto) {
   const preview = document.getElementById("foto-perfil-preview");
@@ -4783,6 +4785,17 @@ function mensagemAmigo(texto, tipo = "") {
 
   elemento.textContent = texto;
   elemento.dataset.tipo = tipo;
+}
+
+function atualizarPrivacidade(bibliotecaPublica) {
+  bibliotecaPublicaSelecionada = bibliotecaPublica;
+
+  document
+    .getElementById("privacidade-publica")
+    .setAttribute("aria-pressed", String(bibliotecaPublica));
+  document
+    .getElementById("privacidade-privada")
+    .setAttribute("aria-pressed", String(!bibliotecaPublica));
 }
 
 function formatarAvatarAmigo(amizade) {
@@ -4895,6 +4908,11 @@ async function abrirBibliotecaAmigo(identificador) {
 }
 
 async function carregarPerfil() {
+  if (perfilFoiCarregado) {
+    await carregarAmizades();
+    return;
+  }
+
   const resposta = await fetch("/perfil", {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -4914,26 +4932,16 @@ async function carregarPerfil() {
   document.getElementById("mudar-email").value = perfil.email;
   document.getElementById("identificador-publico").textContent =
     perfil.identificadorPublico;
-  document.getElementById("biblioteca-publica").checked =
-    perfil.bibliotecaPublica;
+  atualizarPrivacidade(perfil.bibliotecaPublica);
   fotoPerfilSelecionada = perfil.fotoPerfil || null;
   atualizarPreviewFotoPerfil(fotoPerfilSelecionada);
   preencherConfiguracoesVisuais(configuracoes);
   aplicarConfiguracoesVisuais(configuracoes);
+  perfilFoiCarregado = true;
   await carregarAmizades();
 }
 
 document.getElementById("botao-perfil").addEventListener("click", async () => {
-
-  document.getElementById("botao-amigos").addEventListener("click", async () => {
-    document.getElementById("popup-amigos").style.display = "flex";
-
-    try {
-      await carregarPerfil();
-    } catch (erro) {
-      mensagemAmigo("Não foi possível carregar seus amigos.", "erro");
-    }
-  });
   document.getElementById("popup-perfil").style.display = "flex";
 
   try {
@@ -4943,13 +4951,28 @@ document.getElementById("botao-perfil").addEventListener("click", async () => {
   }
 });
 
-document.getElementById("fechar-perfil").addEventListener("click", () => {
+document.getElementById("botao-amigos").addEventListener("click", async () => {
+  document.getElementById("popup-amigos").style.display = "flex";
 
-  document.getElementById("fechar-amigos").addEventListener("click", () => {
-    document.getElementById("popup-amigos").style.display = "none";
-  });
-    "#popup-filtros,#popup-configurar-notificacao, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-perfil, #popup-amigos, #popup-biblioteca-amigo, #popup-escolha-avanco, #popup-escolha-link, #popup-lista-notificacoes, #popup-escolha-visto",
+  try {
+    await carregarPerfil();
+  } catch (erro) {
+    mensagemAmigo("Não foi possível carregar seus amigos.", "erro");
+  }
+});
+
+document.getElementById("fechar-perfil").addEventListener("click", () => {
   document.getElementById("popup-perfil").style.display = "none";
+});
+
+document.getElementById("fechar-amigos").addEventListener("click", () => {
+  document.getElementById("popup-amigos").style.display = "none";
+});
+
+document.querySelectorAll("[data-privacidade]").forEach((botao) => {
+  botao.addEventListener("click", () => {
+    atualizarPrivacidade(botao.dataset.privacidade === "publica");
+  });
 });
 
 document
@@ -5095,7 +5118,7 @@ document.getElementById("salvar-perfil").addEventListener("click", async () => {
         email: document.getElementById("mudar-email").value,
         senhaAtual,
         novaSenha,
-        bibliotecaPublica: document.getElementById("biblioteca-publica").checked,
+        bibliotecaPublica: bibliotecaPublicaSelecionada,
         fotoPerfil: fotoPerfilSelecionada,
         configuracoesVisuais,
       }),

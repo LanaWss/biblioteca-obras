@@ -523,10 +523,15 @@
         <h2>Amigos</h2>
         <div class="perfil-secao amigos-secao">
           <h3>Privacidade</h3>
-          <label class="controle-checkbox" for="biblioteca-publica">
-            <input type="checkbox" id="biblioteca-publica" />
-            Permitir que amigos vejam minha biblioteca
-          </label>
+          <div class="opcoes-privacidade" role="group" aria-label="Visibilidade da biblioteca">
+            <button id="privacidade-publica" type="button" data-privacidade="publica" aria-pressed="false">
+              <i class="fa-solid fa-users"></i> Pública
+            </button>
+            <button id="privacidade-privada" type="button" data-privacidade="privada" aria-pressed="true">
+              <i class="fa-solid fa-lock"></i> Privada
+            </button>
+          </div>
+          <p class="ajuda-privacidade">Amigos aceitos poderão ver sua biblioteca quando ela estiver pública.</p>
         </div>
         <div class="perfil-secao amigos-secao">
           <h3>Adicionar amigo</h3>
