@@ -988,7 +988,7 @@ function salvarProgresso() {
       return;
     }
 
-    await carregarObras();
+    await carregarObras(false);
 
     mostrarMensagem("Progresso salvo com sucesso!", "sucesso");
   });
@@ -1575,7 +1575,7 @@ function carregarObras(atualizarDados = true) {
             `
               : "";
 
-        lista.innerHTML += `
+        lista.insertAdjacentHTML("beforeend", `
           <div
             class="cards"
             data-card-id="${obra.id}"
@@ -1713,7 +1713,7 @@ function carregarObras(atualizarDados = true) {
             </div>
 
           </div>
-        `;
+        `);
 
         const card = lista.querySelector(`[data-card-id="${obra.id}"]`);
 
@@ -1896,25 +1896,9 @@ function obterPendenciasVisto(obra) {
 }
 
 async function marcarProximoVisto(id, botao, tipo, indice) {
-  let obra = obrasCarregadas.find((item) => String(item.id) === String(id));
+  const obra = obrasCarregadas.find((item) => String(item.id) === String(id));
 
   if (!obra) {
-    return;
-  }
-
-  try {
-    const respostaAtual = await fetch(`/obras/${id}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    });
-
-    if (respostaAtual.ok) {
-      obra = await respostaAtual.json();
-    }
-  } catch (erro) {
-    mostrarMensagem("Não foi possível carregar o progresso.", "erro");
-
     return;
   }
 
@@ -1983,7 +1967,7 @@ async function marcarProximoVisto(id, botao, tipo, indice) {
       return;
     }
 
-    await carregarObras();
+    await carregarObras(false);
 
     mostrarMensagem(
       `${
@@ -2826,7 +2810,27 @@ document.addEventListener("click", async (evento) => {
         return;
       }
 
-      await carregarObras();
+      obra.favorito = novoFavorito;
+      botaoFavorito.setAttribute(
+        "aria-label",
+        novoFavorito ? "Remover dos favoritos" : "Adicionar aos favoritos",
+      );
+      botaoFavorito.title = novoFavorito
+        ? "Remover dos favoritos"
+        : "Adicionar aos favoritos";
+      botaoFavorito.querySelector("i")?.classList.toggle(
+        "fa-solid",
+        !!novoFavorito,
+      );
+      botaoFavorito.querySelector("i")?.classList.toggle(
+        "fa-regular",
+        !novoFavorito,
+      );
+
+      if (filtroFavorito.value === "favoritos" && !novoFavorito) {
+        botaoFavorito.closest(".cards")?.remove();
+      }
+
       mostrarMensagem(
         novoFavorito ? "Obra adicionada aos favoritos." : "Obra removida dos favoritos.",
         "sucesso",
