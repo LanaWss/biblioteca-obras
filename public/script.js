@@ -4996,27 +4996,48 @@ function abrirDetalheObraPublica(obra) {
   const imagem = obterImagemPreferida(obra).principal;
   const temporadas = lerConteudoObra(obra.temporadas);
   const volumes = lerConteudoObra(obra.volumes);
-  const itens = [
-    ...temporadas.map(
-      (temporada) =>
-        `<li>Temporada ${temporada.numero}: ${temporada.episodios || 0} episódios</li>`,
-    ),
-    ...volumes.map(
-      (volume) =>
-        `<li>Volume ${volume.numero}: capítulos ${volume.inicio}-${volume.fim}</li>`,
-    ),
-  ].join("");
+  const anime = temporadas.length
+    ? `
+      <section class="obra-publica-grupo">
+        <h3><i class="fa-solid fa-list"></i> Anime</h3>
+        <ul class="obra-publica-detalhe-lista">
+          ${temporadas
+            .map(
+              (temporada) =>
+                `<li>Temporada ${temporada.numero}: ${temporada.episodios || 0} episódios</li>`,
+            )
+            .join("")}
+        </ul>
+      </section>
+    `
+    : "";
+  const manga = volumes.length
+    ? `
+      <section class="obra-publica-grupo">
+        <h3><i class="fa-solid fa-book"></i> Mangá</h3>
+        <ul class="obra-publica-detalhe-lista">
+          ${volumes
+            .map(
+              (volume) =>
+                `<li>Volume ${volume.numero}: capítulos ${volume.inicio}-${volume.fim}</li>`,
+            )
+            .join("")}
+        </ul>
+      </section>
+    `
+    : "";
 
   document.getElementById("conteudo-detalhe-obra-publica").innerHTML = `
     <article class="obra-publica-detalhe">
       <h2>${obra.title}</h2>
       ${imagem ? `<img class="obra-publica-detalhe-imagem" src="${imagem}" alt="" />` : ""}
-      <strong>${obra.status || "Sem status"}</strong>
+      <span class="status-card status-${obra.status || "indefinido"}">${obra.status || "Sem status"}</span>
       <div class="progresso-texto">Progresso ${progresso.vistos}/${progresso.total}</div>
       <div class="barra-progresso">
         <div class="barra-progresso-preenchida" style="width: ${progresso.total ? (progresso.vistos / progresso.total) * 100 : 0}%"></div>
       </div>
-      ${itens ? `<ul class="obra-publica-detalhe-lista">${itens}</ul>` : ""}
+      ${anime}
+      ${manga}
     </article>
   `;
 

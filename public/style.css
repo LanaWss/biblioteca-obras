@@ -482,8 +482,8 @@ body:not(.pagina-login) h4 {
   top: 18px;
   left: 18px;
   z-index: 9000;
-  width: 46px;
-  height: 46px;
+  width: 52px;
+  height: 52px;
   margin: 0;
   padding: 0;
   border: 0;
@@ -602,7 +602,7 @@ body:not(.pagina-login) [role="button"] {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  height: 720px;
+  height: 780px;
 }
 
 .botao-favorito {
@@ -613,12 +613,12 @@ body:not(.pagina-login) [role="button"] {
 
 .botao-visto {
   align-self: flex-start;
-  flex: 0 0 auto;
+  flex: 0 0 38px !important;
   margin: -8px 0 0;
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  max-width: 44px;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  max-width: 38px;
   padding: 0;
   line-height: 1;
   font-size: 14px;
@@ -631,12 +631,12 @@ body:not(.pagina-login) [role="button"] {
 
 .botao-notificar {
   align-self: flex-end;
-  flex: 0 0 auto;
+  flex: 0 0 38px !important;
   margin: -47px 0 0;
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  max-width: 44px;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  max-width: 38px;
   padding: 0;
   line-height: 1;
   font-size: 14px;
@@ -1045,6 +1045,22 @@ body:not(.pagina-login) [role="button"] {
   box-shadow: none;
 }
 
+.obra-publica-detalhe .status-card {
+  align-self: center;
+  color: var(--cor-conteudo-botoes-personalizada, var(--primary-color));
+  background: var(--cor-botoes-personalizada, var(--secundary-color));
+}
+
+.obra-publica-grupo {
+  padding-top: 8px;
+  border-top: 1px solid #d5d8d8;
+  text-align: left;
+}
+
+.obra-publica-grupo h3 {
+  color: #17263a !important;
+}
+
 .obra-publica-detalhe-lista {
   margin: 0;
   padding-left: 20px;
@@ -1435,8 +1451,8 @@ body:not(.pagina-login) .botao-ler {
   place-items: center;
   overflow: hidden;
   flex: 0 0 auto;
-  width: 46px;
-  height: 46px;
+  width: 52px;
+  height: 52px;
   margin: 0;
   padding: 0;
   border: 1px solid #fff;
@@ -1931,8 +1947,8 @@ body:not(.pagina-login) .botao-ler {
   bottom: 18px;
   left: 18px;
   z-index: 9000;
-  width: 46px;
-  height: 46px;
+  width: 52px;
+  height: 52px;
   margin: 0;
   border: 0;
   border-radius: 50%;
@@ -2123,7 +2139,7 @@ body:not(.pagina-login) .botao-ler {
     max-width: none;
     padding: 10px;
     margin: 5px 0 12px;
-    height: 640px;
+    height: 700px;
   }
 
   #lista-obras {
