@@ -602,7 +602,7 @@ body:not(.pagina-login) [role="button"] {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-height: 780px;
+  height: 780px;
 }
 
 .botao-favorito {
@@ -699,7 +699,7 @@ body:not(.pagina-login) [role="button"] {
   background-size: cover;
   background-position: center;
   filter: blur(12px) saturate(45%);
-  opacity: 0.9;
+  opacity: 0.72;
   transform: scale(1.15);
   z-index: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
@@ -709,7 +709,7 @@ body:not(.pagina-login) [role="button"] {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(12, 18, 35, 0.38);
+  background: rgba(12, 18, 35, 0.58);
   z-index: 0;
   pointer-events: none;
 }
@@ -2139,7 +2139,7 @@ body:not(.pagina-login) .botao-ler {
     max-width: none;
     padding: 10px;
     margin: 5px 0 12px;
-    min-height: 700px;
+    height: 700px;
   }
 
   #lista-obras {
