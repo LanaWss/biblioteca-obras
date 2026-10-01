@@ -807,8 +807,10 @@ body:not(.pagina-login) [role="button"] {
 
 .botao-mais-itens {
   width: 33.333%;
-  flex: 0 0 33.333%;
+  flex: 0 0 auto;
   min-height: 36px;
+  max-height: 36px;
+  height: 36px;
   align-self: center;
   margin: 0;
   padding: 8px 12px;

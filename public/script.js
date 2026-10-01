@@ -621,6 +621,20 @@ function calcularProgresso(obra) {
   };
 }
 
+function itemEstaCompleto(item, tipo) {
+  const inicio = tipo === "manga" ? Number(item.inicio) : obterInicioTemporada(item);
+  const fim =
+    tipo === "manga"
+      ? Number(item.fim)
+      : inicio + Number(item.episodios || 0) - 1;
+
+  if (!Number.isFinite(inicio) || !Number.isFinite(fim) || fim < inicio) {
+    return false;
+  }
+
+  return obterNumerosVistosValidos(item, inicio, fim).size === fim - inicio + 1;
+}
+
 function renderizarProgressoTipo(obra, tipo) {
   if (obra.tipo !== "ambos") {
     return "";
@@ -1434,9 +1448,10 @@ function carregarObras(atualizarDados = true) {
             lerConteudoObra(obra.temporadas),
 
             "anime",
-          );
+          ).filter((temporada) => !itemEstaCompleto(temporada, "anime"));
 
-          conteudo = `
+          if (temporadas.length) {
+            conteudo = `
             <h3>
               <i class="fa-solid fa-list"></i>
               Temporadas
@@ -1475,6 +1490,7 @@ function carregarObras(atualizarDados = true) {
                 : ""
             }
           `;
+          }
         }
 
         if (tipoTemManga(obra.tipo)) {
@@ -1484,9 +1500,10 @@ function carregarObras(atualizarDados = true) {
             lerConteudoObra(obra.volumes),
 
             "manga",
-          );
+          ).filter((volume) => !itemEstaCompleto(volume, "manga"));
 
-          conteudo += `
+          if (volumes.length) {
+            conteudo += `
             <h3>
               <i class="fa-solid fa-book"></i>
               Volumes
@@ -1521,6 +1538,7 @@ function carregarObras(atualizarDados = true) {
                 : ""
             }
           `;
+          }
         }
 
         const imagens = obterImagemPreferida(obra);
