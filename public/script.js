@@ -780,83 +780,6 @@ function validarImagem(url, arquivoDataUrl) {
   return true;
 }
 
-function ajustarCorDoTexto(card, imagemUrl) {
-  const imagem = new Image();
-
-  imagem.crossOrigin = "anonymous";
-
-  imagem.onload = () => {
-    try {
-      const canvas = document.createElement("canvas");
-
-      const contexto = canvas.getContext("2d");
-
-      const tamanhoAmostra = 8;
-
-      canvas.width = tamanhoAmostra;
-
-      canvas.height = tamanhoAmostra;
-
-      contexto.drawImage(imagem, 0, 0, tamanhoAmostra, tamanhoAmostra);
-
-      const pixels = contexto.getImageData(
-        0,
-        0,
-        tamanhoAmostra,
-        tamanhoAmostra,
-      ).data;
-
-      let luminanciaTotal = 0;
-      let pesoTotal = 0;
-
-      for (let indice = 0; indice < pixels.length; indice += 4) {
-        const alpha = pixels[indice + 3] / 255;
-
-        const vermelho = pixels[indice] / 255;
-
-        const verde = pixels[indice + 1] / 255;
-
-        const azul = pixels[indice + 2] / 255;
-
-        const luminancia =
-          0.2126 * vermelho ** 2.2 +
-          0.7152 * verde ** 2.2 +
-          0.0722 * azul ** 2.2;
-
-        luminanciaTotal += luminancia * alpha;
-
-        pesoTotal += alpha;
-      }
-
-      const luminanciaMedia = pesoTotal ? luminanciaTotal / pesoTotal : 0;
-
-      const contrasteComPreto = (luminanciaMedia + 0.05) / 0.05;
-
-      const contrasteComBranco = 1.05 / (luminanciaMedia + 0.05);
-
-      const textoEscuro = contrasteComPreto >= contrasteComBranco;
-
-      card.classList.toggle("texto-escuro", textoEscuro);
-
-      card.classList.toggle("texto-claro", !textoEscuro);
-    } catch (erro) {
-      console.log("Não foi possível analisar o brilho da imagem.");
-
-      card.classList.add("texto-claro");
-
-      card.classList.remove("texto-escuro");
-    }
-  };
-
-  imagem.onerror = () => {
-    card.classList.add("texto-claro");
-
-    card.classList.remove("texto-escuro");
-  };
-
-  imagem.src = imagemUrl;
-}
-
 function configurarImagemCard(card, obra) {
   const imagem = card.querySelector(".imagem-obra");
 
@@ -868,6 +791,9 @@ function configurarImagemCard(card, obra) {
     const fundo = url ? obterImagemParaCss(url) : "none";
 
     card.style.setProperty("--imagem-obra", fundo);
+    card.style.backgroundImage = fundo;
+    card.style.backgroundSize = "cover";
+    card.style.backgroundPosition = "center";
   };
 
   definirFundo(imagens.principal);
@@ -883,8 +809,6 @@ function configurarImagemCard(card, obra) {
       imagem.src = imagens.fallback;
 
       definirFundo(imagens.fallback);
-
-      ajustarCorDoTexto(card, imagens.fallback);
 
       return;
     }
@@ -905,7 +829,6 @@ function configurarImagemCard(card, obra) {
 
     aviso.hidden = true;
 
-    ajustarCorDoTexto(card, imagem.currentSrc || imagem.src);
   });
 
   imagem.addEventListener("error", usarFallback);
