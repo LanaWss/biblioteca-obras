@@ -902,6 +902,47 @@ function configurarImagemCard(card, obra) {
 }
 
 let filaSalvamentoProgresso = Promise.resolve();
+let botaoListaItensAberta = null;
+
+function fecharListaItens() {
+  if (botaoListaItensAberta) {
+    botaoListaItensAberta.dataset.temporadasExpandidas = "false";
+    botaoListaItensAberta.dataset.volumesExpandidos = "false";
+    botaoListaItensAberta.textContent = "Ler mais";
+    botaoListaItensAberta = null;
+  }
+
+  document.getElementById("popup-lista-itens").style.display = "none";
+}
+
+function abrirListaItens(botao, tipo) {
+  const card = botao.closest(".cards");
+  const seletor = tipo === "manga" ? ".lista-volumes-card" : ".lista-temporadas-card";
+  const lista = card.querySelector(seletor);
+
+  if (!lista) {
+    return;
+  }
+
+  const itens = [...lista.children]
+    .map((item) => {
+      const copia = item.cloneNode(true);
+      copia.hidden = false;
+      copia.removeAttribute("data-volume-extra");
+      copia.removeAttribute("data-temporada-extra");
+      return copia.outerHTML;
+    })
+    .join("");
+
+  document.getElementById("titulo-lista-itens").textContent =
+    tipo === "manga" ? "Volumes" : "Temporadas";
+  document.getElementById("conteudo-lista-itens").innerHTML = itens;
+  document.getElementById("popup-lista-itens").style.display = "flex";
+
+  botao.dataset[`${tipo === "manga" ? "volumes" : "temporadas"}Expandidas`] = "true";
+  botao.textContent = "Ler menos";
+  botaoListaItensAberta = botao;
+}
 
 function salvarProgresso() {
   filaSalvamentoProgresso = filaSalvamentoProgresso.then(async () => {
@@ -1737,7 +1778,7 @@ document.getElementById("limpar-filtros").addEventListener("click", () => {
 
 document
   .querySelectorAll(
-    "#popup-filtros,#popup-configurar-notificacao, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-perfil, #popup-amigos, #popup-biblioteca-amigo, #popup-escolha-avanco, #popup-escolha-link, #popup-lista-notificacoes, #popup-escolha-visto",
+    "#popup-filtros,#popup-configurar-notificacao, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-perfil, #popup-amigos, #popup-biblioteca-amigo, #popup-lista-itens, #popup-escolha-avanco, #popup-escolha-link, #popup-lista-notificacoes, #popup-escolha-visto",
   )
   .forEach((popup) => {
     popup.addEventListener("click", (evento) => {
@@ -2777,17 +2818,11 @@ document.addEventListener("click", async (evento) => {
   if (evento.target.matches("button[data-volumes-expandidos]")) {
     const botao = evento.target;
 
-    const card = botao.closest(".cards");
-
-    const mostrar = botao.dataset.volumesExpandidos !== "true";
-
-    card.querySelectorAll("[data-volume-extra]").forEach((volume) => {
-      volume.hidden = !mostrar;
-    });
-
-    botao.dataset.volumesExpandidos = String(mostrar);
-
-    botao.textContent = mostrar ? "Mostrar menos" : "Ler mais";
+    if (botao.dataset.volumesExpandidos === "true") {
+      fecharListaItens();
+    } else {
+      abrirListaItens(botao, "manga");
+    }
 
     return;
   }
@@ -2795,17 +2830,11 @@ document.addEventListener("click", async (evento) => {
   if (evento.target.matches("button[data-temporadas-expandidas]")) {
     const botao = evento.target;
 
-    const card = botao.closest(".cards");
-
-    const mostrar = botao.dataset.temporadasExpandidas !== "true";
-
-    card.querySelectorAll("[data-temporada-extra]").forEach((temporada) => {
-      temporada.hidden = !mostrar;
-    });
-
-    botao.dataset.temporadasExpandidas = String(mostrar);
-
-    botao.textContent = mostrar ? "Mostrar menos" : "Ler mais";
+    if (botao.dataset.temporadasExpandidas === "true") {
+      fecharListaItens();
+    } else {
+      abrirListaItens(botao, "anime");
+    }
 
     return;
   }
@@ -5079,6 +5108,10 @@ document.getElementById("adicionar-amigo").addEventListener("click", async () =>
 
 document.getElementById("fechar-biblioteca-amigo").addEventListener("click", () => {
   document.getElementById("popup-biblioteca-amigo").style.display = "none";
+});
+
+document.getElementById("fechar-lista-itens").addEventListener("click", () => {
+  fecharListaItens();
 });
 
 document.addEventListener("click", async (evento) => {
