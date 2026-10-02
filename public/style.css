@@ -2185,21 +2185,21 @@ body:not(.pagina-login) .botao-ler {
   }
 
   body {
-    margin: 10px;
+    margin: 6px;
   }
 
   header {
-    padding: 6px 8px;
+    padding: 4px 6px;
     border-radius: 10px;
   }
 
   header h1 {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   header > p {
-    margin-bottom: 8px;
-    font-size: 11px;
+    margin-bottom: 6px;
+    font-size: 10px;
   }
 
   #botao-inicio,
@@ -2237,7 +2237,7 @@ body:not(.pagina-login) .botao-ler {
   }
 
   .barra-ferramentas {
-    gap: 8px;
+    gap: 5px;
   }
 
   .campo-busca {
@@ -2247,29 +2247,29 @@ body:not(.pagina-login) .botao-ler {
   .campo-busca input {
     flex: 1;
     width: auto;
-    min-height: 40px;
-    font-size: 16px;
+    min-height: 36px;
+    font-size: 14px;
   }
 
   .barra-ferramentas > button {
     flex: 1 1 auto;
-    min-height: 40px;
-    padding: 7px 9px;
-    font-size: 13px;
+    min-height: 36px;
+    padding: 5px 7px;
+    font-size: 12px;
   }
 
   .cards {
     position: relative;
     max-width: none;
-    padding: 10px;
-    margin: 6px 0 14px;
-    height: 760px;
+    padding: 7px;
+    margin: 4px 0 10px;
+    height: 700px;
   }
 
   #lista-obras {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-    margin-top: 10px;
+    gap: 8px;
+    margin-top: 8px;
     padding-bottom: 12px;
   }
 
@@ -2280,8 +2280,8 @@ body:not(.pagina-login) .botao-ler {
   }
 
   .cards img {
-    height: 220px !important;
-    max-height: 220px;
+    height: 170px !important;
+    max-height: 170px;
   }
 
   #popup-lista-itens {
@@ -2294,15 +2294,15 @@ body:not(.pagina-login) .botao-ler {
 
   .botoes-card button,
   .botao-ler {
-    min-height: 54px;
+    min-height: 40px;
     min-width: 0;
-    padding: 10px 6px;
-    font-size: 14px;
+    padding: 6px 4px;
+    font-size: 11px;
   }
 
   .botoes-card {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    gap: 5px;
   }
 
   .botoes-card button:nth-child(4) {
