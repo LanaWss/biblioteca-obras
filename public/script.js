@@ -662,7 +662,7 @@ function renderizarProgressoTipo(obra, tipo) {
     : 0;
 
   return `
-    <div class="progresso-tipo-card">
+    <div class="progresso-tipo-card" data-progresso-tipo-card="${tipo}" hidden>
 
       <div class="progresso-texto">
         <span>
@@ -1363,6 +1363,8 @@ function carregarObras(atualizarDados = true) {
 
         const progressoVolumes = renderizarProgressoTipo(obra, "manga");
 
+        const mostrarProgressosSeparados = obra.tipo === "ambos";
+
         const statusExibido = {
           completa: "Completa",
 
@@ -1382,12 +1384,27 @@ function carregarObras(atualizarDados = true) {
 
           if (temporadas.length) {
             conteudo = `
-            <h3>
-              <i class="fa-solid fa-list"></i>
-              Temporadas
-            </h3>
+            <div class="cabecalho-tipo-card">
+              <h3>
+                <i class="fa-solid fa-list"></i>
+                Temporadas
+              </h3>
 
-            ${progressoTemporadas}
+              ${
+                mostrarProgressosSeparados
+                  ? `<button
+                      type="button"
+                      class="botao-toggle-progresso"
+                      data-progresso-expansivel="anime"
+                      aria-expanded="false"
+                    >
+                      Mostrar progresso
+                    </button>`
+                  : ""
+              }
+            </div>
+
+            ${mostrarProgressosSeparados ? progressoTemporadas : ""}
 
             <div class="lista-temporadas-card">
 
@@ -1434,12 +1451,27 @@ function carregarObras(atualizarDados = true) {
 
           if (volumes.length) {
             conteudo += `
-            <h3>
-              <i class="fa-solid fa-book"></i>
-              Volumes
-            </h3>
+            <div class="cabecalho-tipo-card">
+              <h3>
+                <i class="fa-solid fa-book"></i>
+                Volumes
+              </h3>
 
-            ${progressoVolumes}
+              ${
+                mostrarProgressosSeparados
+                  ? `<button
+                      type="button"
+                      class="botao-toggle-progresso"
+                      data-progresso-expansivel="manga"
+                      aria-expanded="false"
+                    >
+                      Mostrar progresso
+                    </button>`
+                  : ""
+              }
+            </div>
+
+            ${mostrarProgressosSeparados ? progressoVolumes : ""}
 
             <div class="lista-volumes-card">
 
@@ -2787,6 +2819,26 @@ document.addEventListener("click", async (evento) => {
     } else {
       abrirListaItens(botao, "manga");
     }
+
+    return;
+  }
+
+  if (evento.target.matches("button[data-progresso-expansivel]")) {
+    const botao = evento.target;
+    const tipo = botao.dataset.progressoExpansivel;
+    const card = botao.closest(".cards");
+    const progresso = card?.querySelector(
+      `[data-progresso-tipo-card="${tipo}"]`,
+    );
+    const aberto = botao.getAttribute("aria-expanded") === "true";
+
+    if (!progresso) {
+      return;
+    }
+
+    progresso.hidden = aberto;
+    botao.setAttribute("aria-expanded", String(!aberto));
+    botao.textContent = aberto ? "Mostrar progresso" : "Ocultar progresso";
 
     return;
   }
