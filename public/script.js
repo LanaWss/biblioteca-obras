@@ -661,6 +661,19 @@ function renderizarProgressoTipo(obra, tipo) {
     ? (progresso.vistos / progresso.total) * 100
     : 0;
 
+  const detalhes = itens
+    .map((item) => {
+      if (tipo === "anime") {
+        const inicio = obterInicioTemporada(item);
+        const fim = inicio + Number(item.episodios || 0) - 1;
+
+        return `<span>Temporada ${item.numero} — episódios ${inicio}–${fim}</span>`;
+      }
+
+      return `<span>Volume ${item.numero} — capítulos ${item.inicio}–${item.fim}</span>`;
+    })
+    .join("");
+
   return `
     <div class="progresso-tipo-card" data-progresso-tipo-card="${tipo}" hidden>
 
@@ -677,6 +690,10 @@ function renderizarProgressoTipo(obra, tipo) {
           style="width: ${percentual}%"
         ></div>
 
+      </div>
+
+      <div class="progresso-tipo-itens">
+        ${detalhes}
       </div>
 
     </div>
