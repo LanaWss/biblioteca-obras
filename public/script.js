@@ -8,7 +8,7 @@ let linksLeituraEdicao = [];
 let linksEscolhaAtual = [];
 
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/service-worker.js?v=20", {
+  navigator.serviceWorker.register("/service-worker.js?v=22", {
     updateViaCache: "none",
   });
 }
@@ -4707,14 +4707,59 @@ const configuracoesVisuaisPadrao = {
   fundoFim: "#0a0253",
   fonte: "Arial, sans-serif",
   botoes: "#5091eb",
-  botoesTexto: "#0ecfff",
+  botoesTexto: "#ffffff",
   textos: "#ffffff",
   titulos: "#ffffff",
 };
 
+function lerPadroesVisuaisDoCss() {
+  let estilosRaiz = null;
+
+  for (const folha of document.styleSheets) {
+    try {
+      const regraRaiz = [...folha.cssRules].find(
+        (regra) => regra.selectorText === ":root",
+      );
+
+      if (regraRaiz) {
+        estilosRaiz = regraRaiz.style;
+        break;
+      }
+    } catch (erro) {
+      continue;
+    }
+  }
+
+  if (!estilosRaiz) {
+    return { ...configuracoesVisuaisPadrao };
+  }
+
+  const lerValor = (nome, fallback) =>
+    estilosRaiz.getPropertyValue(nome).trim() || fallback;
+  const fundo = lerValor(
+    "--fundo-personalizado",
+    `linear-gradient(135deg, ${configuracoesVisuaisPadrao.fundoInicio}, ${configuracoesVisuaisPadrao.fundoFim})`,
+  );
+  const coresDoFundo = fundo.match(/#[0-9a-fA-F]{3,8}|rgba?\([^)]*\)/g) || [];
+
+  return {
+    fundoInicio: coresDoFundo[0] || configuracoesVisuaisPadrao.fundoInicio,
+    fundoFim:
+      coresDoFundo[coresDoFundo.length - 1] || configuracoesVisuaisPadrao.fundoFim,
+    fonte: lerValor("--fonte-textos-personalizada", configuracoesVisuaisPadrao.fonte),
+    botoes: lerValor("--secundary-color", configuracoesVisuaisPadrao.botoes),
+    botoesTexto: lerValor(
+      "--cor-conteudo-botoes-personalizada",
+      configuracoesVisuaisPadrao.botoesTexto,
+    ),
+    textos: lerValor("--cor-textos-personalizada", configuracoesVisuaisPadrao.textos),
+    titulos: lerValor("--cor-titulos-personalizada", configuracoesVisuaisPadrao.titulos),
+  };
+}
+
 function obterConfiguracoesVisuais(configuracoes = {}) {
   const valores = {
-    ...configuracoesVisuaisPadrao,
+    ...lerPadroesVisuaisDoCss(),
     ...configuracoes,
   };
 
@@ -5208,8 +5253,10 @@ document.addEventListener("click", async (evento) => {
 });
 
 document.getElementById("restaurar-visuais").addEventListener("click", () => {
-  preencherConfiguracoesVisuais(configuracoesVisuaisPadrao);
-  aplicarConfiguracoesVisuais(configuracoesVisuaisPadrao);
+  const padroesVisuais = lerPadroesVisuaisDoCss();
+
+  preencherConfiguracoesVisuais(padroesVisuais);
+  aplicarConfiguracoesVisuais(padroesVisuais);
   mostrarMensagem("Visuais restaurados. Clique em Salvar alterações para manter.", "sucesso");
 });
 
