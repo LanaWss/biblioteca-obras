@@ -4691,7 +4691,8 @@ document.getElementById("nome-perfil-popup").textContent = nomePerfil;
 document.getElementById("mudar-nick").placeholder = nomePerfil;
 
 const configuracoesVisuaisPadrao = {
-  fundo: "#196cf3",
+  fundoInicio: "#196cf3",
+  fundoFim: "#0a0253",
   fonte: "Arial, sans-serif",
   botoes: "#175d69",
   botoesTexto: "#ffef0e",
@@ -4699,14 +4700,31 @@ const configuracoesVisuaisPadrao = {
   titulos: "#ffffff",
 };
 
-function aplicarConfiguracoesVisuais(configuracoes = {}) {
+function obterConfiguracoesVisuais(configuracoes = {}) {
   const valores = {
     ...configuracoesVisuaisPadrao,
     ...configuracoes,
   };
+
+  if (configuracoes.fundo && !configuracoes.fundoInicio) {
+    valores.fundoInicio = configuracoes.fundo;
+  }
+
+  if (configuracoes.fundo && !configuracoes.fundoFim) {
+    valores.fundoFim = configuracoes.fundo;
+  }
+
+  return valores;
+}
+
+function aplicarConfiguracoesVisuais(configuracoes = {}) {
+  const valores = obterConfiguracoesVisuais(configuracoes);
   const raiz = document.documentElement;
 
-  raiz.style.setProperty("--fundo-personalizado", valores.fundo);
+  raiz.style.setProperty(
+    "--fundo-personalizado",
+    `linear-gradient(135deg, ${valores.fundoInicio}, ${valores.fundoFim})`,
+  );
   raiz.style.setProperty("--fonte-textos-personalizada", valores.fonte);
   raiz.style.setProperty("--cor-botoes-personalizada", valores.botoes);
   raiz.style.setProperty(
@@ -4718,12 +4736,10 @@ function aplicarConfiguracoesVisuais(configuracoes = {}) {
 }
 
 function preencherConfiguracoesVisuais(configuracoes = {}) {
-  const valores = {
-    ...configuracoesVisuaisPadrao,
-    ...configuracoes,
-  };
+  const valores = obterConfiguracoesVisuais(configuracoes);
 
-  document.getElementById("cor-fundo").value = valores.fundo;
+  document.getElementById("cor-fundo-inicio").value = valores.fundoInicio;
+  document.getElementById("cor-fundo-fim").value = valores.fundoFim;
   document.getElementById("fonte-textos").value = valores.fonte;
   document.getElementById("cor-botoes").value = valores.botoes;
   document.getElementById("cor-conteudo-botoes").value = valores.botoesTexto;
@@ -5200,7 +5216,8 @@ document.getElementById("salvar-perfil").addEventListener("click", async () => {
   }
 
   const configuracoesVisuais = {
-    fundo: document.getElementById("cor-fundo").value,
+    fundoInicio: document.getElementById("cor-fundo-inicio").value,
+    fundoFim: document.getElementById("cor-fundo-fim").value,
     fonte: document.getElementById("fonte-textos").value,
     botoes: document.getElementById("cor-botoes").value,
     botoesTexto: document.getElementById("cor-conteudo-botoes").value,

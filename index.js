@@ -719,6 +719,8 @@ app.patch("/perfil", verificarToken, async (req, res) => {
   if (configuracoesVisuais && typeof configuracoesVisuais === "object") {
     novasConfiguracoes = {
       fundo: configuracoesVisuais.fundo,
+      fundoInicio: configuracoesVisuais.fundoInicio,
+      fundoFim: configuracoesVisuais.fundoFim,
       fonte: configuracoesVisuais.fonte,
       botoes: configuracoesVisuais.botoes,
       botoesTexto: configuracoesVisuais.botoesTexto,
@@ -1750,6 +1752,7 @@ app.patch("/obras/ordem", verificarToken, (req, res) => {
   });
 
   salvarOrdem(obras);
+  normalizarOrdemDoUsuario(req.usuario.id);
 
   res.json({
     mensagem: "Ordem das obras atualizada",

@@ -2,12 +2,12 @@
   font-family: Arial, sans-serif;
   font-size: 16px;
   margin: 20px;
-  --primary-color: #ffef0e;
-  --secundary-color: #175d69;
-  --fundo-personalizado: linear-gradient(135deg, #4287f5, #196cf3, #404cf7, #0a0253);
+  --primary-color: #fffde8;
+  --secundary-color: #5091eb;
+  --fundo-personalizado: linear-gradient(135deg, #17448c, #196cf3, #404cf7, #0a0253);
   --cor-textos-personalizada: #ffffff;
   --cor-titulos-personalizada: #ffffff;
-  --cor-conteudo-botoes-personalizada: #ffef0e;
+  --cor-conteudo-botoes-personalizada: #0ecfff;
   --fonte-textos-personalizada: Arial, sans-serif;
 }
 
@@ -2048,6 +2048,12 @@ body:not(.pagina-login) .botao-ler {
   margin-top: 4px;
 }
 
+@media (min-width: 601px) and (max-width: 1024px) {
+  #lista-obras {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 600px) {
   :root {
     font-size: 18px;
@@ -2058,11 +2064,16 @@ body:not(.pagina-login) .botao-ler {
   }
 
   header {
-    padding: 16px 12px;
+    padding: 10px 10px;
   }
 
   header h1 {
-    font-size: 28px;
+    font-size: 24px;
+  }
+
+  header > p {
+    margin-bottom: 12px;
+    font-size: 13px;
   }
 
   #botao-inicio,
@@ -2123,16 +2134,16 @@ body:not(.pagina-login) .botao-ler {
 
   .cards {
     position: relative;
-    max-width: none;
-    padding: 10px;
-    margin: 5px 0 12px;
+    max-width: 420px;
+    padding: 14px;
+    margin: 8px auto 20px;
     height: 760px;
   }
 
   #lista-obras {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    margin-top: 18px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    margin-top: 14px;
     padding-bottom: 12px;
   }
 
@@ -2143,8 +2154,8 @@ body:not(.pagina-login) .botao-ler {
   }
 
   .cards img {
-    height: 190px !important;
-    max-height: 190px;
+    height: 220px !important;
+    max-height: 220px;
   }
 
   #popup-lista-itens {
