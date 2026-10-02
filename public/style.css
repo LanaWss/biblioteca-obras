@@ -587,7 +587,7 @@ body:not(.pagina-login) [role="button"] {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  height: 780px;
+  height: 700px;
 }
 
 .botao-favorito {
@@ -2281,7 +2281,7 @@ body:not(.pagina-login) .botao-ler {
     max-width: none;
     padding: 6px;
     margin: 4px 0 10px;
-    height: 700px;
+    height: 650px;
   }
 
   #lista-obras {
