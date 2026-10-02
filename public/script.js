@@ -5367,7 +5367,7 @@ const catalogoObras = [
     titulosAlternativos: ["DBZ"],
     tipo: "ambos",
     status: "completa",
-    imagem: "https://cdn.myanimelist.net/images/anime/1607/117271.jpg",
+    imagem: "https://cdn.myanimelist.net/images/anime/1277/142022.jpg",
     temporadas: criarTemporadasCatalogo([39, 35, 33, 32, 26, 29, 38, 32, 27]),
     volumes: criarVolumesCatalogo(26, 325),
   },
