@@ -8,7 +8,7 @@ let linksLeituraEdicao = [];
 let linksEscolhaAtual = [];
 
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/service-worker.js?v=18", {
+  navigator.serviceWorker.register("/service-worker.js?v=19", {
     updateViaCache: "none",
   });
 }
@@ -4691,11 +4691,11 @@ document.getElementById("nome-perfil-popup").textContent = nomePerfil;
 document.getElementById("mudar-nick").placeholder = nomePerfil;
 
 const configuracoesVisuaisPadrao = {
-  fundoInicio: "#196cf3",
+  fundoInicio: "#17448c",
   fundoFim: "#0a0253",
   fonte: "Arial, sans-serif",
-  botoes: "#175d69",
-  botoesTexto: "#ffef0e",
+  botoes: "#5091eb",
+  botoesTexto: "#0ecfff",
   textos: "#ffffff",
   titulos: "#ffffff",
 };
@@ -5198,6 +5198,7 @@ document.addEventListener("click", async (evento) => {
 document.getElementById("restaurar-visuais").addEventListener("click", () => {
   preencherConfiguracoesVisuais(configuracoesVisuaisPadrao);
   aplicarConfiguracoesVisuais(configuracoesVisuaisPadrao);
+  mostrarMensagem("Visuais restaurados. Clique em Salvar alterações para manter.", "sucesso");
 });
 
 document.getElementById("salvar-perfil").addEventListener("click", async () => {
@@ -5309,3 +5310,249 @@ document
 
     mostrarMensagem("Obra excluída com sucesso!", "sucesso");
   });
+
+function criarTemporadasCatalogo(episodios) {
+  return episodios.map((quantidade, indice) => ({
+    numero: indice + 1,
+    episodios: quantidade,
+    inicio: 1,
+    vistos: [],
+  }));
+}
+
+function criarVolumesCatalogo(quantidade, capitulos) {
+  const volumes = [];
+  const porVolume = Math.floor(capitulos / quantidade);
+  let inicio = 1;
+
+  for (let indice = 0; indice < quantidade; indice++) {
+    const fim = indice === quantidade - 1
+      ? capitulos
+      : inicio + porVolume - 1;
+
+    volumes.push({
+      numero: indice + 1,
+      inicio,
+      fim,
+      vistos: [],
+    });
+
+    inicio = fim + 1;
+  }
+
+  return volumes;
+}
+
+const catalogoObras = [
+  {
+    titulo: "Naruto Clássico",
+    titulosAlternativos: ["Naruto"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/13/17405.jpg",
+    temporadas: criarTemporadasCatalogo([57, 43, 41, 42, 37]),
+    volumes: criarVolumesCatalogo(27, 244),
+  },
+  {
+    titulo: "One Piece",
+    titulosAlternativos: ["ワンピース"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/6/73245.jpg",
+    temporadas: criarTemporadasCatalogo([61, 16, 14, 38, 30, 52, 45, 59, 61, 50]),
+    volumes: criarVolumesCatalogo(111, 1122),
+  },
+  {
+    titulo: "Dragon Ball Z",
+    titulosAlternativos: ["DBZ"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/1607/117271.jpg",
+    temporadas: criarTemporadasCatalogo([39, 35, 33, 32, 26, 29, 38, 32, 27]),
+    volumes: criarVolumesCatalogo(26, 325),
+  },
+  {
+    titulo: "Attack on Titan",
+    titulosAlternativos: ["Shingeki no Kyojin"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/10/47347.jpg",
+    temporadas: criarTemporadasCatalogo([25, 12, 22, 30]),
+    volumes: criarVolumesCatalogo(34, 139),
+  },
+  {
+    titulo: "Demon Slayer",
+    titulosAlternativos: ["Kimetsu no Yaiba"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/1286/99889.jpg",
+    temporadas: criarTemporadasCatalogo([26, 7, 11, 11]),
+    volumes: criarVolumesCatalogo(23, 205),
+  },
+];
+
+const popupObterObra = document.getElementById("popup-obter-obra");
+const buscaCatalogoObras = document.getElementById("buscar-catalogo-obras");
+const resultadosCatalogoObras = document.getElementById("resultados-catalogo-obras");
+const previsaoCatalogoObra = document.getElementById("previsao-catalogo-obra");
+const escolhaProgressoCatalogo = document.getElementById("escolha-progresso-catalogo");
+const erroCatalogoObras = document.getElementById("erro-catalogo-obras");
+let obraCatalogoSelecionada = null;
+
+function resumoCatalogo(obra) {
+  const episodios = obra.temporadas.reduce(
+    (total, temporada) => total + temporada.episodios,
+    0,
+  );
+  const capitulos = obra.volumes.reduce(
+    (total, volume) => total + volume.fim - volume.inicio + 1,
+    0,
+  );
+
+  return `${obra.temporadas.length} temporadas · ${episodios} episódios · ${obra.volumes.length} volumes · ${capitulos} capítulos`;
+}
+
+function renderizarResultadosCatalogo() {
+  const termo = normalizarTexto(buscaCatalogoObras.value.trim());
+  const resultados = catalogoObras.filter((obra) =>
+    [obra.titulo, ...obra.titulosAlternativos].some((titulo) =>
+      normalizarTexto(titulo).includes(termo),
+    ),
+  );
+
+  resultadosCatalogoObras.innerHTML = resultados.length
+    ? ""
+    : "<p>Nenhuma obra encontrada no catálogo.</p>";
+
+  resultados.forEach((obra) => {
+    const botao = document.createElement("button");
+    botao.type = "button";
+    botao.className = "resultado-catalogo-obra";
+    botao.innerHTML = `
+      <img src="${obra.imagem}" alt="">
+      <span><strong>${obra.titulo}</strong><small>${resumoCatalogo(obra)}</small></span>
+    `;
+    botao.addEventListener("click", () => selecionarObraCatalogo(obra));
+    resultadosCatalogoObras.appendChild(botao);
+  });
+}
+
+function selecionarObraCatalogo(obra) {
+  obraCatalogoSelecionada = obra;
+  resultadosCatalogoObras.hidden = true;
+  previsaoCatalogoObra.hidden = false;
+  escolhaProgressoCatalogo.hidden = false;
+  previsaoCatalogoObra.innerHTML = `
+    <img src="${obra.imagem}" alt="Capa de ${obra.titulo}">
+    <div>
+      <h3>${obra.titulo}</h3>
+      <p>${resumoCatalogo(obra)}</p>
+      <p>Escolha abaixo o que já foi acompanhado para criar o card com o progresso certo.</p>
+    </div>
+  `;
+}
+
+function preencherProgressoCatalogo(obra, escolha) {
+  const copiarTemporadas = structuredClone(obra.temporadas);
+  const copiarVolumes = structuredClone(obra.volumes);
+  const marcarAnime = escolha === "toda" || escolha === "anime";
+  const marcarManga = escolha === "toda" || escolha === "manga";
+
+  copiarTemporadas.forEach((temporada) => {
+    if (marcarAnime) {
+      temporada.vistos = Array.from(
+        { length: temporada.episodios },
+        (_, indice) => temporada.inicio + indice,
+      );
+    }
+  });
+
+  copiarVolumes.forEach((volume) => {
+    if (marcarManga) {
+      volume.vistos = Array.from(
+        { length: volume.fim - volume.inicio + 1 },
+        (_, indice) => volume.inicio + indice,
+      );
+    }
+  });
+
+  return { temporadas: copiarTemporadas, volumes: copiarVolumes };
+}
+
+document.getElementById("botao-obter-obra").addEventListener("click", () => {
+  popupObterObra.style.display = "flex";
+  buscaCatalogoObras.value = "";
+  obraCatalogoSelecionada = null;
+  previsaoCatalogoObra.hidden = true;
+  escolhaProgressoCatalogo.hidden = true;
+  resultadosCatalogoObras.hidden = false;
+  erroCatalogoObras.textContent = "";
+  renderizarResultadosCatalogo();
+  buscaCatalogoObras.focus();
+});
+
+document.getElementById("fechar-obter-obra").addEventListener("click", () => {
+  popupObterObra.style.display = "none";
+});
+
+buscaCatalogoObras.addEventListener("input", renderizarResultadosCatalogo);
+
+document.querySelectorAll("[data-progresso-catalogo]").forEach((botao) => {
+  botao.addEventListener("click", async () => {
+    if (!obraCatalogoSelecionada) {
+      return;
+    }
+
+    const obraExistente = obrasCarregadas.some(
+      (obra) => normalizarTexto(obra.title) === normalizarTexto(obraCatalogoSelecionada.titulo),
+    );
+
+    if (obraExistente) {
+      erroCatalogoObras.textContent = "Essa obra já está na sua biblioteca.";
+      return;
+    }
+
+    const progresso = preencherProgressoCatalogo(
+      obraCatalogoSelecionada,
+      botao.dataset.progressoCatalogo,
+    );
+
+    botao.disabled = true;
+    erroCatalogoObras.textContent = "";
+
+    try {
+      const resposta = await fetch("/obras", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          title: obraCatalogoSelecionada.titulo,
+          tipo: obraCatalogoSelecionada.tipo,
+          status: obraCatalogoSelecionada.status,
+          imagem: obraCatalogoSelecionada.imagem,
+          imagem_preferencia: "url",
+          temporadas: progresso.temporadas,
+          volumes: progresso.volumes,
+          titulos_alternativos: obraCatalogoSelecionada.titulosAlternativos,
+          titulo_exibicao: "principal",
+        }),
+      });
+
+      const resultado = await resposta.json().catch(() => ({}));
+
+      if (!resposta.ok) {
+        throw new Error(resultado.erro || "Não foi possível obter a obra.");
+      }
+
+      popupObterObra.style.display = "none";
+      await carregarObras();
+      mostrarMensagem("Obra adicionada à biblioteca!", "sucesso");
+    } catch (erro) {
+      erroCatalogoObras.textContent = erro.message;
+    } finally {
+      botao.disabled = false;
+    }
+  });
+});

@@ -944,6 +944,7 @@ body:not(.pagina-login) [role="button"] {
 #popup-criar,
 #popup-editar,
 #popup-organizar, 
+#popup-obter-obra,
 #popup-perfil,
 #popup-amigos,
 #popup-biblioteca-amigo,
@@ -1695,6 +1696,130 @@ body:not(.pagina-login) .botao-ler {
 #popup-criar > .popup-shell,
 #popup-editar > .popup-shell {
   max-width: 450px;
+}
+
+#popup-obter-obra > .popup-shell {
+  max-width: 620px;
+}
+
+#popup-obter-obra > .popup-shell > div {
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px;
+  border-radius: 12px;
+  color: #17263a;
+  background: #fff;
+  text-align: left;
+}
+
+#popup-obter-obra h2 {
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.catalogo-descricao {
+  margin-bottom: 16px;
+  color: #69717b;
+  text-align: center;
+}
+
+#buscar-catalogo-obras {
+  width: 100%;
+  margin: 6px 0 14px;
+  padding: 11px 12px;
+  border: 1px solid #bbb;
+  border-radius: 7px;
+  color: #17263a;
+  background: #fff;
+  font-size: 15px;
+}
+
+.resultados-catalogo-obras {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.resultado-catalogo-obra {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid #d5d8d8;
+  border-radius: 8px;
+  color: #17263a;
+  background: #f8f8f8;
+  text-align: left;
+}
+
+.resultado-catalogo-obra img {
+  width: 48px;
+  height: 64px;
+  flex: 0 0 auto;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.resultado-catalogo-obra strong,
+.resultado-catalogo-obra small {
+  display: block;
+}
+
+.resultado-catalogo-obra small {
+  margin-top: 4px;
+  color: #69717b;
+}
+
+.previsao-catalogo-obra {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid #d5d8d8;
+  border-radius: 8px;
+  background: #f8f8f8;
+}
+
+.previsao-catalogo-obra img {
+  width: 110px;
+  height: 150px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.previsao-catalogo-obra h3 {
+  margin-bottom: 8px;
+  color: #17263a;
+}
+
+.previsao-catalogo-obra p {
+  margin: 5px 0;
+  color: #344356;
+  line-height: 1.4;
+}
+
+.escolha-progresso-catalogo {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #d5d8d8;
+}
+
+.escolha-progresso-catalogo h3 {
+  margin-bottom: 10px;
+  color: #17263a;
+}
+
+.opcoes-progresso-catalogo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.opcoes-progresso-catalogo button {
+  margin: 0;
+  padding: 10px;
 }
 
 .popup-fechar {

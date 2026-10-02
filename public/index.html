@@ -4,7 +4,7 @@
 <head>
   <title>Biblioteca de Obras</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css?v=18" />
+  <link rel="stylesheet" href="style.css?v=19" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="icon" href="icone.png" />
 </head>
@@ -34,6 +34,10 @@
 
       <button id="botao-criar" type="button">
         <i class="fa-solid fa-plus"></i> Criar obra
+      </button>
+
+      <button id="botao-obter-obra" type="button">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Obter obra
       </button>
 
       <button id="botao-organizar" type="button">
@@ -250,6 +254,32 @@
       </div>
     </div>
 
+    <div id="popup-obter-obra">
+      <div class="popup-shell">
+        <button id="fechar-obter-obra" class="popup-fechar" type="button" aria-label="Fechar busca de obras">
+          X
+        </button>
+        <div>
+          <h2>Obter obra</h2>
+          <p class="catalogo-descricao">Pesquise uma obra famosa para preencher os dados automaticamente.</p>
+          <label for="buscar-catalogo-obras">Pesquisar obra</label>
+          <input id="buscar-catalogo-obras" type="search" placeholder="Ex.: Naruto clássico" autocomplete="off" />
+          <div id="resultados-catalogo-obras" class="resultados-catalogo-obras"></div>
+          <div id="previsao-catalogo-obra" class="previsao-catalogo-obra" hidden></div>
+          <div id="escolha-progresso-catalogo" class="escolha-progresso-catalogo" hidden>
+            <h3>Você já viu esta obra?</h3>
+            <div class="opcoes-progresso-catalogo">
+              <button type="button" data-progresso-catalogo="toda">Toda a obra</button>
+              <button type="button" data-progresso-catalogo="anime">Só anime</button>
+              <button type="button" data-progresso-catalogo="manga">Só mangá</button>
+              <button type="button" data-progresso-catalogo="nenhum">Nenhum</button>
+            </div>
+          </div>
+          <p id="erro-catalogo-obras" class="aviso-form" role="alert"></p>
+        </div>
+      </div>
+    </div>
+
   </header>
 
   <div id="popup-editar">
@@ -405,11 +435,11 @@
 
   <div id="popup-confirmar-exclusao" class="popup-confirmacao" hidden>
     <div class="popup-confirmacao-conteudo" role="dialog" aria-modal="true" aria-labelledby="titulo-confirmar-exclusao">
-      <h2 id="titulo-confirmar-exclusao">Tem certeza que deseja excluir?</h2>
+      <h2 id="titulo-confirmar-exclusao">Deseja excluir esta obra?</h2>
       <p id="nome-obra-exclusao"></p>
       <div class="botoes-confirmacao">
-        <button id="confirmar-exclusao" type="button">S</button>
-        <button id="cancelar-exclusao" type="button">N</button>
+        <button id="confirmar-exclusao" type="button">S - Sim</button>
+        <button id="cancelar-exclusao" type="button">N - Não</button>
       </div>
     </div>
   </div>
@@ -434,10 +464,13 @@
           <li>Parte de conta pessoal personalizada.</li>
           <li>Melhora na lentidão do sistema.</li>
           <li>Opção de amigos para compartilhar obras.</li>
+          <li>Adicionado botão obter obras.</li>
+          <li>Melhorias nas cores de fundo.</li>
+          <li>Melhora na visualização para celulares.</li>
           <br>
           <h3>Sendo trabalhado:</h3>
           <br>
-          </p><strong>V 19</strong></p>
+          </p><strong>V 20</strong></p>
           <p><i>Atualização feita em 01/10/2026</i></p>
         </ul>
       </div>
@@ -774,7 +807,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=18"></script>
+  <script src="script.js?v=19"></script>
 </body>
 
 </html>
