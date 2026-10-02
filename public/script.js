@@ -8,7 +8,7 @@ let linksLeituraEdicao = [];
 let linksEscolhaAtual = [];
 
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/service-worker.js?v=19", {
+  navigator.serviceWorker.register("/service-worker.js?v=20", {
     updateViaCache: "none",
   });
 }
@@ -74,6 +74,18 @@ async function inscreverPush() {
   }
 
   return inscricao;
+}
+
+async function sincronizarInscricaoPush() {
+  if (
+    !localStorage.getItem("token") ||
+    !("Notification" in window) ||
+    Notification.permission !== "granted"
+  ) {
+    return;
+  }
+
+  await inscreverPush();
 }
 
 async function testarNotificacao() {
@@ -5274,6 +5286,7 @@ document.getElementById("salvar-perfil").addEventListener("click", async () => {
 });
 
 carregarPerfil().catch(() => {});
+sincronizarInscricaoPush().catch(() => {});
 
 const popupExclusao = document.getElementById("popup-confirmar-exclusao");
 

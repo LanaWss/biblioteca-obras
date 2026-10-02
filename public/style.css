@@ -2,12 +2,12 @@
   font-family: Arial, sans-serif;
   font-size: 16px;
   margin: 20px;
-  --primary-color: #fffde8;
+  --primary-color: #ffffff;
   --secundary-color: #5091eb;
   --fundo-personalizado: linear-gradient(135deg, #17448c, #196cf3, #404cf7, #0a0253);
   --cor-textos-personalizada: #ffffff;
   --cor-titulos-personalizada: #ffffff;
-  --cor-conteudo-botoes-personalizada: #daf8ff;
+  --cor-conteudo-botoes-personalizada: #ffffff;
   --fonte-textos-personalizada: Arial, sans-serif;
 }
 
