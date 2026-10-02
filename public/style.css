@@ -874,6 +874,10 @@ body:not(.pagina-login) [role="button"] {
 }
 
 .botoes-card {
+  margin-top: 0;
+}
+
+.cards > .progresso-card + .cabecalho-tipo-card {
   margin-top: auto;
 }
 
