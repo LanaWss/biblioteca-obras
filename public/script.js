@@ -649,7 +649,7 @@ function itemEstaCompleto(item, tipo) {
   return obterNumerosVistosValidos(item, inicio, fim).size === fim - inicio + 1;
 }
 
-function renderizarProgressoTipo(obra, tipo) {
+function renderizarProgressoTipo(obra, tipo, conteudoItens = "") {
   const itens =
     tipo === "anime"
       ? lerConteudoObra(obra.temporadas)
@@ -660,19 +660,6 @@ function renderizarProgressoTipo(obra, tipo) {
   const percentual = progresso.total
     ? (progresso.vistos / progresso.total) * 100
     : 0;
-
-  const detalhes = itens
-    .map((item) => {
-      if (tipo === "anime") {
-        const inicio = obterInicioTemporada(item);
-        const fim = inicio + Number(item.episodios || 0) - 1;
-
-        return `<span>Temporada ${item.numero} — episódios ${inicio}–${fim}</span>`;
-      }
-
-      return `<span>Volume ${item.numero} — capítulos ${item.inicio}–${item.fim}</span>`;
-    })
-    .join("");
 
   return `
     <div class="progresso-tipo-card" data-progresso-tipo-card="${tipo}" hidden>
@@ -692,9 +679,7 @@ function renderizarProgressoTipo(obra, tipo) {
 
       </div>
 
-      <div class="progresso-tipo-itens">
-        ${detalhes}
-      </div>
+      ${conteudoItens}
 
     </div>
   `;
@@ -1376,9 +1361,9 @@ function carregarObras(atualizarDados = true) {
 
         const progresso = calcularProgresso(obra);
 
-        const progressoTemporadas = renderizarProgressoTipo(obra, "anime");
+        let progressoTemporadas = "";
 
-        const progressoVolumes = renderizarProgressoTipo(obra, "manga");
+        let progressoVolumes = "";
 
         const mostrarProgressosSeparados = obra.tipo === "ambos";
 
@@ -1400,6 +1385,31 @@ function carregarObras(atualizarDados = true) {
           );
 
           if (temporadas.length) {
+            const listaTemporadas = `
+              <div class="lista-temporadas-card">
+                ${temporadas
+                  .map(
+                    (temporada, indice) => `
+                    <p ${indice > 0 ? 'hidden data-temporada-extra="true"' : ""}>
+                      Temporada ${temporada.numero} —
+                      episódios ${obterInicioTemporada(temporada)}–${
+                        obterInicioTemporada(temporada) +
+                        Number(temporada.episodios || 0) -
+                        1
+                      }
+                    </p>
+                    `,
+                  )
+                  .join("")}
+              </div>
+            `;
+
+            progressoTemporadas = renderizarProgressoTipo(
+              obra,
+              "anime",
+              mostrarProgressosSeparados ? listaTemporadas : "",
+            );
+
             conteudo = `
             <div class="cabecalho-tipo-card">
               <h3>
@@ -1423,24 +1433,7 @@ function carregarObras(atualizarDados = true) {
 
             ${mostrarProgressosSeparados ? progressoTemporadas : ""}
 
-            <div class="lista-temporadas-card">
-
-              ${temporadas
-                .map(
-                  (temporada, indice) => `
-                  <p ${indice > 0 ? 'hidden data-temporada-extra="true"' : ""}>
-                    Temporada ${temporada.numero} —
-                    episódios ${obterInicioTemporada(temporada)}–${
-                      obterInicioTemporada(temporada) +
-                      Number(temporada.episodios || 0) -
-                      1
-                    }
-                  </p>
-                  `,
-                )
-                .join("")}
-
-            </div>
+            ${mostrarProgressosSeparados ? "" : listaTemporadas}
 
             ${
               temporadas.length > 1
@@ -1467,6 +1460,27 @@ function carregarObras(atualizarDados = true) {
           );
 
           if (volumes.length) {
+            const listaVolumes = `
+              <div class="lista-volumes-card">
+                ${volumes
+                  .map(
+                    (volume, indice) => `
+                    <p ${indice > 0 ? 'hidden data-volume-extra="true"' : ""}>
+                      Volume ${volume.numero} —
+                      capítulos ${volume.inicio}–${volume.fim}
+                    </p>
+                    `,
+                  )
+                  .join("")}
+              </div>
+            `;
+
+            progressoVolumes = renderizarProgressoTipo(
+              obra,
+              "manga",
+              mostrarProgressosSeparados ? listaVolumes : "",
+            );
+
             conteudo += `
             <div class="cabecalho-tipo-card">
               <h3>
@@ -1490,20 +1504,7 @@ function carregarObras(atualizarDados = true) {
 
             ${mostrarProgressosSeparados ? progressoVolumes : ""}
 
-            <div class="lista-volumes-card">
-
-              ${volumes
-                .map(
-                  (volume, indice) => `
-                    <p ${indice > 0 ? 'hidden data-volume-extra="true"' : ""}>
-                      Volume ${volume.numero} —
-                      capítulos ${volume.inicio}–${volume.fim}
-                    </p>
-                  `,
-                )
-                .join("")}
-
-            </div>
+            ${mostrarProgressosSeparados ? "" : listaVolumes}
 
             ${
               volumes.length > 1
