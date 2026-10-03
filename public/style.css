@@ -2193,7 +2193,7 @@ body:not(.pagina-login) .botao-ler {
 
 @media (min-width: 601px) and (max-width: 1024px) {
   #lista-obras {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 

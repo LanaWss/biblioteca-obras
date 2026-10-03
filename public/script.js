@@ -8,8 +8,31 @@ let linksLeituraEdicao = [];
 let linksEscolhaAtual = [];
 
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/service-worker.js?v=22", {
-    updateViaCache: "none",
+  const tinhaControlador = Boolean(navigator.serviceWorker.controller);
+  let recarregandoPorAtualizacao = false;
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!tinhaControlador || recarregandoPorAtualizacao) {
+      return;
+    }
+
+    recarregandoPorAtualizacao = true;
+    window.location.reload();
+  });
+
+  navigator.serviceWorker
+    .register("/service-worker.js?v=22", {
+      updateViaCache: "none",
+    })
+    .then((registro) => registro.update())
+    .catch(() => {});
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      navigator.serviceWorker.ready
+        .then((registro) => registro.update())
+        .catch(() => {});
+    }
   });
 }
 
@@ -1731,6 +1754,18 @@ window.addEventListener("pageshow", () => {
   buscarObras.value = "";
   carregarObras();
 });
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    carregarObras();
+  }
+});
+
+setInterval(() => {
+  if (document.visibilityState === "visible") {
+    carregarObras();
+  }
+}, 60000);
 
 buscarObras.addEventListener("input", () => {
   clearTimeout(temporizadorBusca);
