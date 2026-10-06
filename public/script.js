@@ -1693,32 +1693,32 @@ function carregarObras(atualizarDados = true) {
 
               ${conteudo}
 
-              <div class="botoes-card">
+            </div>
 
-                ${botaoLeitura}
+            <div class="botoes-card">
 
-                <button
-                  data-id="${obra.id}"
-                >
-                  <i class="fa-solid fa-pen"></i>
-                  Editar
-                </button>
+              ${botaoLeitura}
 
-                <button
-                  data-delete-id="${obra.id}"
-                >
-                  <i class="fa-solid fa-trash"></i>
-                  Apagar
-                </button>
+              <button
+                data-id="${obra.id}"
+              >
+                <i class="fa-solid fa-pen"></i>
+                Editar
+              </button>
 
-                <button
-                  data-progress-id="${obra.id}"
-                >
-                  <i class="fa-solid fa-chart-simple"></i>
-                  Progresso
-                </button>
+              <button
+                data-delete-id="${obra.id}"
+              >
+                <i class="fa-solid fa-trash"></i>
+                Apagar
+              </button>
 
-              </div>
+              <button
+                data-progress-id="${obra.id}"
+              >
+                <i class="fa-solid fa-chart-simple"></i>
+                Progresso
+              </button>
 
             </div>
 
