@@ -2306,6 +2306,7 @@ body:not(.pagina-login) .botao-ler {
     margin: 4px 0 10px;
     gap: 10px;
     height: auto;
+    min-height: 420px;
   }
 
   .cards.progresso-expandido {
