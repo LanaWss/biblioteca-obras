@@ -482,7 +482,8 @@ document
     document.getElementById("popup-configurar-notificacao").style.display =
       "none";
 
-    await carregarObras();
+    obraNotificacaoAtual.notificacao_ativa = 1;
+    await carregarObras(false);
 
     mostrarMensagem("Lembrete salvo!", "sucesso");
   });
@@ -1201,18 +1202,6 @@ async function avancarProgresso(id, botao, tipoEscolhido) {
     return;
   }
 
-  try {
-    const respostaAtual = await fetch(`/obras/${id}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    });
-
-    if (respostaAtual.ok) {
-      obra = await respostaAtual.json();
-    }
-  } catch (erro) {}
-
   const tipos =
     tipoEscolhido === "ambos"
       ? ["anime", "manga"]
@@ -1749,23 +1738,27 @@ function carregarObras(atualizarDados = true) {
 
 let temporizadorBusca;
 
+function sincronizarObras() {
+  if (document.visibilityState === "visible") {
+    carregarObras();
+  }
+}
+
 window.addEventListener("pageshow", () => {
   clearTimeout(temporizadorBusca);
   buscarObras.value = "";
-  carregarObras();
+  sincronizarObras();
 });
 
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") {
-    carregarObras();
-  }
+  sincronizarObras();
 });
 
+window.addEventListener("focus", sincronizarObras);
+
 setInterval(() => {
-  if (document.visibilityState === "visible") {
-    carregarObras();
-  }
-}, 60000);
+  sincronizarObras();
+}, 15000);
 
 buscarObras.addEventListener("input", () => {
   clearTimeout(temporizadorBusca);
@@ -2773,7 +2766,8 @@ document.addEventListener("click", async (evento) => {
           return;
         }
 
-        await carregarObras();
+        obra.notificacao_ativa = 0;
+        await carregarObras(false);
 
         mostrarMensagem("Lembrete desativado.", "sucesso");
       } catch (erro) {
