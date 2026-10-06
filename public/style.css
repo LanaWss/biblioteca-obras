@@ -2315,10 +2315,10 @@ body:not(.pagina-login) .botao-ler {
   }
 
   #lista-obras {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 10px;
     margin-top: 8px;
-    padding: 0 0 12px;
+    padding: 0 5px 12px;
   }
 
   .botao-favorito {
