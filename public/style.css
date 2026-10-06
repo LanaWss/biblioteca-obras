@@ -2315,8 +2315,8 @@ body:not(.pagina-login) .botao-ler {
   }
 
   #lista-obras {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px 6px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
     margin-top: 8px;
     padding: 0 0 12px;
   }
