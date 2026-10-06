@@ -1656,56 +1656,69 @@ function carregarObras(atualizarDados = true) {
               role="status"
             ></p>
 
-            <div class="progresso-card">
+            <button
+              type="button"
+              class="botao-toggle-card"
+              data-card-progresso-toggle
+              aria-expanded="false"
+            >
+              Mostrar progresso
+            </button>
 
-              <div class="progresso-texto">
-                <span>
+            <div class="detalhes-card" hidden>
+
+              <div class="progresso-card">
+
+                <div class="progresso-texto">
+                  <span>
+                    Progresso
+                    ${progresso.vistos}/${progresso.total}
+                  </span>
+                </div>
+
+                <div class="barra-progresso">
+
+                  <div
+                    class="barra-progresso-preenchida"
+                    style="width: ${
+                      progresso.total > 0
+                        ? (progresso.vistos / progresso.total) * 100
+                        : 0
+                    }%"
+                  ></div>
+
+                </div>
+
+              </div>
+
+              ${conteudo}
+
+              <div class="botoes-card">
+
+                ${botaoLeitura}
+
+                <button
+                  data-id="${obra.id}"
+                >
+                  <i class="fa-solid fa-pen"></i>
+                  Editar
+                </button>
+
+                <button
+                  data-delete-id="${obra.id}"
+                >
+                  <i class="fa-solid fa-trash"></i>
+                  Apagar
+                </button>
+
+                <button
+                  data-progress-id="${obra.id}"
+                >
+                  <i class="fa-solid fa-chart-simple"></i>
                   Progresso
-                  ${progresso.vistos}/${progresso.total}
-                </span>
-              </div>
-
-              <div class="barra-progresso">
-
-                <div
-                  class="barra-progresso-preenchida"
-                  style="width: ${
-                    progresso.total > 0
-                      ? (progresso.vistos / progresso.total) * 100
-                      : 0
-                  }%"
-                ></div>
+                </button>
 
               </div>
-
-            </div>
-
-            ${conteudo}
-
-            <div class="botoes-card">
-
-              ${botaoLeitura}
-
-              <button
-                data-id="${obra.id}"
-              >
-                <i class="fa-solid fa-pen"></i>
-                Editar
-              </button>
-
-              <button
-                data-delete-id="${obra.id}"
-              >
-                <i class="fa-solid fa-trash"></i>
-                Apagar
-              </button>
-
-              <button
-                data-progress-id="${obra.id}"
-              >
-                <i class="fa-solid fa-chart-simple"></i>
-                Progresso
-              </button>
 
             </div>
 
@@ -1996,6 +2009,27 @@ async function marcarProximoVisto(id, botao, tipo, indice) {
 }
 
 document.addEventListener("click", async (evento) => {
+  const botaoToggleCard = evento.target.closest(
+    "button[data-card-progresso-toggle]",
+  );
+
+  if (botaoToggleCard) {
+    const card = botaoToggleCard.closest(".cards");
+    const detalhes = card?.querySelector(".detalhes-card");
+    const mostrar = Boolean(detalhes?.hidden);
+
+    if (detalhes) {
+      detalhes.hidden = !mostrar;
+      card.classList.toggle("progresso-expandido", mostrar);
+      botaoToggleCard.setAttribute("aria-expanded", String(mostrar));
+      botaoToggleCard.textContent = mostrar
+        ? "Ocultar progresso"
+        : "Mostrar progresso";
+    }
+
+    return;
+  }
+
   const botaoVisto = evento.target.closest("button[data-visto-id]");
 
   if (botaoVisto) {

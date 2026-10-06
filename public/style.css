@@ -587,7 +587,19 @@ body:not(.pagina-login) [role="button"] {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  height: auto;
+}
+
+.cards.progresso-expandido {
   height: 700px;
+}
+
+.detalhes-card:not([hidden]) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
 }
 
 .botao-favorito {
@@ -790,6 +802,15 @@ body:not(.pagina-login) [role="button"] {
   padding: 8px 6px;
   margin: 0;
   font-size: 13px;
+}
+
+.botao-toggle-card {
+  width: 100%;
+  min-height: 34px;
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+  padding: 6px 8px !important;
+  font-size: 12px !important;
 }
 
 .botao-favorito,
@@ -2281,7 +2302,11 @@ body:not(.pagina-login) .botao-ler {
     max-width: none;
     padding: 6px;
     margin: 4px 0 10px;
-    height: 650px;
+    height: auto;
+  }
+
+  .cards.progresso-expandido {
+    height: 610px;
   }
 
   #lista-obras {
