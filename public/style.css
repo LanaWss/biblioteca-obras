@@ -591,7 +591,8 @@ body:not(.pagina-login) [role="button"] {
 }
 
 .cards.progresso-expandido {
-  height: 700px;
+  height: auto;
+  min-height: 700px;
 }
 
 .detalhes-card:not([hidden]) {
@@ -2306,7 +2307,8 @@ body:not(.pagina-login) .botao-ler {
   }
 
   .cards.progresso-expandido {
-    height: 610px;
+    height: auto;
+    min-height: 610px;
   }
 
   #lista-obras {

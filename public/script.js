@@ -2920,6 +2920,7 @@ document.addEventListener("click", async (evento) => {
     progresso.hidden = aberto;
     botao.setAttribute("aria-expanded", String(!aberto));
     botao.textContent = aberto ? "Mostrar progresso" : "Ocultar progresso";
+    card?.classList.toggle("progresso-expandido", !aberto);
 
     return;
   }
