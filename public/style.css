@@ -5,6 +5,7 @@
   --primary-color: #ffffff;
   --secundary-color: #5091eb;
   --fundo-personalizado: linear-gradient(135deg, #17448c, #196cf3, #404cf7, #0a0253);
+  --fundo-personalizado-mobile: linear-gradient(135deg, #17448c, #0a0253);
   --cor-textos-personalizada: #ffffff;
   --cor-titulos-personalizada: #ffffff;
   --cor-conteudo-botoes-personalizada: #d3e7ff;
@@ -52,6 +53,13 @@ body {
   text-align: center;
   background-attachment: fixed;
   font-family: var(--fonte-textos-personalizada);
+}
+
+@media (max-width: 600px) {
+  body {
+    background: var(--fundo-personalizado-mobile);
+    background-attachment: scroll;
+  }
 }
 
 body:not(.pagina-login) h1,
@@ -1422,6 +1430,12 @@ body:not(.pagina-login) .botao-ler {
 .perfil-secao input[type="color"] {
   width: 58px;
   padding: 2px;
+}
+
+.perfil-ajuda {
+  color: #69717b;
+  font-size: 12px;
+  text-align: left;
 }
 
 .erro-perfil {

@@ -4,7 +4,7 @@
 <head>
   <title>Biblioteca de Obras</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css?v=23" />
+  <link rel="stylesheet" href="style.css?v=25" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="icon" href="icone.png" />
 </head>
@@ -469,11 +469,15 @@
           <li>Adicionado botão obter obras.</li>
           <li>Melhorias nas cores de fundo.</li>
           <li>Melhora na visualização para celulares.</li>
+          <li>Opção de mudar o fundo com imagem ja salva.</li>
+          <li>Ter aparencia de fundo diferente para tipos de dispositivos.</li>
+          <li>Mais opções para fonte de textos.</li>
+          <li>Mais obras em obter obras foram inseridas.</li>
           <br>
           <h3>Sendo trabalhado:</h3>
           <br>
-          </p><strong>V 20</strong></p>
-          <p><i>Atualização feita em 02/10/2026</i></p>
+          </p><strong>V 20.2.5</strong></p>
+          <p><i>Atualização feita em 06/10/2026</i></p>
         </ul>
       </div>
     </div>
@@ -525,12 +529,38 @@
           <input type="color" id="cor-fundo-inicio" value="#196cf3" />
           <label for="cor-fundo-fim">Cor final do fundo</label>
           <input type="color" id="cor-fundo-fim" value="#0a0253" />
+          <label for="modo-fundo-pc">Fundo no PC</label>
+          <select id="modo-fundo-pc">
+            <option value="cor">Usar cores</option>
+            <option value="imagem">Importar imagem</option>
+          </select>
+          <label for="imagem-fundo-pc">Imagem de fundo no PC</label>
+          <input id="imagem-fundo-pc" type="file" accept="image/png,image/jpeg,image/webp" />
+          <p id="imagem-fundo-status" class="perfil-ajuda"></p>
+          <label for="modo-fundo-celular">Fundo no celular</label>
+          <select id="modo-fundo-celular">
+            <option value="cor">Usar cores</option>
+            <option value="imagem">Importar imagem</option>
+          </select>
+          <label for="imagem-fundo-celular">Imagem de fundo no celular</label>
+          <input id="imagem-fundo-celular" type="file" accept="image/png,image/jpeg,image/webp" />
+          <p id="imagem-fundo-celular-status" class="perfil-ajuda"></p>
+          <label for="cor-fundo-celular-inicio">Cor inicial no celular</label>
+          <input type="color" id="cor-fundo-celular-inicio" value="#17448c" />
+          <label for="cor-fundo-celular-fim">Cor final no celular</label>
+          <input type="color" id="cor-fundo-celular-fim" value="#0a0253" />
           <label for="fonte-textos">Fonte dos textos</label>
           <select id="fonte-textos">
             <option value="Arial, sans-serif">Arial</option>
             <option value="Georgia, serif">Georgia</option>
             <option value="Verdana, sans-serif">Verdana</option>
             <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+            <option value="Tahoma, sans-serif">Tahoma</option>
+            <option value="Times New Roman, serif">Times New Roman</option>
+            <option value="Courier New, monospace">Courier New</option>
+            <option value="Lucida Console, monospace">Lucida Console</option>
+            <option value="Palatino Linotype, serif">Palatino Linotype</option>
+            <option value="Impact, sans-serif">Impact</option>
           </select>
           <label for="cor-botoes">Cor dos botões</label>
           <input type="color" id="cor-botoes" value="#175d69" />
@@ -809,7 +839,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=22"></script>
+  <script src="script.js?v=24"></script>
 </body>
 
 </html>

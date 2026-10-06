@@ -3,6 +3,8 @@ let obraNotificacaoAtual = null;
 let obrasCarregadas = [];
 let carregamentoObrasAtual = 0;
 let controladorCarregamentoObras = null;
+let imagemFundoPcSelecionada = null;
+let imagemFundoCelularSelecionada = null;
 let linksLeituraCriacao = [];
 let linksLeituraEdicao = [];
 let linksEscolhaAtual = [];
@@ -1296,7 +1298,7 @@ function obterTituloExibicao(obra) {
   return obra.titulo_exibicao;
 }
 
-function carregarObras(atualizarDados = true) {
+function carregarObras(atualizarDados = true, mostrarErros = true) {
   const token = localStorage.getItem("token");
 
   if (!token) {
@@ -1745,7 +1747,9 @@ function carregarObras(atualizarDados = true) {
         return;
       }
 
-      mostrarMensagem(erro.message, "erro");
+      if (mostrarErros) {
+        mostrarMensagem(erro.message, "erro");
+      }
     });
 }
 
@@ -1753,7 +1757,7 @@ let temporizadorBusca;
 
 function sincronizarObras() {
   if (document.visibilityState === "visible") {
-    carregarObras();
+    carregarObras(true, false);
   }
 }
 
@@ -4839,6 +4843,12 @@ document.getElementById("mudar-nick").placeholder = nomePerfil;
 const configuracoesVisuaisPadrao = {
   fundoInicio: "#17448c",
   fundoFim: "#0a0253",
+  fundoCelularInicio: "#17448c",
+  fundoCelularFim: "#0a0253",
+  modoFundoPc: "cor",
+  imagemFundoPc: "",
+  modoFundoCelular: "cor",
+  imagemFundoCelular: "",
   fonte: "Arial, sans-serif",
   botoes: "#5091eb",
   botoesTexto: "#ffffff",
@@ -4880,6 +4890,12 @@ function lerPadroesVisuaisDoCss() {
     fundoInicio: coresDoFundo[0] || configuracoesVisuaisPadrao.fundoInicio,
     fundoFim:
       coresDoFundo[coresDoFundo.length - 1] || configuracoesVisuaisPadrao.fundoFim,
+    fundoCelularInicio: configuracoesVisuaisPadrao.fundoCelularInicio,
+    fundoCelularFim: configuracoesVisuaisPadrao.fundoCelularFim,
+    modoFundoPc: configuracoesVisuaisPadrao.modoFundoPc,
+    imagemFundoPc: configuracoesVisuaisPadrao.imagemFundoPc,
+    modoFundoCelular: configuracoesVisuaisPadrao.modoFundoCelular,
+    imagemFundoCelular: configuracoesVisuaisPadrao.imagemFundoCelular,
     fonte: lerValor("--fonte-textos-personalizada", configuracoesVisuaisPadrao.fonte),
     botoes: lerValor("--secundary-color", configuracoesVisuaisPadrao.botoes),
     botoesTexto: lerValor(
@@ -4912,9 +4928,20 @@ function aplicarConfiguracoesVisuais(configuracoes = {}) {
   const valores = obterConfiguracoesVisuais(configuracoes);
   const raiz = document.documentElement;
 
+  const fundoPc =
+    valores.modoFundoPc === "imagem" && valores.imagemFundoPc
+      ? `url("${valores.imagemFundoPc}") center / cover no-repeat fixed`
+      : `linear-gradient(135deg, ${valores.fundoInicio}, ${valores.fundoFim})`;
+
+  raiz.style.setProperty("--fundo-personalizado", fundoPc);
+  const fundoCelular =
+    valores.modoFundoCelular === "imagem" && valores.imagemFundoCelular
+      ? `url("${valores.imagemFundoCelular}") center / cover no-repeat scroll`
+      : `linear-gradient(135deg, ${valores.fundoCelularInicio}, ${valores.fundoCelularFim})`;
+
   raiz.style.setProperty(
-    "--fundo-personalizado",
-    `linear-gradient(135deg, ${valores.fundoInicio}, ${valores.fundoFim})`,
+    "--fundo-personalizado-mobile",
+    fundoCelular,
   );
   raiz.style.setProperty("--fonte-textos-personalizada", valores.fonte);
   raiz.style.setProperty("--cor-botoes-personalizada", valores.botoes);
@@ -4931,6 +4958,20 @@ function preencherConfiguracoesVisuais(configuracoes = {}) {
 
   document.getElementById("cor-fundo-inicio").value = valores.fundoInicio;
   document.getElementById("cor-fundo-fim").value = valores.fundoFim;
+  document.getElementById("modo-fundo-pc").value = valores.modoFundoPc;
+  document.getElementById("modo-fundo-celular").value = valores.modoFundoCelular;
+  document.getElementById("cor-fundo-celular-inicio").value =
+    valores.fundoCelularInicio;
+  document.getElementById("cor-fundo-celular-fim").value =
+    valores.fundoCelularFim;
+  imagemFundoPcSelecionada = valores.imagemFundoPc || null;
+  imagemFundoCelularSelecionada = valores.imagemFundoCelular || null;
+  document.getElementById("imagem-fundo-status").textContent =
+    imagemFundoPcSelecionada ? "Imagem importada." : "Nenhuma imagem importada.";
+  document.getElementById("imagem-fundo-celular-status").textContent =
+    imagemFundoCelularSelecionada
+      ? "Imagem importada."
+      : "Nenhuma imagem importada.";
   document.getElementById("fonte-textos").value = valores.fonte;
   document.getElementById("cor-botoes").value = valores.botoes;
   document.getElementById("cor-conteudo-botoes").value = valores.botoesTexto;
@@ -4973,6 +5014,56 @@ function lerFotoPerfil(arquivo) {
     leitor.readAsDataURL(arquivo);
   });
 }
+
+document.getElementById("imagem-fundo-pc").addEventListener("change", async (evento) => {
+  const arquivo = evento.target.files[0];
+  const status = document.getElementById("imagem-fundo-status");
+
+  if (!arquivo) {
+    return;
+  }
+
+  if (arquivo.size > 5 * 1024 * 1024) {
+    imagemFundoPcSelecionada = null;
+    status.textContent = "A imagem deve ter no máximo 5 MB.";
+    evento.target.value = "";
+    return;
+  }
+
+  try {
+    imagemFundoPcSelecionada = await lerFotoPerfil(arquivo);
+    status.textContent = "Imagem importada. Salve as alterações para aplicar.";
+  } catch (erro) {
+    imagemFundoPcSelecionada = null;
+    status.textContent = "Não foi possível importar a imagem.";
+  }
+});
+
+document
+  .getElementById("imagem-fundo-celular")
+  .addEventListener("change", async (evento) => {
+    const arquivo = evento.target.files[0];
+    const status = document.getElementById("imagem-fundo-celular-status");
+
+    if (!arquivo) {
+      return;
+    }
+
+    if (arquivo.size > 5 * 1024 * 1024) {
+      imagemFundoCelularSelecionada = null;
+      status.textContent = "A imagem deve ter no máximo 5 MB.";
+      evento.target.value = "";
+      return;
+    }
+
+    try {
+      imagemFundoCelularSelecionada = await lerFotoPerfil(arquivo);
+      status.textContent = "Imagem importada. Salve as alterações para aplicar.";
+    } catch (erro) {
+      imagemFundoCelularSelecionada = null;
+      status.textContent = "Não foi possível importar a imagem.";
+    }
+  });
 
 function mensagemAmigo(texto, tipo = "") {
   const elemento = document.getElementById("mensagem-amigo");
@@ -5412,6 +5503,12 @@ document.getElementById("salvar-perfil").addEventListener("click", async () => {
   const configuracoesVisuais = {
     fundoInicio: document.getElementById("cor-fundo-inicio").value,
     fundoFim: document.getElementById("cor-fundo-fim").value,
+    fundoCelularInicio: document.getElementById("cor-fundo-celular-inicio").value,
+    fundoCelularFim: document.getElementById("cor-fundo-celular-fim").value,
+    modoFundoPc: document.getElementById("modo-fundo-pc").value,
+    imagemFundoPc: imagemFundoPcSelecionada || "",
+    modoFundoCelular: document.getElementById("modo-fundo-celular").value,
+    imagemFundoCelular: imagemFundoCelularSelecionada || "",
     fonte: document.getElementById("fonte-textos").value,
     botoes: document.getElementById("cor-botoes").value,
     botoesTexto: document.getElementById("cor-conteudo-botoes").value,
