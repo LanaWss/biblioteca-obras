@@ -2302,16 +2302,16 @@ body:not(.pagina-login) .botao-ler {
     position: relative;
     max-width: none;
     box-sizing: border-box;
-    padding: 8px;
+    padding: 6px;
     margin: 4px 0 10px;
-    gap: 10px;
+    gap: 6px;
     height: auto;
-    min-height: 420px;
+    min-height: 360px;
   }
 
   .cards.progresso-expandido {
     height: auto;
-    min-height: 610px;
+    min-height: 520px;
   }
 
   #lista-obras {
@@ -2328,8 +2328,23 @@ body:not(.pagina-login) .botao-ler {
   }
 
   .cards img {
-    height: 170px !important;
-    max-height: 170px;
+    height: 145px !important;
+    max-height: 145px;
+  }
+
+  .titulo-card {
+    gap: 3px;
+    padding-top: 18px;
+  }
+
+  .titulo-card h2 {
+    height: 52px;
+    font-size: 15px;
+  }
+
+  .status-card {
+    font-size: 11px;
+    padding: 2px 7px;
   }
 
   #popup-lista-itens {
