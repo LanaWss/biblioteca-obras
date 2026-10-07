@@ -1925,6 +1925,18 @@ body:not(.pagina-login) .botao-ler {
   color: #17263a;
 }
 
+.botao-cancelar-catalogo {
+ display: block;
+ margin: 14px auto 0;
+ color: #344356 !important;
+ background: rgba(226, 232, 234, 0.82) !important;
+ border: 1px solid rgba(52, 67, 86, 0.2);
+}
+
+.botao-cancelar-catalogo:hover {
+ background: rgba(207, 218, 221, 0.92) !important;
+}
+
 .opcoes-progresso-catalogo {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

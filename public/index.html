@@ -4,7 +4,7 @@
 <head>
   <title>Biblioteca de Obras</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css?v=34" />
+  <link rel="stylesheet" href="style.css?v=36" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="icon" href="icone.png" />
 </head>
@@ -262,22 +262,30 @@
           X
         </button>
         <div>
-          <h2>Obter obra</h2>
-          <p class="catalogo-descricao">Pesquise uma obra famosa para preencher os dados automaticamente.</p>
-          <label for="buscar-catalogo-obras">Pesquisar obra</label>
-          <input id="buscar-catalogo-obras" type="search" placeholder="Ex.: Naruto clássico" autocomplete="off" />
-          <div id="resultados-catalogo-obras" class="resultados-catalogo-obras"></div>
-          <div id="previsao-catalogo-obra" class="previsao-catalogo-obra" hidden></div>
-          <div id="escolha-progresso-catalogo" class="escolha-progresso-catalogo" hidden>
-            <h3>Você já viu esta obra?</h3>
-            <div class="opcoes-progresso-catalogo">
-              <button type="button" data-progresso-catalogo="toda">Toda a obra</button>
-              <button type="button" data-progresso-catalogo="anime">Só anime</button>
-              <button type="button" data-progresso-catalogo="manga">Só mangá</button>
-              <button type="button" data-progresso-catalogo="nenhum">Nenhum</button>
-            </div>
+          <div id="tela-pesquisa-catalogo">
+            <h2>Obter obra</h2>
+            <p class="catalogo-descricao">Pesquise uma obra famosa para preencher os dados automaticamente.</p>
+            <label for="buscar-catalogo-obras">Pesquisar obra</label>
+            <input id="buscar-catalogo-obras" type="search" placeholder="Ex.: Naruto clássico" autocomplete="off" />
+            <div id="resultados-catalogo-obras" class="resultados-catalogo-obras"></div>
           </div>
-          <p id="erro-catalogo-obras" class="aviso-form" role="alert"></p>
+          <div id="tela-detalhe-catalogo" hidden>
+            <h2>Obter obra</h2>
+            <div id="previsao-catalogo-obra" class="previsao-catalogo-obra"></div>
+            <div id="escolha-progresso-catalogo" class="escolha-progresso-catalogo">
+              <h3>Você já viu esta obra?</h3>
+              <div class="opcoes-progresso-catalogo">
+                <button type="button" data-progresso-catalogo="toda">Toda a obra</button>
+                <button type="button" data-progresso-catalogo="anime">Só anime</button>
+                <button type="button" data-progresso-catalogo="manga">Só mangá</button>
+                <button type="button" data-progresso-catalogo="nenhum">Nenhum</button>
+              </div>
+            </div>
+            <p id="erro-catalogo-obras" class="aviso-form" role="alert"></p>
+            <button type="button" id="cancelar-detalhe-catalogo" class="botao-cancelar-catalogo">
+              Cancelar
+            </button>
+          </div>
         </div>
       </div>
     </div>

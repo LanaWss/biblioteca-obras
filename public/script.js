@@ -1381,7 +1381,7 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
 
         let progressoVolumes = "";
 
-        const mostrarProgressosSeparados = true;
+        const mostrarProgressosSeparados = obra.tipo === "ambos";
 
         const statusExibido = {
           completa: "Completa",
@@ -5846,11 +5846,14 @@ const catalogoObras = [
 ];
 
 const popupObterObra = document.getElementById("popup-obter-obra");
+const telaPesquisaCatalogo = document.getElementById("tela-pesquisa-catalogo");
+const telaDetalheCatalogo = document.getElementById("tela-detalhe-catalogo");
 const buscaCatalogoObras = document.getElementById("buscar-catalogo-obras");
 const resultadosCatalogoObras = document.getElementById("resultados-catalogo-obras");
 const previsaoCatalogoObra = document.getElementById("previsao-catalogo-obra");
 const escolhaProgressoCatalogo = document.getElementById("escolha-progresso-catalogo");
 const erroCatalogoObras = document.getElementById("erro-catalogo-obras");
+const cancelarDetalheCatalogo = document.getElementById("cancelar-detalhe-catalogo");
 let obraCatalogoSelecionada = null;
 
 function obterImagemCatalogoFallback(titulo) {
@@ -5930,9 +5933,9 @@ function renderizarResultadosCatalogo() {
 
 function selecionarObraCatalogo(obra) {
   obraCatalogoSelecionada = obra;
-  resultadosCatalogoObras.hidden = true;
-  previsaoCatalogoObra.hidden = false;
-  escolhaProgressoCatalogo.hidden = false;
+  telaPesquisaCatalogo.hidden = true;
+  telaDetalheCatalogo.hidden = false;
+  erroCatalogoObras.textContent = "";
   previsaoCatalogoObra.innerHTML = `
     <img src="${obra.imagem}" referrerpolicy="no-referrer" alt="Capa de ${obra.titulo}">
     <div>
@@ -5976,9 +5979,8 @@ document.getElementById("botao-obter-obra").addEventListener("click", () => {
   popupObterObra.style.display = "flex";
   buscaCatalogoObras.value = "";
   obraCatalogoSelecionada = null;
-  previsaoCatalogoObra.hidden = true;
-  escolhaProgressoCatalogo.hidden = true;
-  resultadosCatalogoObras.hidden = false;
+  telaPesquisaCatalogo.hidden = false;
+  telaDetalheCatalogo.hidden = true;
   erroCatalogoObras.textContent = "";
   renderizarResultadosCatalogo();
   buscaCatalogoObras.focus();
@@ -5986,6 +5988,14 @@ document.getElementById("botao-obter-obra").addEventListener("click", () => {
 
 document.getElementById("fechar-obter-obra").addEventListener("click", () => {
   popupObterObra.style.display = "none";
+});
+
+cancelarDetalheCatalogo.addEventListener("click", () => {
+  obraCatalogoSelecionada = null;
+  telaDetalheCatalogo.hidden = true;
+  telaPesquisaCatalogo.hidden = false;
+  erroCatalogoObras.textContent = "";
+  buscaCatalogoObras.focus();
 });
 
 buscaCatalogoObras.addEventListener("input", renderizarResultadosCatalogo);
