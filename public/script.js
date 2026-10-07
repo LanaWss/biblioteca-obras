@@ -1379,7 +1379,7 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
 
         let progressoVolumes = "";
 
-        const mostrarProgressosSeparados = obra.tipo === "ambos";
+        const mostrarProgressosSeparados = true;
 
         const statusExibido = {
           completa: "Completa",
@@ -4840,6 +4840,22 @@ document.getElementById("nome-perfil-popup").textContent = nomePerfil;
 
 document.getElementById("mudar-nick").placeholder = nomePerfil;
 
+document.querySelectorAll("[data-perfil-categoria]").forEach((botao) => {
+  botao.addEventListener("click", () => {
+    const categoria = botao.dataset.perfilCategoria;
+
+    document.querySelectorAll("[data-perfil-categoria]").forEach((item) => {
+      const ativo = item === botao;
+      item.classList.toggle("ativa", ativo);
+      item.setAttribute("aria-selected", String(ativo));
+    });
+
+    document.querySelectorAll("[data-perfil-conteudo]").forEach((conteudo) => {
+      conteudo.hidden = conteudo.dataset.perfilConteudo !== categoria;
+    });
+  });
+});
+
 const configuracoesVisuaisPadrao = {
   fundoInicio: "#17448c",
   fundoFim: "#0a0253",
@@ -4936,7 +4952,7 @@ function aplicarConfiguracoesVisuais(configuracoes = {}) {
   raiz.style.setProperty("--fundo-personalizado", fundoPc);
   const fundoCelular =
     valores.modoFundoCelular === "imagem" && valores.imagemFundoCelular
-      ? `url("${valores.imagemFundoCelular}") center / cover no-repeat scroll`
+      ? `url("${valores.imagemFundoCelular}") center top / 100% auto no-repeat scroll`
       : `linear-gradient(135deg, ${valores.fundoCelularInicio}, ${valores.fundoCelularFim})`;
 
   raiz.style.setProperty(
@@ -5679,6 +5695,141 @@ const catalogoObras = [
     imagem: "https://cdn.myanimelist.net/images/anime/1286/99889.jpg",
     temporadas: criarTemporadasCatalogo([26, 7, 11, 11]),
     volumes: criarVolumesCatalogo(23, 205),
+  },
+  {
+    titulo: "My Hero Academia",
+    titulosAlternativos: ["Boku no Hero Academia"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/10/78745.jpg",
+    temporadas: criarTemporadasCatalogo([13, 25, 25, 25, 25, 25, 25]),
+    volumes: criarVolumesCatalogo(42, 430),
+  },
+  {
+    titulo: "Jujutsu Kaisen",
+    titulosAlternativos: ["Sorcery Fight"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/1171/109222.jpg",
+    temporadas: criarTemporadasCatalogo([24, 23]),
+    volumes: criarVolumesCatalogo(30, 271),
+  },
+  {
+    titulo: "Fullmetal Alchemist: Brotherhood",
+    titulosAlternativos: ["FMAB", "Hagane no Renkinjutsushi"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/1223/96541.jpg",
+    temporadas: criarTemporadasCatalogo([64]),
+    volumes: criarVolumesCatalogo(27, 108),
+  },
+  {
+    titulo: "Death Note",
+    titulosAlternativos: ["Desu Noto"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/9/9453.jpg",
+    temporadas: criarTemporadasCatalogo([37]),
+    volumes: criarVolumesCatalogo(12, 108),
+  },
+  {
+    titulo: "Hunter x Hunter",
+    titulosAlternativos: ["HUNTER×HUNTER"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/1337/99013.jpg",
+    temporadas: criarTemporadasCatalogo([148]),
+    volumes: criarVolumesCatalogo(37, 400),
+  },
+  {
+    titulo: "Bleach",
+    titulosAlternativos: ["Burīchi"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/3/40451.jpg",
+    temporadas: criarTemporadasCatalogo([366]),
+    volumes: criarVolumesCatalogo(74, 686),
+  },
+  {
+    titulo: "Tokyo Ghoul",
+    titulosAlternativos: ["Toukyou Kushu"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/1498/134018.jpg",
+    temporadas: criarTemporadasCatalogo([12, 12, 12, 12]),
+    volumes: criarVolumesCatalogo(14, 143),
+  },
+  {
+    titulo: "One Punch Man",
+    titulosAlternativos: ["OPM"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/12/76049.jpg",
+    temporadas: criarTemporadasCatalogo([12, 12]),
+    volumes: criarVolumesCatalogo(32, 250),
+  },
+  {
+    titulo: "Sword Art Online",
+    titulosAlternativos: ["SAO"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/11/39717.jpg",
+    temporadas: criarTemporadasCatalogo([25, 24, 24, 25]),
+    volumes: criarVolumesCatalogo(27, 120),
+  },
+  {
+    titulo: "JoJo's Bizarre Adventure",
+    titulosAlternativos: ["JoJo no Kimyou na Bouken"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/3/40409.jpg",
+    temporadas: criarTemporadasCatalogo([26, 48, 39, 39, 38, 38]),
+    volumes: criarVolumesCatalogo(137, 950),
+  },
+  {
+    titulo: "Sailor Moon",
+    titulosAlternativos: ["Bishoujo Senshi Sailor Moon"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/11/67107.jpg",
+    temporadas: criarTemporadasCatalogo([46, 43, 38, 39, 34]),
+    volumes: criarVolumesCatalogo(18, 52),
+  },
+  {
+    titulo: "Yu Yu Hakusho",
+    titulosAlternativos: ["Yuu☆Yuu☆Hakusho"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/1228/111372.jpg",
+    temporadas: criarTemporadasCatalogo([112]),
+    volumes: criarVolumesCatalogo(19, 175),
+  },
+  {
+    titulo: "Neon Genesis Evangelion",
+    titulosAlternativos: ["Evangelion", "NGE"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/1314/108941.jpg",
+    temporadas: criarTemporadasCatalogo([26]),
+    volumes: criarVolumesCatalogo(14, 96),
+  },
+  {
+    titulo: "Fairy Tail",
+    titulosAlternativos: ["Fearī Teiru"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/5/18179.jpg",
+    temporadas: criarTemporadasCatalogo([175, 102, 51]),
+    volumes: criarVolumesCatalogo(63, 545),
+  },
+  {
+    titulo: "Haikyuu!!",
+    titulosAlternativos: ["Haikyu!!"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/7/76014.jpg",
+    temporadas: criarTemporadasCatalogo([25, 25, 10, 25]),
+    volumes: criarVolumesCatalogo(45, 402),
   },
 ];
 

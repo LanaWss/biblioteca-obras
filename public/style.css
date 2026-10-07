@@ -921,8 +921,9 @@ body:not(.pagina-login) [role="button"] {
 
 .progresso-card {
   flex-shrink: 0;
-  width: 100px;
-  margin: 2px 0;
+  width: 100%;
+  max-width: 260px;
+  margin: 2px auto;
 }
 
 .progressos-separados-card {
@@ -936,6 +937,12 @@ body:not(.pagina-login) [role="button"] {
 .progresso-tipo-card {
   width: 100%;
   margin-bottom: 4px;
+}
+
+.progresso-card .progresso-texto,
+.progresso-tipo-card .progresso-texto {
+  justify-content: center;
+  text-align: center;
 }
 
 .progresso-tipo-card .progresso-texto {
@@ -1405,6 +1412,33 @@ body:not(.pagina-login) .botao-ler {
   margin-top: 12px;
 }
 
+.perfil-categorias {
+  display: flex;
+  gap: 6px;
+  max-width: 360px;
+  margin: 16px auto 4px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #d5d8d8;
+}
+
+.perfil-categoria {
+  flex: 1;
+  margin: 0;
+  padding: 9px 6px;
+  color: #344356;
+  background: #edf1f2;
+  font-size: 13px;
+}
+
+.perfil-categoria.ativa {
+  color: #fff;
+  background: var(--cor-botoes-personalizada, #5091eb);
+}
+
+.perfil-categoria-conteudo[hidden] {
+  display: none;
+}
+
 .perfil-secao {
   display: grid;
   gap: 7px;
@@ -1753,13 +1787,13 @@ body:not(.pagina-login) .botao-ler {
 }
 
 #popup-obter-obra > .popup-shell {
-  max-width: 620px;
+  max-width: 560px;
 }
 
 #popup-obter-obra > .popup-shell > div {
-  max-height: 85vh;
+  max-height: min(78vh, 680px);
   overflow-y: auto;
-  padding: 24px;
+  padding: 20px;
   border-radius: 12px;
   color: #17263a;
   background: #fff;
@@ -2233,6 +2267,16 @@ body:not(.pagina-login) .botao-ler {
   }
 }
 
+@media (min-width: 601px) {
+  .botao-toggle-card {
+    display: none;
+  }
+
+  .detalhes-card[hidden] {
+    display: flex;
+  }
+}
+
 @media (max-width: 600px) {
   :root {
     font-size: 18px;
@@ -2367,6 +2411,76 @@ body:not(.pagina-login) .botao-ler {
 
   #popup-lista-itens > .popup-shell {
     max-width: calc(100vw - 20px);
+  }
+
+  #popup-obter-obra {
+    align-items: flex-start;
+    padding: 10px;
+  }
+
+  #popup-obter-obra > .popup-shell {
+    max-width: calc(100vw - 20px);
+  }
+
+  #popup-obter-obra > .popup-shell > div {
+    max-height: calc(100vh - 20px);
+    padding: 14px;
+    border-radius: 9px;
+  }
+
+  #popup-obter-obra h2 {
+    font-size: 20px;
+  }
+
+  .catalogo-descricao {
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+
+  .resultado-catalogo-obra {
+    gap: 8px;
+    padding: 7px;
+  }
+
+  .resultado-catalogo-obra img {
+    width: 40px;
+    height: 54px;
+  }
+
+  .resultado-catalogo-obra small {
+    font-size: 11px;
+  }
+
+  .previsao-catalogo-obra {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 10px;
+    padding: 9px;
+  }
+
+  .previsao-catalogo-obra img {
+    width: 72px;
+    height: 98px;
+  }
+
+  .previsao-catalogo-obra h3 {
+    font-size: 15px;
+  }
+
+  .previsao-catalogo-obra p {
+    font-size: 12px;
+  }
+
+  .perfil-categorias {
+    position: sticky;
+    top: -14px;
+    z-index: 2;
+    margin: 10px -14px 4px;
+    padding: 8px 14px;
+    background: #fff;
+  }
+
+  .perfil-categoria {
+    font-size: 11px;
   }
 
   .botoes-card button,

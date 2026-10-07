@@ -459,16 +459,6 @@
         <h2>Atualizações</h2>
         <ul class="lista-atualizacoes">
           <br>
-          <li>Colocado botão para organizar as obras.</li>
-          <li>Melhorar a interface do usuário mobile com aumento dos elementos.</li>
-          <li>Botão para visualizar eps/caps ja criados.</li>
-          <li>Botão de criar lembretes, e ver lista deles.</li>
-          <li>Parte de conta pessoal personalizada.</li>
-          <li>Melhora na lentidão do sistema.</li>
-          <li>Opção de amigos para compartilhar obras.</li>
-          <li>Adicionado botão obter obras.</li>
-          <li>Melhorias nas cores de fundo.</li>
-          <li>Melhora na visualização para celulares.</li>
           <li>Opção de mudar o fundo com imagem ja salva.</li>
           <li>Ter aparencia de fundo diferente para tipos de dispositivos.</li>
           <li>Mais opções para fonte de textos.</li>
@@ -476,8 +466,8 @@
           <br>
           <h3>Sendo trabalhado:</h3>
           <br>
-          </p><strong>V 20.2.5</strong></p>
-          <p><i>Atualização feita em 06/10/2026</i></p>
+          </p><strong>V 20.2.6</strong></p>
+          <p><i>Atualização feita em 07/10/2026</i></p>
         </ul>
       </div>
     </div>
@@ -496,6 +486,14 @@
       <button id="fechar-perfil" class="popup-fechar" type="button" aria-label="Fechar atualizações">X</button>
       <div>
         <h2>Perfil</h2>
+        <nav class="perfil-categorias" aria-label="Categorias do perfil">
+          <button type="button" class="perfil-categoria ativa" data-perfil-categoria="conta" aria-selected="true">
+            <i class="fa-solid fa-user"></i> Conta
+          </button>
+          <button type="button" class="perfil-categoria" data-perfil-categoria="visual" aria-selected="false">
+            <i class="fa-solid fa-palette"></i> Visual
+          </button>
+        </nav>
         <div class="perfil-cabecalho">
           <img id="foto-perfil-preview" class="foto-perfil" alt="Foto de perfil" hidden />
           <div class="foto-perfil-vazia" id="foto-perfil-vazia" aria-hidden="true">
@@ -509,7 +507,7 @@
         <p class="perfil-identificacao">Usuário: <strong id="nome-perfil-popup"></strong></p>
         <p class="perfil-identificacao">Seu ID: <strong id="identificador-publico"></strong></p>
 
-        <div class="perfil-secao">
+        <div class="perfil-secao perfil-categoria-conteudo" data-perfil-conteudo="conta">
           <h3>Dados da conta</h3>
           <label for="mudar-nick">Nick</label>
           <input type="text" id="mudar-nick" autocomplete="name" />
@@ -523,7 +521,7 @@
           <input type="password" id="confirmar-nova-senha" minlength="6" autocomplete="new-password" />
         </div>
 
-        <div class="perfil-secao">
+        <div class="perfil-secao perfil-categoria-conteudo" data-perfil-conteudo="visual" hidden>
           <h3>Opções visuais</h3>
           <label for="cor-fundo-inicio">Cor inicial do fundo</label>
           <input type="color" id="cor-fundo-inicio" value="#196cf3" />
