@@ -2927,6 +2927,7 @@ document.addEventListener("click", async (evento) => {
     botao.setAttribute("aria-expanded", String(!aberto));
     botao.textContent = aberto ? "Mostrar progresso" : "Ocultar progresso";
     card?.classList.toggle("progresso-expandido", !aberto);
+    card?.classList.toggle("progresso-tipo-expandido", !aberto);
 
     return;
   }
@@ -5870,6 +5871,23 @@ function obterImagemCatalogoFallback(titulo) {
   `)}`;
 }
 
+function configurarImagemCatalogo(imagem, titulo, url) {
+  const fallback = obterImagemCatalogoFallback(titulo);
+
+  imagem.src = fallback;
+  imagem.referrerPolicy = "no-referrer";
+
+  const teste = new Image();
+  teste.referrerPolicy = "no-referrer";
+  teste.onload = () => {
+    imagem.src = url;
+  };
+  teste.onerror = () => {
+    imagem.src = fallback;
+  };
+  teste.src = url;
+}
+
 function resumoCatalogo(obra) {
   const episodios = obra.temporadas.reduce(
     (total, temporada) => total + temporada.episodios,
@@ -5904,9 +5922,7 @@ function renderizarResultadosCatalogo() {
       <span><strong>${obra.titulo}</strong><small>${resumoCatalogo(obra)}</small></span>
     `;
     const imagem = botao.querySelector("img");
-    imagem.addEventListener("error", () => {
-      imagem.src = obterImagemCatalogoFallback(obra.titulo);
-    }, { once: true });
+    configurarImagemCatalogo(imagem, obra.titulo, obra.imagem);
     botao.addEventListener("click", () => selecionarObraCatalogo(obra));
     resultadosCatalogoObras.appendChild(botao);
   });
@@ -5926,9 +5942,7 @@ function selecionarObraCatalogo(obra) {
     </div>
   `;
   const imagem = previsaoCatalogoObra.querySelector("img");
-  imagem.addEventListener("error", () => {
-    imagem.src = obterImagemCatalogoFallback(obra.titulo);
-  }, { once: true });
+  configurarImagemCatalogo(imagem, obra.titulo, obra.imagem);
 }
 
 function preencherProgressoCatalogo(obra, escolha) {
