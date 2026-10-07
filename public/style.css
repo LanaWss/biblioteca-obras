@@ -716,7 +716,7 @@ body:not(.pagina-login) [role="button"] {
   background-size: cover;
   background-position: center;
   filter: saturate(45%);
-  opacity: 0.72;
+  opacity: 0.78;
   z-index: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
@@ -725,7 +725,7 @@ body:not(.pagina-login) [role="button"] {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(12, 18, 35, 0.3);
+  background: rgba(12, 18, 35, 0.34);
   z-index: 0;
   pointer-events: none;
 }
@@ -2873,14 +2873,14 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
 
 @media (min-width: 601px) {
   #lista-obras {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 300px));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 260px));
+    gap: 12px;
   }
 
   .cards,
   .cards.progresso-expandido {
     width: 100%;
-    max-width: 300px;
+    max-width: 260px;
     height: 560px;
     min-height: 560px;
     padding: 9px;
