@@ -725,7 +725,12 @@ body:not(.pagina-login) [role="button"] {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.34);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.38) 0%,
+    rgba(255, 255, 255, 0.18) 48%,
+    rgba(0, 0, 0, 0.2) 100%
+  );
   z-index: 0;
   pointer-events: none;
 }
@@ -3453,4 +3458,22 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
 .cards.progresso-tipo-expandido .lista-volumes-card {
   max-height: none !important;
   overflow: visible !important;
+}
+
+@media (min-width: 601px) {
+  .cards,
+  .cards.progresso-expandido,
+  .cards.progresso-tipo-expandido {
+    height: auto !important;
+    min-height: 560px;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .cards .detalhes-card[hidden],
+  .cards .detalhes-card:not([hidden]) {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
 }
