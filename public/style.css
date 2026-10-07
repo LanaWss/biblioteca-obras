@@ -916,6 +916,12 @@ body:not(.pagina-login) [role="button"] {
   overflow: hidden;
 }
 
+.cards.lista-itens-expandida .lista-temporadas-card,
+.cards.lista-itens-expandida .lista-volumes-card {
+  max-height: none;
+  overflow: visible;
+}
+
 .botoes-card {
   margin-top: auto;
 }
@@ -1813,7 +1819,7 @@ body:not(.pagina-login) .botao-ler {
   padding: 20px;
   border-radius: 12px;
   color: #17263a;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.86);
   text-align: left;
 }
 
@@ -1855,7 +1861,7 @@ body:not(.pagina-login) .botao-ler {
   border: 1px solid #d5d8d8;
   border-radius: 8px;
   color: #17263a !important;
-  background: #f8f8f8 !important;
+  background: rgba(248, 248, 248, 0.72) !important;
   text-align: left;
 }
 
@@ -1884,7 +1890,7 @@ body:not(.pagina-login) .botao-ler {
   padding: 14px;
   border: 1px solid #d5d8d8;
   border-radius: 8px;
-  background: #f8f8f8;
+  background: rgba(248, 248, 248, 0.72);
 }
 
 .previsao-catalogo-obra img {
@@ -2806,23 +2812,22 @@ body:not(.pagina-login) .botao-ler {
 
 @media (min-width: 601px) {
   #lista-obras {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
-    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 300px));
+    gap: 16px;
   }
 
   .cards,
   .cards.progresso-expandido {
     width: 100%;
-    max-width: 320px;
-    height: 600px;
-    min-height: 600px;
-    padding: 10px;
+    max-width: 300px;
+    height: 560px;
+    min-height: 560px;
+    padding: 9px;
     overflow: hidden;
   }
 
   .cards img {
-    width: 100%;
-    height: 180px;
+    height: 155px;
     object-fit: contain;
   }
 
@@ -2863,6 +2868,22 @@ body:not(.pagina-login) .botao-ler {
   .progresso-tipo-card[hidden] {
     display: none;
   }
+
+  .botao-mais-itens {
+    width: auto;
+    max-width: 120px;
+    min-height: 32px;
+    max-height: 32px;
+    height: 32px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .cards.lista-itens-expandida {
+    height: auto;
+    min-height: 0;
+  }
+
 }
 
 @media (max-width: 600px) {
@@ -3218,4 +3239,90 @@ body:not(.pagina-login) .botao-ler {
 
 #mensagem.aviso {
   color: orange;
+}
+
+@media (max-width: 600px) {
+  #popup-criar,
+  #popup-editar,
+  #popup-organizar,
+  #popup-obter-obra,
+  #popup-perfil,
+  #popup-amigos,
+  #popup-biblioteca-amigo,
+  #popup-lista-itens,
+  #popup-detalhe-obra-publica,
+  #popup-escolha-visto,
+  #popup-progresso,
+  #popup-filtros,
+  #popup-atualizacoes,
+  #popup-escolha-avanco,
+  #popup-escolha-link,
+  #popup-configurar-notificacao,
+  #popup-lista-notificacoes {
+    padding: 12px;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+  }
+
+  #popup-perfil,
+  #popup-amigos {
+    align-items: flex-start;
+  }
+
+  #popup-criar > .popup-shell,
+  #popup-editar > .popup-shell,
+  #popup-organizar > .popup-shell,
+  #popup-obter-obra > .popup-shell,
+  #popup-perfil > .popup-shell,
+  #popup-amigos > .popup-shell,
+  #popup-biblioteca-amigo > .popup-shell,
+  #popup-lista-itens > .popup-shell,
+  #popup-detalhe-obra-publica > .popup-shell,
+  #popup-escolha-visto .popup-shell,
+  #popup-progresso > .popup-shell,
+  #popup-filtros > .popup-shell,
+  #popup-atualizacoes .popup-shell,
+  #popup-escolha-avanco .popup-shell,
+  #popup-escolha-link .popup-shell,
+  #popup-configurar-notificacao .popup-shell,
+  #popup-lista-notificacoes .popup-shell {
+    width: min(84vw, 300px);
+    max-width: min(84vw, 300px);
+    max-height: 78dvh;
+    margin: 0 auto;
+  }
+
+  #popup-criar > .popup-shell > div,
+  #popup-editar > .popup-shell > div,
+  #popup-organizar > .popup-shell > div,
+  #popup-obter-obra > .popup-shell > div,
+  #popup-perfil > .popup-shell > div:not(.perfil-acoes),
+  #popup-amigos > .popup-shell > div,
+  #popup-biblioteca-amigo > .popup-shell > div,
+  #popup-lista-itens > .popup-shell > div,
+  #conteudo-detalhe-obra-publica,
+  #popup-escolha-visto .popup-shell > div,
+  #popup-progresso > .popup-shell > div,
+  #popup-filtros > .popup-shell > div,
+  #popup-atualizacoes .popup-shell > div,
+  #popup-escolha-avanco .popup-shell > div,
+  #popup-escolha-link .popup-shell > div,
+  #popup-configurar-notificacao .popup-shell > div,
+  #popup-lista-notificacoes .popup-shell > div {
+    width: 100%;
+    max-width: none;
+    max-height: 72dvh;
+    padding: 10px;
+    overflow-y: auto;
+  }
+
+  .popup-fechar {
+    top: 4px;
+    right: 4px;
+    min-width: 28px;
+    min-height: 28px;
+    padding: 3px 6px;
+    font-size: 12px;
+  }
 }

@@ -882,6 +882,7 @@ let obrasPublicasAtual = [];
 
 function fecharListaItens() {
   if (botaoListaItensAberta) {
+    botaoListaItensAberta.closest(".cards")?.classList.remove("lista-itens-expandida");
     botaoListaItensAberta.dataset.temporadasExpandidas = "false";
     botaoListaItensAberta.dataset.volumesExpandidos = "false";
     botaoListaItensAberta.textContent = "Ler mais";
@@ -916,6 +917,7 @@ function abrirListaItens(botao, tipo) {
   document.getElementById("popup-lista-itens").style.display = "flex";
 
   botao.dataset[`${tipo === "manga" ? "volumes" : "temporadas"}Expandidas`] = "true";
+  card.classList.add("lista-itens-expandida");
   botao.textContent = "Ler menos";
   botaoListaItensAberta = botao;
 }
