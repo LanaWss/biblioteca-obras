@@ -496,6 +496,11 @@ body:not(.pagina-login) h4 {
   z-index: 9000;
   width: 52px;
   height: 52px;
+  min-width: 52px;
+  max-width: 52px;
+  min-height: 52px;
+  max-height: 52px;
+  flex: 0 0 52px;
   margin: 0;
   padding: 0;
   border: 0;
@@ -1537,6 +1542,10 @@ body:not(.pagina-login) .botao-ler {
   flex: 0 0 auto;
   width: 52px;
   height: 52px;
+  min-width: 52px;
+  max-width: 52px;
+  min-height: 52px;
+  max-height: 52px;
   margin: 0;
   padding: 0;
   border: 1px solid #fff;
@@ -1845,8 +1854,8 @@ body:not(.pagina-login) .botao-ler {
   padding: 10px;
   border: 1px solid #d5d8d8;
   border-radius: 8px;
-  color: #17263a;
-  background: #f8f8f8;
+  color: #17263a !important;
+  background: #f8f8f8 !important;
   text-align: left;
 }
 
@@ -2157,6 +2166,11 @@ body:not(.pagina-login) .botao-ler {
   z-index: 9000;
   width: 52px;
   height: 52px;
+  min-width: 52px;
+  max-width: 52px;
+  min-height: 52px;
+  max-height: 52px;
+  flex: 0 0 52px;
   margin: 0;
   border: 0;
   border-radius: 50%;
@@ -2277,18 +2291,25 @@ body:not(.pagina-login) .botao-ler {
 
 @media (min-width: 601px) {
   #lista-obras {
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 360px));
+    justify-content: center;
+    gap: 20px;
   }
 
   .cards {
-    max-width: none;
-    min-height: 760px;
-    padding: 16px;
+    max-width: 360px;
+    height: 680px;
+    min-height: 680px;
+    padding: 12px;
+  }
+
+  .cards.progresso-expandido {
+    height: 680px;
+    min-height: 680px;
   }
 
   .cards img {
-    height: 250px;
+    height: 210px;
   }
 
   .botao-toggle-card {
@@ -2297,6 +2318,14 @@ body:not(.pagina-login) .botao-ler {
 
   .detalhes-card[hidden] {
     display: flex;
+  }
+
+  .botao-toggle-progresso {
+    display: none;
+  }
+
+  .progresso-tipo-card[hidden] {
+    display: block;
   }
 }
 
@@ -2325,8 +2354,13 @@ body:not(.pagina-login) .botao-ler {
 
   #botao-inicio,
   #botao-atualizacoes {
-    width: 52px;
-    height: 52px;
+    width: 52px !important;
+    height: 52px !important;
+    min-width: 52px !important;
+    max-width: 52px !important;
+    min-height: 52px !important;
+    max-height: 52px !important;
+    flex: 0 0 52px !important;
     font-size: 18px;
   }
 
@@ -2342,8 +2376,13 @@ body:not(.pagina-login) .botao-ler {
   }
 
   #botao-perfil {
-    width: 52px;
-    height: 52px;
+    width: 52px !important;
+    height: 52px !important;
+    min-width: 52px !important;
+    max-width: 52px !important;
+    min-height: 52px !important;
+    max-height: 52px !important;
+    flex: 0 0 52px !important;
     font-size: 18px;
   }
 
@@ -2543,6 +2582,134 @@ body:not(.pagina-login) .botao-ler {
     min-height: 46px;
     padding: 12px 18px;
     font-size: 15px;
+  }
+}
+
+@media (max-width: 600px) {
+  #popup-criar,
+  #popup-editar,
+  #popup-organizar,
+  #popup-obter-obra,
+  #popup-perfil,
+  #popup-amigos,
+  #popup-biblioteca-amigo,
+  #popup-detalhe-obra-publica,
+  #popup-progresso,
+  #popup-filtros,
+  #popup-atualizacoes,
+  #popup-escolha-avanco,
+  #popup-escolha-link,
+  #popup-configurar-notificacao,
+  #popup-lista-notificacoes {
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    overflow-y: auto;
+  }
+
+  #popup-perfil,
+  #popup-amigos {
+    align-items: flex-start;
+  }
+
+  .popup-shell,
+  #popup-criar > .popup-shell,
+  #popup-editar > .popup-shell,
+  #popup-organizar > .popup-shell,
+  #popup-obter-obra > .popup-shell,
+  #popup-perfil > .popup-shell,
+  #popup-amigos > .popup-shell,
+  #popup-biblioteca-amigo > .popup-shell,
+  #popup-detalhe-obra-publica > .popup-shell,
+  #popup-progresso > .popup-shell,
+  #popup-filtros > .popup-shell,
+  #popup-atualizacoes .popup-shell,
+  #popup-escolha-avanco .popup-shell,
+  #popup-escolha-link .popup-shell,
+  #popup-configurar-notificacao .popup-shell,
+  #popup-lista-notificacoes .popup-shell {
+    width: 100%;
+    max-width: calc(100vw - 16px);
+    margin: 8px auto;
+  }
+
+  .popup-fechar {
+    top: 5px;
+    right: 5px;
+    min-width: 32px;
+    min-height: 32px;
+    margin: 0;
+    padding: 4px 8px;
+  }
+
+  #popup-criar > .popup-shell > div,
+  #popup-editar > .popup-shell > div,
+  #popup-organizar > .popup-shell > div,
+  #popup-obter-obra > .popup-shell > div,
+  #popup-perfil > .popup-shell > div:not(.perfil-acoes),
+  #popup-amigos > .popup-shell > div,
+  #popup-biblioteca-amigo > .popup-shell > div,
+  #conteudo-detalhe-obra-publica,
+  #popup-progresso > .popup-shell > div,
+  #popup-filtros > .popup-shell > div,
+  #popup-atualizacoes .popup-shell > div,
+  #popup-escolha-avanco .popup-shell > div,
+  #popup-escolha-link .popup-shell > div,
+  #popup-configurar-notificacao .popup-shell > div,
+  #popup-lista-notificacoes .popup-shell > div {
+    width: 100%;
+    max-width: none;
+    max-height: calc(100dvh - 24px);
+    padding: 14px;
+    overflow-y: auto;
+    border-radius: 10px;
+  }
+
+  #popup-lista-itens {
+    align-items: stretch;
+    padding: 8px;
+  }
+
+  #popup-lista-itens > .popup-shell {
+    width: 100%;
+    max-width: calc(100vw - 16px);
+    min-height: 0;
+    margin: 0;
+  }
+
+  #popup-lista-itens > .popup-shell > div {
+    min-height: 0;
+    max-height: calc(100dvh - 16px);
+    padding: 14px;
+  }
+
+  #popup-perfil > .popup-shell {
+    max-height: calc(100dvh - 16px);
+    margin: 8px auto;
+  }
+
+  #popup-perfil > .popup-shell > div:not(.perfil-acoes) {
+    max-height: calc(100dvh - 92px);
+  }
+
+  #popup-perfil > .popup-shell > #botao-sair {
+    margin: 6px 14px 14px;
+    width: calc(100% - 28px);
+  }
+
+  #popup-criar > .popup-shell > div,
+  #popup-editar > .popup-shell > div {
+    max-height: calc(100dvh - 16px);
+  }
+
+  .popup-confirmacao {
+    padding: 8px;
+  }
+
+  .popup-confirmacao-conteudo {
+    width: 100%;
+    max-width: calc(100vw - 16px);
+    padding: 16px;
   }
 }
 
