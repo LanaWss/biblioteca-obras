@@ -4952,7 +4952,7 @@ function aplicarConfiguracoesVisuais(configuracoes = {}) {
   raiz.style.setProperty("--fundo-personalizado", fundoPc);
   const fundoCelular =
     valores.modoFundoCelular === "imagem" && valores.imagemFundoCelular
-      ? `url("${valores.imagemFundoCelular}") center top / 100% auto no-repeat scroll`
+      ? `url("${valores.imagemFundoCelular}") center top / cover no-repeat fixed`
       : `linear-gradient(135deg, ${valores.fundoCelularInicio}, ${valores.fundoCelularFim})`;
 
   raiz.style.setProperty(

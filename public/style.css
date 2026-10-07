@@ -58,10 +58,10 @@ body {
 @media (max-width: 600px) {
   body {
     background: var(--fundo-personalizado-mobile);
-    background-attachment: scroll;
+    background-attachment: fixed;
     background-position: center top;
     background-repeat: no-repeat;
-    background-size: 100% auto;
+    background-size: cover;
     background-color: #eef3f4;
   }
 }
@@ -2291,25 +2291,26 @@ body:not(.pagina-login) .botao-ler {
 
 @media (min-width: 601px) {
   #lista-obras {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 360px));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 320px));
     justify-content: center;
-    gap: 20px;
+    gap: 16px;
   }
 
   .cards {
-    max-width: 360px;
-    height: 680px;
-    min-height: 680px;
-    padding: 12px;
+    max-width: 320px;
+    height: 590px;
+    min-height: 590px;
+    padding: 10px;
+    gap: 6px;
   }
 
   .cards.progresso-expandido {
-    height: 680px;
-    min-height: 680px;
+    height: 590px;
+    min-height: 590px;
   }
 
   .cards img {
-    height: 210px;
+    height: 180px;
   }
 
   .botao-toggle-card {
@@ -2324,7 +2325,14 @@ body:not(.pagina-login) .botao-ler {
     display: flex;
     flex: 1 1 auto;
     min-height: 0;
+    min-width: 0;
     overflow: hidden;
+    align-items: center;
+  }
+
+  .detalhes-card > * {
+    width: 100%;
+    min-width: 0;
   }
 
   .progresso-tipo-card[hidden] {
@@ -2368,14 +2376,14 @@ body:not(.pagina-login) .botao-ler {
 
   #botao-inicio,
   #botao-atualizacoes {
-    width: 52px !important;
-    height: 52px !important;
-    min-width: 52px !important;
-    max-width: 52px !important;
-    min-height: 52px !important;
-    max-height: 52px !important;
-    flex: 0 0 52px !important;
-    font-size: 18px;
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    max-width: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
+    flex: 0 0 42px !important;
+    font-size: 15px;
   }
 
   #perfil-fixo {
@@ -2390,14 +2398,14 @@ body:not(.pagina-login) .botao-ler {
   }
 
   #botao-perfil {
-    width: 52px !important;
-    height: 52px !important;
-    min-width: 52px !important;
-    max-width: 52px !important;
-    min-height: 52px !important;
-    max-height: 52px !important;
-    flex: 0 0 52px !important;
-    font-size: 18px;
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    max-width: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
+    flex: 0 0 42px !important;
+    font-size: 15px;
   }
 
   #botao-inicio {
@@ -2652,6 +2660,7 @@ body:not(.pagina-login) .botao-ler {
   #popup-amigos,
   #popup-biblioteca-amigo,
   #popup-detalhe-obra-publica,
+  #popup-escolha-visto,
   #popup-progresso,
   #popup-filtros,
   #popup-atualizacoes,
@@ -2661,7 +2670,7 @@ body:not(.pagina-login) .botao-ler {
   #popup-lista-notificacoes {
     align-items: center;
     justify-content: center;
-    padding: 8px;
+    padding: 4px;
     overflow-y: auto;
   }
 
@@ -2679,6 +2688,7 @@ body:not(.pagina-login) .botao-ler {
   #popup-amigos > .popup-shell,
   #popup-biblioteca-amigo > .popup-shell,
   #popup-detalhe-obra-publica > .popup-shell,
+  #popup-escolha-visto .popup-shell,
   #popup-progresso > .popup-shell,
   #popup-filtros > .popup-shell,
   #popup-atualizacoes .popup-shell,
@@ -2687,8 +2697,8 @@ body:not(.pagina-login) .botao-ler {
   #popup-configurar-notificacao .popup-shell,
   #popup-lista-notificacoes .popup-shell {
     width: 100%;
-    max-width: calc(100vw - 16px);
-    margin: 8px auto;
+    max-width: calc(100vw - 8px);
+    margin: 4px auto;
   }
 
   .popup-fechar {
@@ -2708,6 +2718,7 @@ body:not(.pagina-login) .botao-ler {
   #popup-amigos > .popup-shell > div,
   #popup-biblioteca-amigo > .popup-shell > div,
   #conteudo-detalhe-obra-publica,
+  #popup-escolha-visto .popup-shell > div,
   #popup-progresso > .popup-shell > div,
   #popup-filtros > .popup-shell > div,
   #popup-atualizacoes .popup-shell > div,
@@ -2717,8 +2728,8 @@ body:not(.pagina-login) .botao-ler {
   #popup-lista-notificacoes .popup-shell > div {
     width: 100%;
     max-width: none;
-    max-height: calc(100dvh - 24px);
-    padding: 14px;
+    max-height: calc(100dvh - 12px);
+    padding: 10px;
     overflow-y: auto;
     border-radius: 10px;
   }
@@ -2761,13 +2772,35 @@ body:not(.pagina-login) .botao-ler {
   }
 
   .popup-confirmacao {
-    padding: 8px;
+    padding: 4px;
   }
 
   .popup-confirmacao-conteudo {
     width: 100%;
-    max-width: calc(100vw - 16px);
-    padding: 16px;
+    max-width: calc(100vw - 8px);
+    padding: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  #botao-inicio,
+  #botao-atualizacoes,
+  #botao-perfil {
+    border-width: 1px;
+  }
+
+  .cards {
+    min-width: 0;
+  }
+
+  .detalhes-card > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .progresso-card {
+    align-self: center;
+    width: min(100%, 240px);
   }
 }
 
