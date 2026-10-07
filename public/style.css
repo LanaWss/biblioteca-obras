@@ -716,7 +716,7 @@ body:not(.pagina-login) [role="button"] {
   background-size: cover;
   background-position: center;
   filter: saturate(45%);
-  opacity: 0.62;
+  opacity: 0.72;
   z-index: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
@@ -725,7 +725,7 @@ body:not(.pagina-login) [role="button"] {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(12, 18, 35, 0.18);
+  background: rgba(12, 18, 35, 0.3);
   z-index: 0;
   pointer-events: none;
 }
@@ -769,6 +769,7 @@ body:not(.pagina-login) [role="button"] {
 .cabecalho-tipo-card h3 {
   min-width: 0;
   overflow-wrap: anywhere;
+  color: #000 !important;
 }
 
 .botao-toggle-progresso {
@@ -969,6 +970,11 @@ body:not(.pagina-login) [role="button"] {
   justify-content: center;
   margin-bottom: 3px;
   font-size: 12px;
+}
+
+.cards .progresso-texto,
+.cards .progresso-tipo-card h3 {
+  color: #000 !important;
 }
 
 .progresso-texto {

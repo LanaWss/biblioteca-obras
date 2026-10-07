@@ -2294,7 +2294,7 @@ document.addEventListener("click", async (evento) => {
     return;
   }
 
-  if (evento.target.matches("#botao-atualizacoes")) {
+  if (evento.target.closest("#botao-atualizacoes")) {
     document.getElementById("popup-atualizacoes").style.display = "flex";
 
     return;
@@ -3046,7 +3046,7 @@ document.addEventListener("click", async (evento) => {
     return;
   }
 
-  if (evento.target.matches("#botao-atualizacoes")) {
+  if (evento.target.closest("#botao-atualizacoes")) {
     document.getElementById("popup-atualizacoes").style.display = "flex";
 
     return;
