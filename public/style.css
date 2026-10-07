@@ -2843,6 +2843,7 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
   #popup-editar > .popup-shell > div {
     max-height: calc(100dvh - 16px);
   }
+}
 
   .popup-confirmacao {
     padding: 4px;
@@ -3421,4 +3422,35 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
     padding: 3px 6px;
     font-size: 12px;
   }
+}
+
+.cards.progresso-expandido,
+.cards.progresso-tipo-expandido {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.cards.progresso-expandido .detalhes-card:not([hidden]),
+.cards.progresso-tipo-expandido .detalhes-card:not([hidden]) {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.cards.progresso-expandido .progresso-tipo-card:not([hidden]),
+.cards.progresso-tipo-expandido .progresso-tipo-card:not([hidden]) {
+  display: block !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.cards.progresso-expandido .lista-temporadas-card,
+.cards.progresso-expandido .lista-volumes-card,
+.cards.progresso-tipo-expandido .lista-temporadas-card,
+.cards.progresso-tipo-expandido .lista-volumes-card {
+  max-height: none !important;
+  overflow: visible !important;
 }
