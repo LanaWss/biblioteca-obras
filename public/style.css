@@ -725,7 +725,7 @@ body:not(.pagina-login) [role="button"] {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(12, 18, 35, 0.34);
+  background: rgba(255, 255, 255, 0.24);
   z-index: 0;
   pointer-events: none;
 }
@@ -2869,6 +2869,18 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
     align-self: center;
     width: min(100%, 240px);
   }
+
+  .cards.progresso-expandido,
+  .cards.progresso-tipo-expandido {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .cards.progresso-expandido .detalhes-card:not([hidden]),
+  .cards.progresso-tipo-expandido .detalhes-card:not([hidden]) {
+    overflow: visible;
+  }
 }
 
 @media (min-width: 601px) {
@@ -2905,6 +2917,18 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
     width: 100%;
     max-width: 100%;
     min-width: 0;
+  }
+
+  .cards.progresso-expandido,
+  .cards.progresso-tipo-expandido {
+    height: auto;
+    min-height: 560px;
+    overflow: visible;
+  }
+
+  .cards.progresso-expandido .detalhes-card:not([hidden]),
+  .cards.progresso-tipo-expandido .detalhes-card:not([hidden]) {
+    overflow: visible;
   }
 
   .progresso-card {
