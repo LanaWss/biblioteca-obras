@@ -5831,6 +5831,15 @@ const catalogoObras = [
     temporadas: criarTemporadasCatalogo([25, 25, 10, 25]),
     volumes: criarVolumesCatalogo(45, 402),
   },
+  {
+    titulo: "Diários de uma Apotecária",
+    titulosAlternativos: ["Kusuriya no Hitorigoto", "The Apothecary Diaries"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/1706/138033.jpg",
+    temporadas: criarTemporadasCatalogo([24, 24]),
+    volumes: criarVolumesCatalogo(14, 78),
+  },
 ];
 
 const popupObterObra = document.getElementById("popup-obter-obra");
@@ -5840,6 +5849,24 @@ const previsaoCatalogoObra = document.getElementById("previsao-catalogo-obra");
 const escolhaProgressoCatalogo = document.getElementById("escolha-progresso-catalogo");
 const erroCatalogoObras = document.getElementById("erro-catalogo-obras");
 let obraCatalogoSelecionada = null;
+
+function obterImagemCatalogoFallback(titulo) {
+  const texto = String(titulo || "Obra").replace(/[<>&'"]/g, (caractere) => ({
+    "<": "&lt;",
+    ">": "&gt;",
+    "&": "&amp;",
+    "'": "&apos;",
+    '"': "&quot;",
+  }[caractere]));
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="240" height="320" viewBox="0 0 240 320">
+      <rect width="240" height="320" fill="#dce7ea"/>
+      <rect x="18" y="18" width="204" height="284" rx="12" fill="#ffffff" fill-opacity=".72"/>
+      <text x="120" y="145" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="bold" fill="#344356">${texto}</text>
+      <text x="120" y="178" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#69717b">Imagem indisponível</text>
+    </svg>
+  `)}`;
+}
 
 function resumoCatalogo(obra) {
   const episodios = obra.temporadas.reduce(
@@ -5871,9 +5898,13 @@ function renderizarResultadosCatalogo() {
     botao.type = "button";
     botao.className = "resultado-catalogo-obra";
     botao.innerHTML = `
-      <img src="${obra.imagem}" alt="">
+      <img src="${obra.imagem}" referrerpolicy="no-referrer" alt="">
       <span><strong>${obra.titulo}</strong><small>${resumoCatalogo(obra)}</small></span>
     `;
+    const imagem = botao.querySelector("img");
+    imagem.addEventListener("error", () => {
+      imagem.src = obterImagemCatalogoFallback(obra.titulo);
+    }, { once: true });
     botao.addEventListener("click", () => selecionarObraCatalogo(obra));
     resultadosCatalogoObras.appendChild(botao);
   });
@@ -5885,13 +5916,17 @@ function selecionarObraCatalogo(obra) {
   previsaoCatalogoObra.hidden = false;
   escolhaProgressoCatalogo.hidden = false;
   previsaoCatalogoObra.innerHTML = `
-    <img src="${obra.imagem}" alt="Capa de ${obra.titulo}">
+    <img src="${obra.imagem}" referrerpolicy="no-referrer" alt="Capa de ${obra.titulo}">
     <div>
       <h3>${obra.titulo}</h3>
       <p>${resumoCatalogo(obra)}</p>
       <p>Escolha abaixo o que já foi acompanhado para criar o card com o progresso certo.</p>
     </div>
   `;
+  const imagem = previsaoCatalogoObra.querySelector("img");
+  imagem.addEventListener("error", () => {
+    imagem.src = obterImagemCatalogoFallback(obra.titulo);
+  }, { once: true });
 }
 
 function preencherProgressoCatalogo(obra, escolha) {
