@@ -715,9 +715,8 @@ body:not(.pagina-login) [role="button"] {
   background-image: var(--imagem-obra, none);
   background-size: cover;
   background-position: center;
-  filter: blur(12px) saturate(45%);
-  opacity: 0.72;
-  transform: scale(1.15);
+  filter: saturate(45%);
+  opacity: 0.62;
   z-index: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
@@ -776,6 +775,7 @@ body:not(.pagina-login) [role="button"] {
   flex: 0 0 auto;
   padding: 4px 7px !important;
   font-size: 11px !important;
+  color: #000 !important;
 }
 
 .cards p {
@@ -1937,6 +1937,14 @@ body:not(.pagina-login) .botao-ler {
  background: rgba(207, 218, 221, 0.92) !important;
 }
 
+#tela-detalhe-catalogo,
+#tela-detalhe-catalogo h2,
+#tela-detalhe-catalogo h3,
+#tela-detalhe-catalogo p,
+#tela-detalhe-catalogo button {
+  color: #000 !important;
+}
+
 .opcoes-progresso-catalogo {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2230,8 +2238,17 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
 #popup-atualizacoes .popup-shell > div {
   padding: 24px;
   border-radius: 10px;
-  color: #17263a;
+  color: #000 !important;
   background: #fff;
+}
+
+#popup-atualizacoes h2,
+#popup-atualizacoes h3,
+#popup-atualizacoes p,
+#popup-atualizacoes li,
+#popup-atualizacoes strong,
+#popup-atualizacoes i {
+  color: #000 !important;
 }
 
 #popup-escolha-avanco {
