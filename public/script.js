@@ -831,9 +831,9 @@ function configurarImagemCard(card, obra) {
     const fundo = url ? obterImagemParaCss(url) : "none";
 
     card.style.setProperty("--imagem-obra", fundo);
-    card.style.backgroundImage = fundo;
-    card.style.backgroundSize = "cover";
-    card.style.backgroundPosition = "center";
+    card.style.removeProperty("background-image");
+    card.style.removeProperty("background-size");
+    card.style.removeProperty("background-position");
   };
 
   definirFundo(imagens.principal);
