@@ -769,14 +769,12 @@ body:not(.pagina-login) [role="button"] {
 .cabecalho-tipo-card h3 {
   min-width: 0;
   overflow-wrap: anywhere;
-  color: #000 !important;
 }
 
 .botao-toggle-progresso {
   flex: 0 0 auto;
   padding: 4px 7px !important;
   font-size: 11px !important;
-  color: #000 !important;
 }
 
 .cards p {
@@ -970,11 +968,6 @@ body:not(.pagina-login) [role="button"] {
   justify-content: center;
   margin-bottom: 3px;
   font-size: 12px;
-}
-
-.cards .progresso-texto,
-.cards .progresso-tipo-card h3 {
-  color: #000 !important;
 }
 
 .progresso-texto {
@@ -2004,6 +1997,16 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
   max-height: 85vh;
   overflow-y: auto;
   text-align: left;
+}
+
+#popup-progresso h2,
+#popup-progresso h3,
+#popup-progresso p,
+#popup-progresso label,
+#popup-progresso span,
+#popup-progresso li,
+#popup-progresso button {
+  color: #000 !important;
 }
 
 #popup-filtros {
