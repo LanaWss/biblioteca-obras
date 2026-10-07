@@ -2320,12 +2320,26 @@ body:not(.pagina-login) .botao-ler {
     display: flex;
   }
 
-  .botao-toggle-progresso {
-    display: none;
+  .detalhes-card:not([hidden]) {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .progresso-tipo-card[hidden] {
+    display: none;
+  }
+
+  .cabecalho-tipo-card {
+    flex: 0 0 auto;
+  }
+
+  .botao-toggle-progresso {
     display: block;
+    width: auto;
+    max-width: 150px;
+    white-space: nowrap;
   }
 }
 
@@ -2427,6 +2441,8 @@ body:not(.pagina-login) .botao-ler {
     gap: 6px;
     height: auto;
     min-height: 360px;
+    min-width: 0;
+    overflow: hidden;
   }
 
   .cards.progresso-expandido {
@@ -2460,6 +2476,48 @@ body:not(.pagina-login) .botao-ler {
   .titulo-card h2 {
     height: 52px;
     font-size: 15px;
+  }
+
+  .detalhes-card:not([hidden]) {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .cabecalho-tipo-card {
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .cabecalho-tipo-card h3 {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-size: 13px;
+  }
+
+  .botao-toggle-progresso {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 108px;
+    padding: 4px 5px !important;
+    font-size: 9px !important;
+    white-space: normal;
+  }
+
+  .progresso-tipo-card {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .progresso-tipo-card[hidden] {
+    display: none;
+  }
+
+  .progresso-tipo-card:not([hidden]) {
+    display: block;
   }
 
   .status-card {
