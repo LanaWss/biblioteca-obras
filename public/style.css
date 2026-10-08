@@ -740,9 +740,10 @@ body:not(.pagina-login) [role="button"] {
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.04) 42%,
-    rgba(0, 0, 0, 0.2) 68%,
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0.18) 24%,
+    rgba(0, 0, 0, 0.04) 48%,
+    rgba(0, 0, 0, 0.2) 72%,
     rgba(0, 0, 0, 0.62) 100%
   );
   z-index: 0;
@@ -828,6 +829,8 @@ body:not(.pagina-login) [role="button"] {
   line-clamp: 3;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
+  background: transparent !important;
+  box-shadow: 0 0 18px 10px rgba(0, 0, 0, 0.24);
   cursor: copy;
 }
 
@@ -2874,7 +2877,6 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
     max-width: calc(100vw - 8px);
     padding: 12px;
   }
-}
 
 @media (max-width: 600px) {
   #botao-inicio,
