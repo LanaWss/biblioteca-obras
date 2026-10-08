@@ -1646,7 +1646,13 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
 
             <div class="titulo-card">
 
-              <h2>
+              <h2
+                data-copiar-titulo="${obra.id}"
+                role="button"
+                tabindex="0"
+                title="Clique para copiar o título completo"
+                aria-label="Copiar título completo"
+              >
                 ${obterTituloExibicao(obra)}
               </h2>
 
@@ -2040,7 +2046,34 @@ async function marcarProximoVisto(id, botao, tipo, indice) {
   }
 }
 
+async function copiarTituloObra(titulo) {
+  try {
+    if (!navigator.clipboard?.writeText) {
+      throw new Error("A cópia para a área de transferência não é suportada.");
+    }
+
+    await navigator.clipboard.writeText(titulo);
+    mostrarMensagem("Título copiado!", "sucesso");
+  } catch (erro) {
+    mostrarMensagem("Não foi possível copiar o título.", "erro");
+  }
+}
+
 document.addEventListener("click", async (evento) => {
+  const tituloCard = evento.target.closest("[data-copiar-titulo]");
+
+  if (tituloCard) {
+    const obra = obrasCarregadas.find(
+      (item) => String(item.id) === String(tituloCard.dataset.copiarTitulo),
+    );
+
+    if (obra) {
+      await copiarTituloObra(obterTituloExibicao(obra));
+    }
+
+    return;
+  }
+
   const botaoToggleCard = evento.target.closest(
     "button[data-card-progresso-toggle]",
   );
@@ -2657,6 +2690,26 @@ document.addEventListener("click", async (evento) => {
 
   if (evento.target.matches("button[data-progress-id]")) {
     abrirPopupProgresso(evento.target.dataset.progressId);
+  }
+});
+
+document.addEventListener("keydown", (evento) => {
+  if (
+    (evento.key !== "Enter" && evento.key !== " ") ||
+    !evento.target.closest("[data-copiar-titulo]")
+  ) {
+    return;
+  }
+
+  evento.preventDefault();
+
+  const tituloCard = evento.target.closest("[data-copiar-titulo]");
+  const obra = obrasCarregadas.find(
+    (item) => String(item.id) === String(tituloCard.dataset.copiarTitulo),
+  );
+
+  if (obra) {
+    copiarTituloObra(obterTituloExibicao(obra));
   }
 });
 

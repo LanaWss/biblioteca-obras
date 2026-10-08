@@ -740,9 +740,9 @@ body:not(.pagina-login) [role="button"] {
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(0, 0, 0, 0.3) 0%,
-    rgba(0, 0, 0, 0.22) 48%,
-    rgba(0, 0, 0, 0.4) 100%
+    rgba(0, 0, 0, 0.08) 0%,
+    rgba(0, 0, 0, 0.14) 48%,
+    rgba(0, 0, 0, 0.48) 100%
   );
   z-index: 0;
   pointer-events: none;
@@ -827,6 +827,7 @@ body:not(.pagina-login) [role="button"] {
   line-clamp: 3;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
+  cursor: copy;
 }
 
 .status-card {
