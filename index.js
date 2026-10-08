@@ -301,7 +301,8 @@ async function enviarPushDaNotificacao(notificacao) {
         },
         payload,
         {
-          TTL: 60,
+          TTL: 3600,
+          urgency: "high",
         },
       );
 

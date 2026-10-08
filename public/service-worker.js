@@ -8,10 +8,12 @@ self.addEventListener("activate", (evento) => {
 
 self.addEventListener("message", (evento) => {
   if (evento.data?.tipo === "teste-notificacao") {
-    self.registration.showNotification("Biblioteca de Obras", {
-      body: "A notificação está funcionando!",
-      icon: "/icone.png",
-    });
+    evento.waitUntil(
+      self.registration.showNotification("Biblioteca de Obras", {
+        body: "A notificação está funcionando!",
+        icon: "/icone.png",
+      }),
+    );
   }
 });
 
@@ -29,6 +31,8 @@ self.addEventListener("push", (evento) => {
   const opcoes = {
     body: dados.corpo || "Você tem um novo lembrete.",
     icon: dados.icone || "/icone.png",
+    badge: dados.badge || "/icone.png",
+    requireInteraction: true,
     data: {
       obraId: dados.obraId || null,
     },

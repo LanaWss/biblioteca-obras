@@ -23,7 +23,7 @@ if ("serviceWorker" in navigator) {
   });
 
   navigator.serviceWorker
-    .register("/service-worker.js?v=22", {
+    .register("/service-worker.js?v=23", {
       updateViaCache: "none",
     })
     .then((registro) => registro.update())
@@ -112,6 +112,32 @@ async function sincronizarInscricaoPush() {
 
   await inscreverPush();
 }
+
+let sincronizacaoPushEmAndamento = null;
+
+function sincronizarInscricaoPushComControle() {
+  if (!sincronizacaoPushEmAndamento) {
+    sincronizacaoPushEmAndamento = sincronizarInscricaoPush().finally(() => {
+      sincronizacaoPushEmAndamento = null;
+    });
+  }
+
+  return sincronizacaoPushEmAndamento;
+}
+
+window.addEventListener("online", () => {
+  sincronizarInscricaoPushComControle().catch(() => {});
+});
+
+window.addEventListener("focus", () => {
+  sincronizarInscricaoPushComControle().catch(() => {});
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    sincronizarInscricaoPushComControle().catch(() => {});
+  }
+});
 
 async function testarNotificacao() {
   const registro = await navigator.serviceWorker.ready;
@@ -5583,7 +5609,7 @@ document.getElementById("salvar-perfil").addEventListener("click", async () => {
 });
 
 carregarPerfil().catch(() => {});
-sincronizarInscricaoPush().catch(() => {});
+sincronizarInscricaoPushComControle().catch(() => {});
 
 const popupExclusao = document.getElementById("popup-confirmar-exclusao");
 

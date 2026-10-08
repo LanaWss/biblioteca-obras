@@ -44,6 +44,7 @@ header > p {
 html,
 body {
   min-height: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -446,6 +447,18 @@ body:not(.pagina-login) h4 {
   }
 }
 
+@media (max-width: 1024px) {
+  html,
+  body {
+    scrollbar-width: none;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @keyframes girar {
   to {
     transform: rotate(360deg);
@@ -727,9 +740,9 @@ body:not(.pagina-login) [role="button"] {
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.24) 0%,
-    rgba(255, 255, 255, 0.1) 48%,
-    rgba(0, 0, 0, 0.2) 100%
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0.22) 48%,
+    rgba(0, 0, 0, 0.4) 100%
   );
   z-index: 0;
   pointer-events: none;
