@@ -816,7 +816,7 @@ body:not(.pagina-login) [role="button"] {
   flex-shrink: 0;
 }
 
-.titulo-card h2 {
+body:not(.pagina-login) .cards .titulo-card h2[role="button"] {
   display: -webkit-box;
   width: 100%;
   height: 65px;
