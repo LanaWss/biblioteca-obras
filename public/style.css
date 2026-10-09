@@ -831,6 +831,7 @@ body:not(.pagina-login) [role="button"] {
   -webkit-line-clamp: 3;
   background: transparent !important;
   box-shadow: 0 0 18px 10px rgba(0, 0, 0, 0.24);
+  -webkit-user-select: none;
   user-select: none;
   cursor: copy;
 }
