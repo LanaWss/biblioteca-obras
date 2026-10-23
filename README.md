@@ -4,5 +4,12 @@
 
 Para gerar as chaves, rode este comando no terminal:
 ```bash
-cp node gerar-API
+node gerar-vapid.js
 ```
+
+|     Variável      |       Obrigatória        |
+|-------------------|--------------------------|
+| VAPID_PRIVATE_KEY |           Sim            |
+| VAPID_PUBLIC_KEY  |           Sim            |
+|       PORT        |    Não (padrão 3000)     |
+|     NODE_ENV      | Não (padrão development) |
