@@ -4954,9 +4954,13 @@ document.querySelectorAll("[data-perfil-categoria]").forEach((botao) => {
 
 const configuracoesVisuaisPadrao = {
   fundoInicio: "#17448c",
+  fundoIntermediaria: "#196cf3",
   fundoFim: "#0a0253",
   fundoCelularInicio: "#17448c",
+  fundoCelularIntermediaria: "#196cf3",
   fundoCelularFim: "#0a0253",
+  estiloFundoPc: "diagonal",
+  estiloFundoCelular: "diagonal",
   modoFundoPc: "cor",
   imagemFundoPc: "",
   modoFundoCelular: "cor",
@@ -5000,10 +5004,15 @@ function lerPadroesVisuaisDoCss() {
 
   return {
     fundoInicio: coresDoFundo[0] || configuracoesVisuaisPadrao.fundoInicio,
+    fundoIntermediaria:
+      coresDoFundo[1] || configuracoesVisuaisPadrao.fundoIntermediaria,
     fundoFim:
       coresDoFundo[coresDoFundo.length - 1] || configuracoesVisuaisPadrao.fundoFim,
     fundoCelularInicio: configuracoesVisuaisPadrao.fundoCelularInicio,
+    fundoCelularIntermediaria: configuracoesVisuaisPadrao.fundoCelularIntermediaria,
     fundoCelularFim: configuracoesVisuaisPadrao.fundoCelularFim,
+    estiloFundoPc: configuracoesVisuaisPadrao.estiloFundoPc,
+    estiloFundoCelular: configuracoesVisuaisPadrao.estiloFundoCelular,
     modoFundoPc: configuracoesVisuaisPadrao.modoFundoPc,
     imagemFundoPc: configuracoesVisuaisPadrao.imagemFundoPc,
     modoFundoCelular: configuracoesVisuaisPadrao.modoFundoCelular,
@@ -5039,17 +5048,37 @@ function obterConfiguracoesVisuais(configuracoes = {}) {
 function aplicarConfiguracoesVisuais(configuracoes = {}) {
   const valores = obterConfiguracoesVisuais(configuracoes);
   const raiz = document.documentElement;
+  const direcoesGradiente = {
+    diagonal: "135deg",
+    vertical: "180deg",
+    horizontal: "90deg",
+    "diagonal-inversa": "45deg",
+  };
+  const criarGradiente = (estilo, inicio, intermediaria, fim) =>
+    estilo === "radial"
+      ? `radial-gradient(circle, ${inicio}, ${intermediaria}, ${fim})`
+      : `linear-gradient(${direcoesGradiente[estilo] || "135deg"}, ${inicio}, ${intermediaria}, ${fim})`;
 
   const fundoPc =
     valores.modoFundoPc === "imagem" && valores.imagemFundoPc
       ? `url("${valores.imagemFundoPc}") center / cover no-repeat fixed`
-      : `linear-gradient(135deg, ${valores.fundoInicio}, ${valores.fundoFim})`;
+      : criarGradiente(
+          valores.estiloFundoPc,
+          valores.fundoInicio,
+          valores.fundoIntermediaria,
+          valores.fundoFim,
+        );
 
   raiz.style.setProperty("--fundo-personalizado", fundoPc);
   const fundoCelular =
     valores.modoFundoCelular === "imagem" && valores.imagemFundoCelular
       ? `url("${valores.imagemFundoCelular}") center top / cover no-repeat fixed`
-      : `linear-gradient(135deg, ${valores.fundoCelularInicio}, ${valores.fundoCelularFim})`;
+      : criarGradiente(
+          valores.estiloFundoCelular,
+          valores.fundoCelularInicio,
+          valores.fundoCelularIntermediaria,
+          valores.fundoCelularFim,
+        );
 
   raiz.style.setProperty(
     "--fundo-personalizado-mobile",
@@ -5069,13 +5098,20 @@ function preencherConfiguracoesVisuais(configuracoes = {}) {
   const valores = obterConfiguracoesVisuais(configuracoes);
 
   document.getElementById("cor-fundo-inicio").value = valores.fundoInicio;
+  document.getElementById("cor-fundo-intermediaria").value =
+    valores.fundoIntermediaria;
   document.getElementById("cor-fundo-fim").value = valores.fundoFim;
+  document.getElementById("estilo-fundo-pc").value = valores.estiloFundoPc;
   document.getElementById("modo-fundo-pc").value = valores.modoFundoPc;
   document.getElementById("modo-fundo-celular").value = valores.modoFundoCelular;
   document.getElementById("cor-fundo-celular-inicio").value =
     valores.fundoCelularInicio;
+  document.getElementById("cor-fundo-celular-intermediaria").value =
+    valores.fundoCelularIntermediaria;
   document.getElementById("cor-fundo-celular-fim").value =
     valores.fundoCelularFim;
+  document.getElementById("estilo-fundo-celular").value =
+    valores.estiloFundoCelular;
   imagemFundoPcSelecionada = valores.imagemFundoPc || null;
   imagemFundoCelularSelecionada = valores.imagemFundoCelular || null;
   document.getElementById("imagem-fundo-status").textContent =
@@ -5689,9 +5725,15 @@ document.getElementById("salvar-perfil").addEventListener("click", async () => {
 
   const configuracoesVisuais = {
     fundoInicio: document.getElementById("cor-fundo-inicio").value,
+    fundoIntermediaria: document.getElementById("cor-fundo-intermediaria").value,
     fundoFim: document.getElementById("cor-fundo-fim").value,
     fundoCelularInicio: document.getElementById("cor-fundo-celular-inicio").value,
+    fundoCelularIntermediaria: document.getElementById(
+      "cor-fundo-celular-intermediaria",
+    ).value,
     fundoCelularFim: document.getElementById("cor-fundo-celular-fim").value,
+    estiloFundoPc: document.getElementById("estilo-fundo-pc").value,
+    estiloFundoCelular: document.getElementById("estilo-fundo-celular").value,
     modoFundoPc: document.getElementById("modo-fundo-pc").value,
     imagemFundoPc: imagemFundoPcSelecionada || "",
     modoFundoCelular: document.getElementById("modo-fundo-celular").value,

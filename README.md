@@ -42,6 +42,8 @@ Instale as dependências:
 npm install
 ```
 
+O repositório não inclui `node_modules`. As dependências devem ser instaladas no ambiente de execução com `npm install`; isso também evita enviar binários específicos do sistema local para plataformas de deploy.
+
 ## Configuração
 
 Crie um arquivo `.env` na raiz do projeto. Ele não deve ser enviado para o GitHub:

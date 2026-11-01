@@ -817,9 +817,13 @@ app.patch("/perfil", verificarToken, async (req, res) => {
     novasConfiguracoes = {
       fundo: configuracoesVisuais.fundo,
       fundoInicio: configuracoesVisuais.fundoInicio,
+      fundoIntermediaria: configuracoesVisuais.fundoIntermediaria,
       fundoFim: configuracoesVisuais.fundoFim,
       fundoCelularInicio: configuracoesVisuais.fundoCelularInicio,
+      fundoCelularIntermediaria: configuracoesVisuais.fundoCelularIntermediaria,
       fundoCelularFim: configuracoesVisuais.fundoCelularFim,
+      estiloFundoPc: configuracoesVisuais.estiloFundoPc,
+      estiloFundoCelular: configuracoesVisuais.estiloFundoCelular,
       modoFundoPc: configuracoesVisuais.modoFundoPc,
       imagemFundoPc: configuracoesVisuais.imagemFundoPc,
       modoFundoCelular: configuracoesVisuais.modoFundoCelular,
