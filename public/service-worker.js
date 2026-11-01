@@ -1,9 +1,49 @@
-self.addEventListener("install", () => {
+const CACHE = "biblioteca-obras-shell-v24";
+const RECURSOS = [
+  "/login.html",
+  "/index.html",
+  "/style.css?v=57",
+  "/icone-192.png",
+  "/icone-512.png",
+  "/manifest.json",
+];
+
+self.addEventListener("install", (evento) => {
+  evento.waitUntil(
+    caches.open(CACHE).then((cache) => cache.addAll(RECURSOS)),
+  );
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (evento) => {
-  evento.waitUntil(self.clients.claim());
+  evento.waitUntil(
+    caches.keys().then((chaves) =>
+      Promise.all(
+        chaves
+          .filter((chave) => chave !== CACHE)
+          .map((chave) => caches.delete(chave)),
+      ),
+    ).then(() => self.clients.claim()),
+  );
+});
+
+self.addEventListener("fetch", (evento) => {
+  if (evento.request.method !== "GET" || new URL(evento.request.url).origin !== self.location.origin) {
+    return;
+  }
+
+  evento.respondWith(
+    fetch(evento.request).then((resposta) => {
+      if (
+        resposta.ok &&
+        ["script", "style", "image", "font"].includes(evento.request.destination)
+      ) {
+        const copia = resposta.clone();
+        caches.open(CACHE).then((cache) => cache.put(evento.request, copia));
+      }
+      return resposta;
+    }).catch(() => caches.match(evento.request)),
+  );
 });
 
 self.addEventListener("message", (evento) => {
