@@ -268,6 +268,10 @@
             <label for="buscar-catalogo-obras">Pesquisar obra</label>
             <input id="buscar-catalogo-obras" type="search" placeholder="Ex.: Naruto clássico" autocomplete="off" />
             <div id="resultados-catalogo-obras" class="resultados-catalogo-obras"></div>
+            <button type="button" id="sugerir-obra" class="botao-sugerir-obra">
+              <i class="fa-solid fa-lightbulb"></i> Sugerir uma obra
+            </button>
+            <p class="catalogo-descricao">Preencha todos os dados no formulário e envie sua sugestão para análise.</p>
           </div>
           <div id="tela-detalhe-catalogo" hidden>
             <h2>Obter obra</h2>
@@ -472,12 +476,13 @@
           <li>Mais opções para fonte de textos.</li>
           <li>Mais obras em obter obras foram inseridas.</li>
           <li>Possivel copiar nome da obra no card clicando no nome.</li>
+          <li>Colaboração de usuarios para aumentar o catalogo de obter obras.</li>
           <br>
           <h3>Sendo trabalhado:</h3>
           <li>Coloboração de usuários aumentarem o catalogo de obter obras.</li>
           <br>
-          </p><strong>V 20.5.5</strong></p>
-          <p><i>Atualização feita em 23/10/2026</i></p>
+          </p><strong>V 20.5.6</strong></p>
+          <p><i>Atualização feita em 01/11/2026</i></p>
         </ul>
       </div>
     </div>
@@ -502,6 +507,9 @@
           </button>
           <button type="button" class="perfil-categoria" data-perfil-categoria="visual" aria-selected="false">
             <i class="fa-solid fa-palette"></i> Visual
+          </button>
+          <button type="button" id="categoria-sugestoes-obras" class="perfil-categoria" data-perfil-categoria="sugestoes-obras" aria-selected="false" hidden>
+            <i class="fa-solid fa-inbox"></i> Sugestões
           </button>
         </nav>
         <div class="perfil-cabecalho">
@@ -529,6 +537,12 @@
           <input type="password" id="nova-senha" minlength="6" autocomplete="new-password" />
           <label for="confirmar-nova-senha">Confirmar nova senha</label>
           <input type="password" id="confirmar-nova-senha" minlength="6" autocomplete="new-password" />
+        </div>
+
+        <div id="secao-sugestoes-obras" class="perfil-secao perfil-categoria-conteudo" hidden>
+          <h3>Sugestões de obras</h3>
+          <p class="perfil-ajuda">Aceite obras para disponibilizá-las no catálogo ou recuse-as informando o motivo.</p>
+          <div id="lista-sugestoes-obras" class="lista-sugestoes-obras"></div>
         </div>
 
         <div class="perfil-secao perfil-categoria-conteudo" data-perfil-conteudo="visual" hidden>

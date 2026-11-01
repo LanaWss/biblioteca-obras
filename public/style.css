@@ -1848,6 +1848,29 @@ body:not(.pagina-login) .botao-ler {
   max-width: 560px;
 }
 
+.botao-sugerir-obra {
+  margin-top: 16px;
+}
+
+.lista-sugestoes-obras {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.sugestao-obra {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  text-align: left;
+}
+
+.sugestao-obra button {
+  margin-right: 8px;
+}
+
 #popup-obter-obra > .popup-shell > div {
   max-height: min(78vh, 680px);
   overflow-y: auto;

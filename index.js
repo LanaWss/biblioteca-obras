@@ -13,6 +13,7 @@ const VERSAO_TERMOS = "1.0";
 const VERSAO_PRIVACIDADE = "1.0";
 const TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024;
 const TAMANHO_MAXIMO_FOTO_PERFIL = 2 * 1024 * 1024;
+const EMAIL_ADMINISTRADOR = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static("public"));
@@ -469,6 +470,7 @@ for (const coluna of [
   "ALTER TABLE usuarios ADD COLUMN identificador_publico TEXT",
   "ALTER TABLE usuarios ADD COLUMN biblioteca_publica INTEGER NOT NULL DEFAULT 0",
   "ALTER TABLE usuarios ADD COLUMN foto_perfil TEXT",
+  "ALTER TABLE usuarios ADD COLUMN eh_admin INTEGER NOT NULL DEFAULT 0",
 ]) {
   try {
     db.exec(coluna);
@@ -528,6 +530,95 @@ db.exec(`
     CHECK (solicitante_id <> destinatario_id)
   );
 `);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS sugestoes_obras (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL,
+    dados TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pendente'
+      CHECK (status IN ('pendente', 'aceita', 'recusada')),
+    mensagem_admin TEXT,
+    criado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    avaliado_em TEXT
+  );
+  CREATE TABLE IF NOT EXISTS catalogo_obras (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    dados TEXT NOT NULL,
+    criado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+function usuarioEhAdministrador(usuario) {
+  return Boolean(
+    usuario?.eh_admin === 1 ||
+      (EMAIL_ADMINISTRADOR && String(usuario?.email || "").toLowerCase() === EMAIL_ADMINISTRADOR),
+  );
+}
+
+function exigirAdministrador(req, res, next) {
+  const usuario = db.prepare("SELECT id, email, eh_admin FROM usuarios WHERE id = ?").get(req.usuario.id);
+
+  if (!usuarioEhAdministrador(usuario)) {
+    return responderErro(res, 403, "Acesso restrito à conta administradora");
+  }
+
+  req.usuarioAdministrador = usuario;
+  next();
+}
+
+function normalizarDadosSugestao(dados) {
+  const obra = dados && typeof dados === "object" ? dados : {};
+  const resultado = {
+    titulo: String(obra.titulo || obra.title || "").trim(),
+    tipo: obra.tipo,
+    status: obra.status,
+    imagem: typeof obra.imagem === "string" ? obra.imagem.trim() : "",
+    imagemArquivo: obra.imagemArquivo || obra.imagem_arquivo || null,
+    imagemPreferencia: obra.imagemPreferencia || obra.imagem_preferencia || "url",
+    linkLeitura: obra.linkLeitura || obra.link_leitura || null,
+    linksLeitura: Array.isArray(obra.linksLeitura || obra.link_leituras)
+      ? obra.linksLeitura || obra.link_leituras
+      : [],
+    temporadas: Array.isArray(obra.temporadas) ? obra.temporadas : [],
+    capitulos: obra.capitulos || null,
+    volumes: Array.isArray(obra.volumes) ? obra.volumes : [],
+    titulosAlternativos: Array.isArray(obra.titulosAlternativos || obra.titulos_alternativos)
+      ? obra.titulosAlternativos || obra.titulos_alternativos
+      : [],
+    tituloExibicao: obra.tituloExibicao || obra.titulo_exibicao || "principal",
+  };
+
+  if (!resultado.titulo) {
+    throw new ErroAplicacao("O nome da obra é obrigatório", 400);
+  }
+  if (!["anime", "manga", "ambos"].includes(resultado.tipo)) {
+    throw new ErroAplicacao("Selecione anime, mangá ou ambos", 400);
+  }
+  if (!["completa", "hiato", "lancando"].includes(resultado.status)) {
+    throw new ErroAplicacao("Selecione um status válido", 400);
+  }
+
+  return resultado;
+}
+
+function dadosCatalogoParaCliente(dados, id) {
+  return {
+    id,
+    titulo: dados.titulo,
+    titulosAlternativos: dados.titulosAlternativos,
+    tipo: dados.tipo,
+    status: dados.status,
+    imagem: dados.imagem,
+    imagemArquivo: dados.imagemArquivo,
+    imagemPreferencia: dados.imagemPreferencia,
+    linkLeitura: dados.linkLeitura,
+    linksLeitura: dados.linksLeitura,
+    temporadas: dados.temporadas,
+    capitulos: dados.capitulos,
+    volumes: dados.volumes,
+  };
+}
 
 app.post("/usuarios", async (req, res) => {
   const { nome, email, senha, aceitouTermos } = req.body;
@@ -633,6 +724,7 @@ app.post("/login", async (req, res) => {
     identificadorPublico: usuario.identificador_publico,
     bibliotecaPublica: usuario.biblioteca_publica === 1,
     fotoPerfil: usuario.foto_perfil,
+    ehAdmin: usuarioEhAdministrador(usuario),
     configuracoesVisuais: JSON.parse(usuario.configuracoes_visuais || "{}"),
   });
 });
@@ -647,6 +739,7 @@ app.get("/perfil", verificarToken, (req, res) => {
         identificador_publico,
         biblioteca_publica,
         foto_perfil,
+        eh_admin,
         configuracoes_visuais
       FROM usuarios
       WHERE id = ?
@@ -664,6 +757,7 @@ app.get("/perfil", verificarToken, (req, res) => {
     identificadorPublico: usuario.identificador_publico,
     bibliotecaPublica: usuario.biblioteca_publica === 1,
     fotoPerfil: usuario.foto_perfil,
+    ehAdmin: usuarioEhAdministrador(usuario),
     configuracoesVisuais: JSON.parse(usuario.configuracoes_visuais || "{}"),
   });
 });
@@ -1048,6 +1142,98 @@ app.get("/obras", verificarToken, (req, res) => {
     .all(req.usuario.id);
 
   res.json(obras);
+});
+
+app.get("/catalogo-obras", verificarToken, (req, res) => {
+  const registros = db.prepare("SELECT id, dados FROM catalogo_obras ORDER BY id DESC").all();
+  const obras = registros.map((registro) => {
+    try {
+      return dadosCatalogoParaCliente(JSON.parse(registro.dados), registro.id);
+    } catch (erro) {
+      console.error("Catálogo com dados inválidos:", erro);
+      return null;
+    }
+  }).filter(Boolean);
+
+  res.json(obras);
+});
+
+app.post("/sugestoes-obras", verificarToken, (req, res) => {
+  let dados;
+
+  try {
+    dados = normalizarDadosSugestao(req.body);
+  } catch (erro) {
+    return responderErro(res, erro.status || 400, erro.message);
+  }
+
+  const resultado = db.prepare(`
+    INSERT INTO sugestoes_obras (usuario_id, dados)
+    VALUES (?, ?)
+  `).run(req.usuario.id, JSON.stringify(dados));
+
+  res.status(201).json({
+    id: resultado.lastInsertRowid,
+    mensagem: "Sugestão enviada para análise.",
+  });
+});
+
+app.get("/sugestoes-obras", verificarToken, exigirAdministrador, (req, res) => {
+  const sugestoes = db.prepare(`
+    SELECT s.id, s.dados, s.status, s.mensagem_admin, s.criado_em,
+           u.nome AS usuario_nome, u.email AS usuario_email
+    FROM sugestoes_obras s
+    INNER JOIN usuarios u ON u.id = s.usuario_id
+    ORDER BY CASE s.status WHEN 'pendente' THEN 0 ELSE 1 END, s.id DESC
+  `).all().map((sugestao) => ({
+    id: sugestao.id,
+    dados: JSON.parse(sugestao.dados),
+    status: sugestao.status,
+    mensagemAdmin: sugestao.mensagem_admin,
+    criadoEm: sugestao.criado_em,
+    usuarioNome: sugestao.usuario_nome,
+    usuarioEmail: sugestao.usuario_email,
+  }));
+
+  res.json(sugestoes);
+});
+
+app.patch("/sugestoes-obras/:id", verificarToken, exigirAdministrador, (req, res) => {
+  const id = Number(req.params.id);
+  const status = req.body?.status;
+  const mensagem = typeof req.body?.mensagem === "string"
+    ? req.body.mensagem.trim().slice(0, 1000)
+    : "";
+
+  if (!["aceita", "recusada"].includes(status)) {
+    return responderErro(res, 400, "A decisão da sugestão é inválida");
+  }
+  if (status === "recusada" && !mensagem) {
+    return responderErro(res, 400, "Informe o motivo da recusa");
+  }
+
+  const sugestao = db.prepare("SELECT * FROM sugestoes_obras WHERE id = ?").get(id);
+  if (!sugestao) {
+    return responderErro(res, 404, "Sugestão não encontrada");
+  }
+  if (sugestao.status !== "pendente") {
+    return responderErro(res, 409, "Esta sugestão já foi avaliada");
+  }
+
+  const dados = JSON.parse(sugestao.dados);
+  const avaliar = db.transaction(() => {
+    if (status === "aceita") {
+      db.prepare("INSERT INTO catalogo_obras (dados) VALUES (?)").run(JSON.stringify(dados));
+    }
+    db.prepare(`
+      UPDATE sugestoes_obras
+      SET status = ?, mensagem_admin = ?, avaliado_em = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(status, status === "recusada" ? mensagem : null, id);
+  });
+  avaliar();
+
+  res.json({ mensagem: status === "aceita" ? "Obra adicionada ao catálogo." : "Sugestão recusada." });
 });
 
 app.post("/notificacoes/inscricao", verificarToken, (req, res) => {

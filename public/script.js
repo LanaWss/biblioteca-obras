@@ -3489,6 +3489,9 @@ const popupCriar = document.getElementById("popup-criar");
 const fecharPopup = document.getElementById("fechar-popup");
 
 botaoCriar.addEventListener("click", () => {
+  modoFormularioCriacao = "criar";
+  popupCriar.querySelector("h2").textContent = "Criar obra";
+  formCriar.querySelector('button[type="submit"]').textContent = "Criar obra";
   popupCriar.style.display = "flex";
 });
 
@@ -3497,6 +3500,7 @@ fecharPopup.addEventListener("click", () => {
 });
 
 const formCriar = document.getElementById("form-criar");
+let modoFormularioCriacao = "criar";
 
 let titulosAlternativos = [];
 
@@ -3987,7 +3991,9 @@ formCriar.addEventListener("submit", async (evento) => {
   }
 
   try {
-    const resposta = await fetch("/obras", {
+    const resposta = await fetch(
+      modoFormularioCriacao === "sugerir" ? "/sugestoes-obras" : "/obras",
+      {
       method: "POST",
 
       headers: {
@@ -3998,6 +4004,7 @@ formCriar.addEventListener("submit", async (evento) => {
 
       body: JSON.stringify({
         title: tituloObra.value,
+        titulo: tituloObra.value,
 
         tipo: tipoObra.value,
 
@@ -4030,9 +4037,16 @@ formCriar.addEventListener("submit", async (evento) => {
       throw new Error(resultado.erro || "Não foi possível criar a obra.");
     }
 
-    mostrarMensagem("Obra criada com sucesso!", "sucesso");
+    mostrarMensagem(
+      modoFormularioCriacao === "sugerir"
+        ? "Sugestão enviada para análise!"
+        : "Obra criada com sucesso!",
+      "sucesso",
+    );
 
     popupCriar.style.display = "none";
+    modoFormularioCriacao = "criar";
+    formCriar.querySelector('button[type="submit"]').textContent = "Criar obra";
 
     renderizarTitulosAlternativos();
 
@@ -5417,9 +5431,84 @@ async function carregarPerfil() {
   atualizarPreviewFotoPerfil(fotoPerfilSelecionada);
   preencherConfiguracoesVisuais(configuracoes);
   aplicarConfiguracoesVisuais(configuracoes);
+  const categoriaSugestoes = document.getElementById("categoria-sugestoes-obras");
+  categoriaSugestoes.hidden = !perfil.ehAdmin;
+  document.getElementById("secao-sugestoes-obras").hidden = !perfil.ehAdmin;
+  if (perfil.ehAdmin) {
+    await carregarSugestoesObras();
+  }
   perfilFoiCarregado = true;
   await carregarAmizades();
 }
+
+async function carregarSugestoesObras() {
+  const lista = document.getElementById("lista-sugestoes-obras");
+  const resposta = await fetch("/sugestoes-obras", {
+    headers: { Authorization: `******"token")}` },
+  });
+  if (!resposta.ok) {
+    lista.textContent = "Não foi possível carregar as sugestões.";
+    return;
+  }
+  const sugestoes = await resposta.json();
+  lista.innerHTML = "";
+  if (!sugestoes.length) {
+    lista.textContent = "Nenhuma sugestão recebida.";
+    return;
+  }
+  sugestoes.forEach((sugestao) => {
+    const item = document.createElement("article");
+    item.className = "sugestao-obra";
+    const titulo = document.createElement("strong");
+    titulo.textContent = sugestao.dados.titulo;
+    const dados = document.createElement("p");
+    dados.textContent = `Enviada por ${sugestao.usuarioNome} · ${sugestao.dados.tipo} · ${sugestao.status}`;
+    item.append(titulo, dados);
+    if (sugestao.mensagemAdmin) {
+      const mensagem = document.createElement("p");
+      mensagem.textContent = `Motivo: ${sugestao.mensagemAdmin}`;
+      item.appendChild(mensagem);
+    }
+    if (sugestao.status === "pendente") {
+      const aceitar = document.createElement("button");
+      aceitar.type = "button";
+      aceitar.textContent = "Aceitar";
+      aceitar.dataset.aceitarSugestao = sugestao.id;
+      const recusar = document.createElement("button");
+      recusar.type = "button";
+      recusar.textContent = "Recusar";
+      recusar.dataset.recusarSugestao = sugestao.id;
+      item.append(aceitar, recusar);
+    }
+    lista.appendChild(item);
+  });
+}
+
+document.addEventListener("click", async (evento) => {
+  const aceitar = evento.target.closest("[data-aceitar-sugestao]");
+  const recusar = evento.target.closest("[data-recusar-sugestao]");
+  const botao = aceitar || recusar;
+  if (!botao) return;
+  const mensagem = recusar ? window.prompt("Explique o erro da sugestão:") : "";
+  if (recusar && !mensagem?.trim()) return;
+  botao.disabled = true;
+  const resposta = await fetch(`/sugestoes-obras/${botao.dataset[aceitar ? "aceitarSugestao" : "recusarSugestao"]}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `******"token")}`,
+    },
+    body: JSON.stringify({ status: aceitar ? "aceita" : "recusada", mensagem }),
+  });
+  if (resposta.ok) {
+    await carregarSugestoesObras();
+    mostrarMensagem(aceitar ? "Obra aprovada no catálogo." : "Sugestão recusada.", "sucesso");
+  } else {
+    const resultado = await resposta.json().catch(() => ({}));
+    mostrarMensagem(resultado.erro || "Não foi possível avaliar a sugestão.", "erro");
+    botao.disabled = false;
+  }
+});
 
 document.getElementById("botao-perfil").addEventListener("click", async () => {
   document.getElementById("popup-perfil").style.display = "flex";
@@ -6062,7 +6151,45 @@ document.getElementById("botao-obter-obra").addEventListener("click", () => {
   telaDetalheCatalogo.hidden = true;
   erroCatalogoObras.textContent = "";
   renderizarResultadosCatalogo();
+  fetch("/catalogo-obras", {
+    headers: { Authorization: `******"token")}` },
+  })
+    .then((resposta) => (resposta.ok ? resposta.json() : []))
+    .then((obras) => {
+      if (Array.isArray(obras)) {
+        obras.forEach((obra) => {
+          if (!catalogoObras.some((existente) => existente.titulo === obra.titulo)) {
+            catalogoObras.push({
+              titulo: obra.titulo,
+              titulosAlternativos: obra.titulosAlternativos || [],
+              tipo: obra.tipo,
+              status: obra.status,
+              imagem: obra.imagem || obra.imagemArquivo || "",
+              imagemArquivo: obra.imagemArquivo || null,
+              imagemPreferencia: obra.imagemPreferencia || "url",
+              linkLeitura: obra.linkLeitura || null,
+              linksLeitura: obra.linksLeitura || [],
+              temporadas: obra.temporadas || [],
+              capitulos: obra.capitulos || null,
+              volumes: obra.volumes || [],
+            });
+          }
+        });
+        renderizarResultadosCatalogo();
+      }
+    })
+    .catch(() => {
+      erroCatalogoObras.textContent = "Não foi possível carregar as sugestões aprovadas.";
+    });
   buscaCatalogoObras.focus();
+});
+
+document.getElementById("sugerir-obra").addEventListener("click", () => {
+  popupObterObra.style.display = "none";
+  modoFormularioCriacao = "sugerir";
+  popupCriar.querySelector("h2").textContent = "Sugerir obra";
+  formCriar.querySelector('button[type="submit"]').textContent = "Enviar sugestão";
+  popupCriar.style.display = "flex";
 });
 
 document.getElementById("fechar-obter-obra").addEventListener("click", () => {
@@ -6114,8 +6241,12 @@ document.querySelectorAll("[data-progresso-catalogo]").forEach((botao) => {
           tipo: obraCatalogoSelecionada.tipo,
           status: obraCatalogoSelecionada.status,
           imagem: obraCatalogoSelecionada.imagem,
-          imagem_preferencia: "url",
+          imagem_arquivo: obraCatalogoSelecionada.imagemArquivo || null,
+          imagem_preferencia: obraCatalogoSelecionada.imagemPreferencia || "url",
+          link_leitura: obraCatalogoSelecionada.linkLeitura || null,
+          link_leituras: obraCatalogoSelecionada.linksLeitura || [],
           temporadas: progresso.temporadas,
+          capitulos: obraCatalogoSelecionada.capitulos || null,
           volumes: progresso.volumes,
           titulos_alternativos: obraCatalogoSelecionada.titulosAlternativos,
           titulo_exibicao: "principal",
