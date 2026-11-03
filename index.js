@@ -549,6 +549,19 @@ db.exec(`
   );
 `);
 
+for (const coluna of [
+  "ALTER TABLE sugestoes_obras ADD COLUMN mensagem_admin TEXT",
+  "ALTER TABLE sugestoes_obras ADD COLUMN avaliado_em TEXT",
+]) {
+  try {
+    db.exec(coluna);
+  } catch (erro) {
+    if (!erro.message.includes("duplicate column name")) {
+      throw erro;
+    }
+  }
+}
+
 function usuarioEhAdministrador(usuario) {
   return Boolean(
     usuario?.eh_admin === 1 ||
