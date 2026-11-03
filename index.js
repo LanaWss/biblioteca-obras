@@ -14,8 +14,10 @@ const VERSAO_PRIVACIDADE = "1.0";
 const TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024;
 const TAMANHO_MAXIMO_FOTO_PERFIL = 2 * 1024 * 1024;
 const EMAIL_ADMINISTRADOR = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
-const SEGREDO_JWT = process.env.JWT_SECRET || "chave-secreta";
-const SEGREDOS_JWT_VALIDOS = [...new Set([SEGREDO_JWT, "chave-secreta"])];
+const SEGREDO_JWT_LEGADO = "chave-secreta";
+const SEGREDOS_JWT_VALIDOS = [
+  ...new Set([process.env.JWT_SECRET, SEGREDO_JWT_LEGADO].filter(Boolean)),
+];
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static("public"));
@@ -731,7 +733,7 @@ app.post("/login", async (req, res) => {
     {
       id: usuario.id,
     },
-    SEGREDO_JWT,
+    SEGREDO_JWT_LEGADO,
   );
 
   res.json({
