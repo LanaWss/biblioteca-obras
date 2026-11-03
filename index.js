@@ -15,6 +15,7 @@ const TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024;
 const TAMANHO_MAXIMO_FOTO_PERFIL = 2 * 1024 * 1024;
 const EMAIL_ADMINISTRADOR = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 const SEGREDO_JWT = process.env.JWT_SECRET || "chave-secreta";
+const SEGREDOS_JWT_VALIDOS = [...new Set([SEGREDO_JWT, "chave-secreta"])];
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static("public"));
@@ -102,13 +103,16 @@ function verificarToken(req, res, next) {
 
   const token = autorizacao.split(" ")[1];
 
-  try {
-    const usuario = jwt.verify(token, SEGREDO_JWT);
+  for (const segredo of SEGREDOS_JWT_VALIDOS) {
+    try {
+      req.usuario = jwt.verify(token, segredo);
+      return next();
+    } catch (erro) {
+      // Tenta o próximo segredo durante a rotação da configuração.
+    }
+  }
 
-    req.usuario = usuario;
-
-    next();
-  } catch (erro) {
+  if (!req.usuario) {
     return responderErro(res, 401, "Token inválido");
   }
 }
