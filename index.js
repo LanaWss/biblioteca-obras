@@ -14,6 +14,7 @@ const VERSAO_PRIVACIDADE = "1.0";
 const TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024;
 const TAMANHO_MAXIMO_FOTO_PERFIL = 2 * 1024 * 1024;
 const EMAIL_ADMINISTRADOR = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+const SEGREDO_JWT = process.env.JWT_SECRET || "chave-secreta";
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static("public"));
@@ -102,7 +103,7 @@ function verificarToken(req, res, next) {
   const token = autorizacao.split(" ")[1];
 
   try {
-    const usuario = jwt.verify(token, "chave-secreta");
+    const usuario = jwt.verify(token, SEGREDO_JWT);
 
     req.usuario = usuario;
 
@@ -726,7 +727,7 @@ app.post("/login", async (req, res) => {
     {
       id: usuario.id,
     },
-    "chave-secreta",
+    SEGREDO_JWT,
   );
 
   res.json({

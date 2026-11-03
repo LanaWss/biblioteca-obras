@@ -71,6 +71,7 @@ Copie a chave pública para `VAPID_PUBLIC_KEY` e a chave privada para `VAPID_PRI
 | `VAPID_PUBLIC_KEY` | Sim | Chave pública usada pelas notificações Push |
 | `VAPID_PRIVATE_KEY` | Sim | Chave privada usada pelo servidor para enviar notificações |
 | `ADMIN_EMAIL` | Recomendada | Email da conta que poderá revisar sugestões de obras |
+| `JWT_SECRET` | Recomendada | Segredo estável usado para validar as sessões de login |
 | `PORT` | Não | Porta do servidor. O padrão é `3000` |
 | `NODE_ENV` | Não | Ambiente da aplicação. O padrão é `development` |
 | `DB_PATH` | Não | Caminho alternativo para o arquivo SQLite |

@@ -5455,6 +5455,11 @@ async function carregarSugestoesObras() {
   });
   if (!resposta.ok) {
     const resultado = await resposta.json().catch(() => ({}));
+    if (resposta.status === 401) {
+      localStorage.removeItem("token");
+      window.location.replace("/login.html");
+      return;
+    }
     lista.textContent =
       resultado.erro || "Não foi possível carregar as sugestões.";
     return;
