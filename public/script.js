@@ -5454,7 +5454,9 @@ async function carregarSugestoesObras() {
     headers: { Authorization: `******"token")}` },
   });
   if (!resposta.ok) {
-    lista.textContent = "Não foi possível carregar as sugestões.";
+    const resultado = await resposta.json().catch(() => ({}));
+    lista.textContent =
+      resultado.erro || "Não foi possível carregar as sugestões.";
     return;
   }
   const sugestoes = await resposta.json();

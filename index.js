@@ -1196,23 +1196,30 @@ app.post("/sugestoes-obras", verificarToken, (req, res) => {
 });
 
 app.get("/sugestoes-obras", verificarToken, exigirAdministrador, (req, res) => {
-  const sugestoes = db.prepare(`
-    SELECT s.id, s.dados, s.status, s.mensagem_admin, s.criado_em,
-           u.nome AS usuario_nome, u.email AS usuario_email
-    FROM sugestoes_obras s
-    INNER JOIN usuarios u ON u.id = s.usuario_id
-    ORDER BY CASE s.status WHEN 'pendente' THEN 0 ELSE 1 END, s.id DESC
-  `).all().map((sugestao) => ({
-    id: sugestao.id,
-    dados: JSON.parse(sugestao.dados),
-    status: sugestao.status,
-    mensagemAdmin: sugestao.mensagem_admin,
-    criadoEm: sugestao.criado_em,
-    usuarioNome: sugestao.usuario_nome,
-    usuarioEmail: sugestao.usuario_email,
-  }));
+  try {
+    const registros = db.prepare(`
+      SELECT s.id, s.dados, s.status, s.mensagem_admin, s.criado_em,
+             u.nome AS usuario_nome, u.email AS usuario_email
+      FROM sugestoes_obras s
+      INNER JOIN usuarios u ON u.id = s.usuario_id
+      ORDER BY CASE s.status WHEN 'pendente' THEN 0 ELSE 1 END, s.id DESC
+    `).all();
 
-  res.json(sugestoes);
+    const sugestoes = registros.map((sugestao) => ({
+      id: sugestao.id,
+      dados: JSON.parse(sugestao.dados),
+      status: sugestao.status,
+      mensagemAdmin: sugestao.mensagem_admin,
+      criadoEm: sugestao.criado_em,
+      usuarioNome: sugestao.usuario_nome,
+      usuarioEmail: sugestao.usuario_email,
+    }));
+
+    return res.json(sugestoes);
+  } catch (erro) {
+    console.error("Erro ao carregar sugestões de obras:", erro);
+    return responderErro(res, 500, "Não foi possível carregar as sugestões no servidor");
+  }
 });
 
 app.patch("/sugestoes-obras/:id", verificarToken, exigirAdministrador, (req, res) => {
