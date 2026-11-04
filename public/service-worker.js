@@ -1,4 +1,4 @@
-const CACHE = "biblioteca-obras-shell-v24";
+const CACHE = "biblioteca-obras-shell-v25";
 const RECURSOS = [
   "/login.html",
   "/index.html",

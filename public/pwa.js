@@ -12,7 +12,7 @@ if ("serviceWorker" in navigator) {
   });
 
   navigator.serviceWorker
-    .register("/service-worker.js?v=24", { updateViaCache: "none" })
+    .register("/service-worker.js?v=25", { updateViaCache: "none" })
     .then((registro) => registro.update())
     .catch(() => {});
 
