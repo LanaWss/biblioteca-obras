@@ -5451,7 +5451,9 @@ async function carregarPerfil() {
 async function carregarSugestoesObras() {
   const lista = document.getElementById("lista-sugestoes-obras");
   const resposta = await fetch("/sugestoes-obras", {
-    headers: { Authorization: `******"token")}` },
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
   });
   if (!resposta.ok) {
     const resultado = await resposta.json().catch(() => ({}));
@@ -5505,7 +5507,7 @@ document.addEventListener("click", async (evento) => {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `******"token")}`,
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
     body: JSON.stringify({ status: aceitar ? "aceita" : "recusada", mensagem }),
   });
@@ -6167,7 +6169,9 @@ document.getElementById("botao-obter-obra").addEventListener("click", () => {
   erroCatalogoObras.textContent = "";
   renderizarResultadosCatalogo();
   fetch("/catalogo-obras", {
-    headers: { Authorization: `******"token")}` },
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
   })
     .then((resposta) => (resposta.ok ? resposta.json() : []))
     .then((obras) => {
