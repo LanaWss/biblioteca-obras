@@ -15,8 +15,9 @@ const TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024;
 const TAMANHO_MAXIMO_FOTO_PERFIL = 2 * 1024 * 1024;
 const EMAIL_ADMINISTRADOR = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 const SEGREDO_JWT_LEGADO = "chave-secreta";
+const SEGREDO_JWT = process.env.JWT_SECRET || SEGREDO_JWT_LEGADO;
 const SEGREDOS_JWT_VALIDOS = [
-  ...new Set([process.env.JWT_SECRET, SEGREDO_JWT_LEGADO].filter(Boolean)),
+  ...new Set([SEGREDO_JWT, SEGREDO_JWT_LEGADO]),
 ];
 
 app.use(express.json({ limit: "10mb" }));
@@ -99,11 +100,11 @@ function tratarErro(erro, req, res, next) {
 function verificarToken(req, res, next) {
   const autorizacao = req.headers.authorization;
 
-  if (!autorizacao) {
+  if (!autorizacao || !/^Bearer\s+\S+$/i.test(autorizacao)) {
     return responderErro(res, 401, "Token não informado");
   }
 
-  const token = autorizacao.split(" ")[1];
+  const token = autorizacao.replace(/^Bearer\s+/i, "");
 
   for (const segredo of SEGREDOS_JWT_VALIDOS) {
     try {
@@ -733,7 +734,7 @@ app.post("/login", async (req, res) => {
     {
       id: usuario.id,
     },
-    SEGREDO_JWT_LEGADO,
+    SEGREDO_JWT,
   );
 
   res.json({
