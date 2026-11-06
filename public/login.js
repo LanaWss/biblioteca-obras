@@ -131,6 +131,50 @@ formulario.addEventListener("submit", async (evento) => {
   }
 });
 
+formRecuperacao.addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+
+  const email = campoEmailRecuperacao.value.trim();
+  mensagem.classList.remove("visivel");
+
+  if (!formRecuperacao.checkValidity()) {
+    mostrarMensagem("Informe um email válido.");
+    campoEmailRecuperacao.focus();
+    return;
+  }
+
+  botaoRecuperar.disabled = true;
+  botaoRecuperar.classList.add("carregando");
+  botaoRecuperar.setAttribute("aria-busy", "true");
+
+  try {
+    const resposta = await fetch("/recuperar-senha", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+    const resultado = await resposta.json().catch(() => ({}));
+
+    if (!resposta.ok) {
+      mostrarMensagem(resultado.erro || "Não foi possível solicitar a recuperação.");
+      return;
+    }
+
+    mostrarMensagem(
+      "Se o email estiver cadastrado, enviaremos uma senha temporária. Confira sua caixa de entrada.",
+    );
+    formRecuperacao.reset();
+  } catch (erro) {
+    mostrarMensagem("Não foi possível conectar ao servidor. Tente novamente.");
+  } finally {
+    botaoRecuperar.disabled = false;
+    botaoRecuperar.classList.remove("carregando");
+    botaoRecuperar.setAttribute("aria-busy", "false");
+  }
+});
+
 formCadastro.addEventListener("submit", async (evento) => {
   evento.preventDefault();
 
@@ -169,47 +213,6 @@ formCadastro.addEventListener("submit", async (evento) => {
       body: JSON.stringify({ nome, email, senha, aceitouTermos: true }),
     });
 
-    formRecuperacao.addEventListener("submit", async (evento) => {
-      evento.preventDefault();
-
-      const email = campoEmailRecuperacao.value.trim();
-      mensagem.classList.remove("visivel");
-
-      if (!formRecuperacao.checkValidity()) {
-        mostrarMensagem("Informe um email válido.");
-        campoEmailRecuperacao.focus();
-        return;
-      }
-
-      botaoRecuperar.disabled = true;
-      botaoRecuperar.classList.add("carregando");
-      botaoRecuperar.setAttribute("aria-busy", "true");
-
-      try {
-        const resposta = await fetch("/recuperar-senha", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        });
-        const resultado = await resposta.json().catch(() => ({}));
-
-        if (!resposta.ok) {
-          mostrarMensagem(resultado.erro || "Não foi possível solicitar a recuperação.");
-          return;
-        }
-
-        mostrarMensagem(
-          "Se o email estiver cadastrado, enviaremos uma senha temporária. Confira sua caixa de entrada.",
-        );
-        formRecuperacao.reset();
-      } catch (erro) {
-        mostrarMensagem("Não foi possível conectar ao servidor. Tente novamente.");
-      } finally {
-        botaoRecuperar.disabled = false;
-        botaoRecuperar.classList.remove("carregando");
-        botaoRecuperar.setAttribute("aria-busy", "false");
-      }
-    });
     const resultadoCadastro = await cadastro.json();
 
     if (!cadastro.ok) {
