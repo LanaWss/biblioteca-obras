@@ -246,6 +246,19 @@ body:not(.pagina-login) h4 {
   color: #17263a;
 }
 
+.botao-esqueci-senha {
+  align-self: flex-end;
+  margin-top: -12px;
+}
+
+.ajuda-login {
+  margin: -4px 0 0;
+  color: #69717b;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .botao-entrar {
   display: flex;
   align-items: center;

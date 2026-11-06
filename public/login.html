@@ -50,12 +50,35 @@
                     </div>
                 </div>
 
+                <button type="button" id="esqueci-senha" class="botao-link botao-esqueci-senha">
+                    Esqueci minha senha
+                </button>
+
                 <p id="mensagem-login" class="mensagem-login" role="alert" aria-live="polite"></p>
 
                 <button type="submit" id="botao-entrar" class="botao-entrar">
                     <span class="texto-botao">Entrar na biblioteca</span>
                     <span class="carregando-botao" aria-hidden="true"></span>
                 </button>
+            </form>
+
+            <form id="form-recuperacao" class="form-cadastro" novalidate hidden>
+                <div class="campo-login">
+                    <label for="email-recuperacao">Email cadastrado</label>
+                    <input
+                        type="email"
+                        id="email-recuperacao"
+                        placeholder="voce@exemplo.com"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+                <p class="ajuda-login">Enviaremos uma senha temporária para o email informado. Use-a para entrar e depois altere sua senha no seu perfil.</p>
+                <button type="submit" id="botao-recuperar" class="botao-entrar">
+                    <span class="texto-botao">Enviar senha temporária</span>
+                    <span class="carregando-botao" aria-hidden="true"></span>
+                </button>
+                <button type="button" id="voltar-login" class="botao-alternar">Voltar para o login</button>
             </form>
 
             <form id="form-cadastro" class="form-cadastro" novalidate hidden>

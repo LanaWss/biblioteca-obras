@@ -5,6 +5,11 @@ const botaoEntrar = document.getElementById("botao-entrar");
 const mensagem = document.getElementById("mensagem-login");
 const alternarSenha = document.getElementById("alternar-senha");
 const formCadastro = document.getElementById("form-cadastro");
+const formRecuperacao = document.getElementById("form-recuperacao");
+const esqueciSenha = document.getElementById("esqueci-senha");
+const voltarLogin = document.getElementById("voltar-login");
+const botaoRecuperar = document.getElementById("botao-recuperar");
+const campoEmailRecuperacao = document.getElementById("email-recuperacao");
 const alternarCadastro = document.getElementById("alternar-cadastro");
 const cabecalhoLogin = document.querySelector(".login-cabecalho");
 let modoCadastro = false;
@@ -38,7 +43,9 @@ function definirCarregamento(ativo) {
 function alternarModoCadastro() {
   modoCadastro = !modoCadastro;
   formulario.hidden = modoCadastro;
+  formRecuperacao.hidden = true;
   formCadastro.hidden = !modoCadastro;
+  esqueciSenha.hidden = modoCadastro;
   alternarCadastro.textContent = modoCadastro
     ? "Já tenho uma conta"
     : "Ainda não tenho uma conta";
@@ -52,6 +59,31 @@ function alternarModoCadastro() {
 }
 
 alternarCadastro.addEventListener("click", alternarModoCadastro);
+
+esqueciSenha.addEventListener("click", () => {
+  formulario.hidden = true;
+  formCadastro.hidden = true;
+  formRecuperacao.hidden = false;
+  alternarCadastro.hidden = true;
+  cabecalhoLogin.querySelector("h2").textContent = "Recuperar senha";
+  cabecalhoLogin.querySelector("p").textContent =
+    "Informe o email cadastrado para receber uma senha temporária.";
+  mensagem.classList.remove("visivel");
+  campoEmailRecuperacao.value = campoEmail.value;
+  campoEmailRecuperacao.focus();
+});
+
+voltarLogin.addEventListener("click", () => {
+  formRecuperacao.hidden = true;
+  formulario.hidden = false;
+  alternarCadastro.hidden = false;
+  esqueciSenha.hidden = false;
+  cabecalhoLogin.querySelector("h2").textContent = "Entrar na conta";
+  cabecalhoLogin.querySelector("p").textContent =
+    "Acesse sua biblioteca para continuar acompanhando suas obras.";
+  mensagem.classList.remove("visivel");
+  campoEmail.focus();
+});
 
 formulario.addEventListener("submit", async (evento) => {
   evento.preventDefault();
@@ -135,6 +167,48 @@ formCadastro.addEventListener("submit", async (evento) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nome, email, senha, aceitouTermos: true }),
+    });
+
+    formRecuperacao.addEventListener("submit", async (evento) => {
+      evento.preventDefault();
+
+      const email = campoEmailRecuperacao.value.trim();
+      mensagem.classList.remove("visivel");
+
+      if (!formRecuperacao.checkValidity()) {
+        mostrarMensagem("Informe um email válido.");
+        campoEmailRecuperacao.focus();
+        return;
+      }
+
+      botaoRecuperar.disabled = true;
+      botaoRecuperar.classList.add("carregando");
+      botaoRecuperar.setAttribute("aria-busy", "true");
+
+      try {
+        const resposta = await fetch("/recuperar-senha", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        const resultado = await resposta.json().catch(() => ({}));
+
+        if (!resposta.ok) {
+          mostrarMensagem(resultado.erro || "Não foi possível solicitar a recuperação.");
+          return;
+        }
+
+        mostrarMensagem(
+          "Se o email estiver cadastrado, enviaremos uma senha temporária. Confira sua caixa de entrada.",
+        );
+        formRecuperacao.reset();
+      } catch (erro) {
+        mostrarMensagem("Não foi possível conectar ao servidor. Tente novamente.");
+      } finally {
+        botaoRecuperar.disabled = false;
+        botaoRecuperar.classList.remove("carregando");
+        botaoRecuperar.setAttribute("aria-busy", "false");
+      }
     });
     const resultadoCadastro = await cadastro.json();
 

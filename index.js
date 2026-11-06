@@ -3,7 +3,9 @@ require("dotenv").config();
 const express = require("express");
 const Database = require("better-sqlite3");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
 const path = require("path");
 const webpush = require("web-push");
 
@@ -14,6 +16,7 @@ const VERSAO_PRIVACIDADE = "1.0";
 const TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024;
 const TAMANHO_MAXIMO_FOTO_PERFIL = 2 * 1024 * 1024;
 const EMAIL_ADMINISTRADOR = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+const EMAIL_REMETENTE = String(process.env.SMTP_FROM || process.env.SMTP_USER || "").trim();
 const SEGREDO_JWT_LEGADO = "chave-secreta";
 const SEGREDO_JWT = process.env.JWT_SECRET || SEGREDO_JWT_LEGADO;
 const SEGREDOS_JWT_VALIDOS = [
@@ -32,6 +35,51 @@ class ErroAplicacao extends Error {
 
 function responderErro(res, status, mensagem) {
   return res.status(status).json({ erro: mensagem });
+}
+
+function criarTransportadorEmail() {
+  const host = String(process.env.SMTP_HOST || "").trim();
+  const usuario = String(process.env.SMTP_USER || "").trim();
+  const senha = String(process.env.SMTP_PASS || "");
+
+  if (!host || !usuario || !senha || !EMAIL_REMETENTE) {
+    throw new ErroAplicacao(
+      "O serviço de email não está configurado. Defina SMTP_HOST, SMTP_USER, SMTP_PASS e SMTP_FROM.",
+      503,
+    );
+  }
+
+  return nodemailer.createTransport({
+    host,
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: String(process.env.SMTP_SECURE).toLowerCase() === "true",
+    auth: {
+      user: usuario,
+      pass: senha,
+    },
+  });
+}
+
+function gerarSenhaTemporaria() {
+  return crypto.randomBytes(9).toString("base64url").slice(0, 12);
+}
+
+async function enviarSenhaTemporaria(email, senhaTemporaria) {
+  const transportador = criarTransportadorEmail();
+
+  await transportador.sendMail({
+    from: EMAIL_REMETENTE,
+    to: email,
+    subject: "Sua senha temporária - Biblioteca de Obras",
+    text: [
+      "Recebemos uma solicitação para recuperar o acesso à sua conta.",
+      "",
+      `Sua senha temporária é: ${senhaTemporaria}`,
+      "",
+      "Use essa senha para entrar e altere-a imediatamente em Perfil > Dados da conta.",
+      "Se você não solicitou essa recuperação, altere sua senha assim que possível.",
+    ].join("\n"),
+  });
 }
 
 async function baixarImagemComoDataUrl(url) {
@@ -747,6 +795,43 @@ app.post("/login", async (req, res) => {
     fotoPerfil: usuario.foto_perfil,
     ehAdmin: usuarioEhAdministrador(usuario),
     configuracoesVisuais: JSON.parse(usuario.configuracoes_visuais || "{}"),
+  });
+});
+
+app.post("/recuperar-senha", async (req, res) => {
+  const email = String(req.body?.email || "").trim().toLowerCase();
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return responderErro(res, 400, "Informe um email válido");
+  }
+
+  const usuario = db
+    .prepare(
+      `
+      SELECT id, email
+      FROM usuarios
+      WHERE lower(email) = ?
+    `,
+    )
+    .get(email);
+
+  if (!usuario) {
+    return res.json({
+      mensagem: "Se o email estiver cadastrado, enviaremos uma senha temporária.",
+    });
+  }
+
+  const senhaTemporaria = gerarSenhaTemporaria();
+  await enviarSenhaTemporaria(usuario.email, senhaTemporaria);
+
+  const senhaHash = await bcrypt.hash(senhaTemporaria, 10);
+  db.prepare("UPDATE usuarios SET senha = ? WHERE id = ?").run(
+    senhaHash,
+    usuario.id,
+  );
+
+  return res.json({
+    mensagem: "Se o email estiver cadastrado, enviaremos uma senha temporária.",
   });
 });
 
