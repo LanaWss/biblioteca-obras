@@ -53,6 +53,9 @@ function criarTransportadorEmail() {
     host,
     port: Number(process.env.SMTP_PORT || 587),
     secure: String(process.env.SMTP_SECURE).toLowerCase() === "true",
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 30000,
     auth: {
       user: usuario,
       pass: senha,
