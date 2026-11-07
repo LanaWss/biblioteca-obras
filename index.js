@@ -53,6 +53,10 @@ function criarTransportadorEmail() {
     host,
     port: Number(process.env.SMTP_PORT || 587),
     secure: String(process.env.SMTP_SECURE).toLowerCase() === "true",
+    tls: {
+      rejectUnauthorized:
+        String(process.env.SMTP_REJECT_UNAUTHORIZED).toLowerCase() !== "false",
+    },
     connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 30000,
@@ -72,19 +76,27 @@ function criarHashToken(token) {
 async function enviarLinkRecuperacao(email, link) {
   const transportador = criarTransportadorEmail();
 
-  await transportador.sendMail({
-    from: EMAIL_REMETENTE,
-    to: email,
-    subject: "Redefinição de senha - Biblioteca de Obras",
-    text: [
-      "Recebemos uma solicitação para recuperar o acesso à sua conta.",
-      "",
-      `Acesse este link para criar uma nova senha: ${link}`,
-      "",
-      "Este link expira em 1 hora e pode ser usado uma única vez.",
-      "Se você não solicitou essa recuperação, ignore este email.",
-    ].join("\n"),
-  });
+  try {
+    await transportador.sendMail({
+      from: EMAIL_REMETENTE,
+      to: email,
+      subject: "Redefinição de senha - Biblioteca de Obras",
+      text: [
+        "Recebemos uma solicitação para recuperar o acesso à sua conta.",
+        "",
+        `Acesse este link para criar uma nova senha: ${link}`,
+        "",
+        "Este link expira em 1 hora e pode ser usado uma única vez.",
+        "Se você não solicitou essa recuperação, ignore este email.",
+      ].join("\n"),
+    });
+  } catch (erro) {
+    console.error("Falha ao enviar email de recuperação:", erro);
+    throw new ErroAplicacao(
+      "Não foi possível enviar o email de recuperação. Verifique a configuração do SMTP.",
+      503,
+    );
+  }
 }
 
 async function baixarImagemComoDataUrl(url) {
@@ -840,6 +852,10 @@ app.post("/recuperar-senha", async (req, res) => {
   const tokenHash = criarHashToken(token);
   const expiraEm = Date.now() + TEMPO_EXPIRACAO_RECUPERACAO_MS;
 
+  const enderecoBase = String(process.env.APP_URL || `${req.protocol}://${req.get("host")}`).replace(/\/+$/, "");
+  const link = `${enderecoBase}/redefinir-senha.html?token=${encodeURIComponent(token)}`;
+  await enviarLinkRecuperacao(usuario.email, link);
+
   db.prepare("DELETE FROM tokens_recuperacao_senha WHERE usuario_id = ? OR expira_em <= ?").run(
     usuario.id,
     Date.now(),
@@ -848,10 +864,6 @@ app.post("/recuperar-senha", async (req, res) => {
     `INSERT INTO tokens_recuperacao_senha (usuario_id, token_hash, expira_em)
      VALUES (?, ?, ?)`,
   ).run(usuario.id, tokenHash, expiraEm);
-
-  const enderecoBase = String(process.env.APP_URL || `${req.protocol}://${req.get("host")}`).replace(/\/+$/, "");
-  const link = `${enderecoBase}/redefinir-senha.html?token=${encodeURIComponent(token)}`;
-  await enviarLinkRecuperacao(usuario.email, link);
 
   return res.json({
     mensagem: "Se o email estiver cadastrado, enviaremos um link para redefinir a senha.",
