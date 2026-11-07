@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redefinir senha | Biblioteca de Obras</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="pagina-login">
+    <main class="login-layout">
+        <section class="login-painel">
+            <div class="login-cabecalho">
+                <span class="login-saudacao">Recuperação de acesso</span>
+                <h2>Crie uma nova senha</h2>
+                <p>Escolha uma senha com pelo menos 6 caracteres.</p>
+            </div>
+            <form id="form-redefinir" class="form-cadastro" novalidate>
+                <div class="campo-login">
+                    <label for="nova-senha">Nova senha</label>
+                    <input id="nova-senha" type="password" minlength="6" autocomplete="new-password" required>
+                </div>
+                <div class="campo-login">
+                    <label for="confirmar-senha">Confirmar nova senha</label>
+                    <input id="confirmar-senha" type="password" minlength="6" autocomplete="new-password" required>
+                </div>
+                <p id="mensagem-redefinir" class="mensagem-login" role="alert" aria-live="polite"></p>
+                <button type="submit" class="botao-entrar">Salvar nova senha</button>
+            </form>
+            <a class="botao-alternar" href="/login.html">Voltar para o login</a>
+        </section>
+    </main>
+    <script src="/redefinir-senha.js"></script>
+</body>
+</html>

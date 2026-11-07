@@ -163,7 +163,7 @@ formRecuperacao.addEventListener("submit", async (evento) => {
     }
 
     mostrarMensagem(
-      "Se o email estiver cadastrado, enviaremos uma senha temporária. Confira sua caixa de entrada.",
+      "Se o email estiver cadastrado, enviaremos um link para redefinir a senha. Confira sua caixa de entrada.",
     );
     formRecuperacao.reset();
   } catch (erro) {

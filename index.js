@@ -63,24 +63,26 @@ function criarTransportadorEmail() {
   });
 }
 
-function gerarSenhaTemporaria() {
-  return crypto.randomBytes(9).toString("base64url").slice(0, 12);
+const TEMPO_EXPIRACAO_RECUPERACAO_MS = 60 * 60 * 1000;
+
+function criarHashToken(token) {
+  return crypto.createHash("sha256").update(token).digest("hex");
 }
 
-async function enviarSenhaTemporaria(email, senhaTemporaria) {
+async function enviarLinkRecuperacao(email, link) {
   const transportador = criarTransportadorEmail();
 
   await transportador.sendMail({
     from: EMAIL_REMETENTE,
     to: email,
-    subject: "Sua senha temporária - Biblioteca de Obras",
+    subject: "Redefinição de senha - Biblioteca de Obras",
     text: [
       "Recebemos uma solicitação para recuperar o acesso à sua conta.",
       "",
-      `Sua senha temporária é: ${senhaTemporaria}`,
+      `Acesse este link para criar uma nova senha: ${link}`,
       "",
-      "Use essa senha para entrar e altere-a imediatamente em Perfil > Dados da conta.",
-      "Se você não solicitou essa recuperação, altere sua senha assim que possível.",
+      "Este link expira em 1 hora e pode ser usado uma única vez.",
+      "Se você não solicitou essa recuperação, ignore este email.",
     ].join("\n"),
   });
 }
@@ -476,6 +478,16 @@ db.exec(`
 `);
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS tokens_recuperacao_senha (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL,
+    token_hash TEXT NOT NULL UNIQUE,
+    expira_em INTEGER NOT NULL,
+    usado_em INTEGER
+  );
+`);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS notificacoes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     obra_id INTEGER NOT NULL,
@@ -824,18 +836,62 @@ app.post("/recuperar-senha", async (req, res) => {
     });
   }
 
-  const senhaTemporaria = gerarSenhaTemporaria();
-  await enviarSenhaTemporaria(usuario.email, senhaTemporaria);
+  const token = crypto.randomBytes(32).toString("base64url");
+  const tokenHash = criarHashToken(token);
+  const expiraEm = Date.now() + TEMPO_EXPIRACAO_RECUPERACAO_MS;
 
-  const senhaHash = await bcrypt.hash(senhaTemporaria, 10);
-  db.prepare("UPDATE usuarios SET senha = ? WHERE id = ?").run(
-    senhaHash,
+  db.prepare("DELETE FROM tokens_recuperacao_senha WHERE usuario_id = ? OR expira_em <= ?").run(
     usuario.id,
+    Date.now(),
   );
+  db.prepare(
+    `INSERT INTO tokens_recuperacao_senha (usuario_id, token_hash, expira_em)
+     VALUES (?, ?, ?)`,
+  ).run(usuario.id, tokenHash, expiraEm);
+
+  const enderecoBase = String(process.env.APP_URL || `${req.protocol}://${req.get("host")}`).replace(/\/+$/, "");
+  const link = `${enderecoBase}/redefinir-senha.html?token=${encodeURIComponent(token)}`;
+  await enviarLinkRecuperacao(usuario.email, link);
 
   return res.json({
-    mensagem: "Se o email estiver cadastrado, enviaremos uma senha temporária.",
+    mensagem: "Se o email estiver cadastrado, enviaremos um link para redefinir a senha.",
   });
+});
+
+app.post("/redefinir-senha", async (req, res) => {
+  const token = String(req.body?.token || "");
+  const novaSenha = String(req.body?.novaSenha || "");
+
+  if (!token || novaSenha.length < 6) {
+    return responderErro(res, 400, "Informe o token e uma nova senha com pelo menos 6 caracteres");
+  }
+
+  const registro = db
+    .prepare(
+      `SELECT id, usuario_id
+       FROM tokens_recuperacao_senha
+       WHERE token_hash = ? AND usado_em IS NULL AND expira_em > ?`,
+    )
+    .get(criarHashToken(token), Date.now());
+
+  if (!registro) {
+    return responderErro(res, 400, "O link de recuperação é inválido ou expirou");
+  }
+
+  const senhaHash = await bcrypt.hash(novaSenha, 10);
+  const atualizar = db.transaction(() => {
+    db.prepare("UPDATE usuarios SET senha = ? WHERE id = ?").run(
+      senhaHash,
+      registro.usuario_id,
+    );
+    db.prepare("UPDATE tokens_recuperacao_senha SET usado_em = ? WHERE id = ?").run(
+      Date.now(),
+      registro.id,
+    );
+  });
+  atualizar();
+
+  return res.json({ mensagem: "Senha redefinida com sucesso" });
 });
 
 app.get("/perfil", verificarToken, (req, res) => {
