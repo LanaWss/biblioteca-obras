@@ -832,7 +832,7 @@ app.post("/recuperar-senha", async (req, res) => {
 
   if (!usuario) {
     return res.json({
-      mensagem: "Se o email estiver cadastrado, enviaremos uma senha temporária.",
+      mensagem: "Se o email estiver cadastrado, enviaremos um link para redefinir a senha.",
     });
   }
 

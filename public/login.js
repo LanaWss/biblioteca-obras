@@ -67,7 +67,7 @@ esqueciSenha.addEventListener("click", () => {
   alternarCadastro.hidden = true;
   cabecalhoLogin.querySelector("h2").textContent = "Recuperar senha";
   cabecalhoLogin.querySelector("p").textContent =
-    "Informe o email cadastrado para receber uma senha temporária.";
+    "Informe o email cadastrado para receber um link seguro.";
   mensagem.classList.remove("visivel");
   campoEmailRecuperacao.value = campoEmail.value;
   campoEmailRecuperacao.focus();
