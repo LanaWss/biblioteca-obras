@@ -51,6 +51,7 @@ Crie um arquivo `.env` na raiz do projeto. Ele não deve ser enviado para o GitH
 ```env
 PORT=3000
 NODE_ENV=development
+APP_URL=http://localhost:3000
 ADMIN_EMAIL=seu-email@exemplo.com
 SMTP_HOST=smtp.exemplo.com
 SMTP_PORT=587
@@ -77,6 +78,7 @@ Copie a chave pública para `VAPID_PUBLIC_KEY` e a chave privada para `VAPID_PRI
 | `VAPID_PRIVATE_KEY` | Sim | Chave privada usada pelo servidor para enviar notificações |
 | `ADMIN_EMAIL` | Recomendada | Email da conta que poderá revisar sugestões de obras |
 | `JWT_SECRET` | Recomendada | Segredo estável usado para validar as sessões de login |
+| `APP_URL` | Para recuperação de senha | URL pública da aplicação usada nos links de redefinição |
 | `SMTP_HOST` | Para recuperação de senha | Servidor SMTP usado para enviar emails |
 | `SMTP_PORT` | Para recuperação de senha | Porta SMTP. O padrão é `587` |
 | `SMTP_USER` | Para recuperação de senha | Usuário da conta SMTP |

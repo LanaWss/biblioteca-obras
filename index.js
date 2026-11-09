@@ -854,7 +854,6 @@ app.post("/recuperar-senha", async (req, res) => {
 
   const enderecoBase = String(process.env.APP_URL || `${req.protocol}://${req.get("host")}`).replace(/\/+$/, "");
   const link = `${enderecoBase}/redefinir-senha.html?token=${encodeURIComponent(token)}`;
-  await enviarLinkRecuperacao(usuario.email, link);
 
   db.prepare("DELETE FROM tokens_recuperacao_senha WHERE usuario_id = ? OR expira_em <= ?").run(
     usuario.id,
@@ -864,6 +863,13 @@ app.post("/recuperar-senha", async (req, res) => {
     `INSERT INTO tokens_recuperacao_senha (usuario_id, token_hash, expira_em)
      VALUES (?, ?, ?)`,
   ).run(usuario.id, tokenHash, expiraEm);
+
+  try {
+    await enviarLinkRecuperacao(usuario.email, link);
+  } catch (erro) {
+    db.prepare("DELETE FROM tokens_recuperacao_senha WHERE token_hash = ?").run(tokenHash);
+    throw erro;
+  }
 
   return res.json({
     mensagem: "Se o email estiver cadastrado, enviaremos um link para redefinir a senha.",
