@@ -58,6 +58,8 @@ SMTP_PORT=587
 SMTP_USER=seu-email@exemplo.com
 SMTP_PASS=sua-senha-ou-chave-de-app
 SMTP_FROM=seu-email@exemplo.com
+RESEND_API_KEY=
+EMAIL_FROM=onboarding@resend.dev
 VAPID_PUBLIC_KEY=
 VAPID_PRIVATE_KEY=
 ```
@@ -84,6 +86,8 @@ Copie a chave pública para `VAPID_PUBLIC_KEY` e a chave privada para `VAPID_PRI
 | `SMTP_USER` | Para recuperação de senha | Usuário da conta SMTP |
 | `SMTP_PASS` | Para recuperação de senha | Senha ou chave de aplicativo da conta SMTP |
 | `SMTP_FROM` | Para recuperação de senha | Endereço exibido como remetente |
+| `RESEND_API_KEY` | Alternativa ao SMTP | Chave da API do Resend para envio por HTTPS |
+| `EMAIL_FROM` | Com Resend | Remetente autorizado no Resend |
 | `PORT` | Não | Porta do servidor. O padrão é `3000` |
 | `NODE_ENV` | Não | Ambiente da aplicação. O padrão é `development` |
 | `DB_PATH` | Não | Caminho alternativo para o arquivo SQLite |

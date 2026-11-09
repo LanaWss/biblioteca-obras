@@ -16,7 +16,10 @@ const VERSAO_PRIVACIDADE = "1.0";
 const TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024;
 const TAMANHO_MAXIMO_FOTO_PERFIL = 2 * 1024 * 1024;
 const EMAIL_ADMINISTRADOR = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
-const EMAIL_REMETENTE = String(process.env.SMTP_FROM || process.env.SMTP_USER || "").trim();
+const EMAIL_REMETENTE = String(
+  process.env.EMAIL_FROM || process.env.SMTP_FROM || process.env.SMTP_USER || "",
+).trim();
+const RESEND_API_KEY = String(process.env.RESEND_API_KEY || "").trim();
 const SEGREDO_JWT_LEGADO = "chave-secreta";
 const SEGREDO_JWT = process.env.JWT_SECRET || SEGREDO_JWT_LEGADO;
 const SEGREDOS_JWT_VALIDOS = [
@@ -74,6 +77,46 @@ function criarHashToken(token) {
 }
 
 async function enviarLinkRecuperacao(email, link) {
+  const texto = [
+    "Recebemos uma solicitação para recuperar o acesso à sua conta.",
+    "",
+    `Acesse este link para criar uma nova senha: ${link}`,
+    "",
+    "Este link expira em 1 hora e pode ser usado uma única vez.",
+    "Se você não solicitou essa recuperação, ignore este email.",
+  ].join("\n");
+
+  if (RESEND_API_KEY) {
+    try {
+      const resposta = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: EMAIL_REMETENTE,
+          to: [email],
+          subject: "Redefinição de senha - Biblioteca de Obras",
+          text: texto,
+        }),
+      });
+
+      if (!resposta.ok) {
+        const detalhe = await resposta.text();
+        throw new Error(`Resend HTTP ${resposta.status}: ${detalhe}`);
+      }
+
+      return;
+    } catch (erro) {
+      console.error("Falha ao enviar email pela API do Resend:", erro);
+      throw new ErroAplicacao(
+        "Não foi possível enviar o email de recuperação pelo Resend.",
+        503,
+      );
+    }
+  }
+
   const transportador = criarTransportadorEmail();
 
   try {
@@ -81,14 +124,7 @@ async function enviarLinkRecuperacao(email, link) {
       from: EMAIL_REMETENTE,
       to: email,
       subject: "Redefinição de senha - Biblioteca de Obras",
-      text: [
-        "Recebemos uma solicitação para recuperar o acesso à sua conta.",
-        "",
-        `Acesse este link para criar uma nova senha: ${link}`,
-        "",
-        "Este link expira em 1 hora e pode ser usado uma única vez.",
-        "Se você não solicitou essa recuperação, ignore este email.",
-      ].join("\n"),
+      text: texto,
     });
   } catch (erro) {
     console.error("Falha ao enviar email de recuperação:", erro);
