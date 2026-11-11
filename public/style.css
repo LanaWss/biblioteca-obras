@@ -977,13 +977,14 @@ body:not(.pagina-login) .cards .titulo-card h2[role="button"] {
 
 .botao-ler {
   display: flex;
-  flex: 1 1 100%;
+  flex: 0 1 auto;
   align-items: center;
   justify-content: center;
   gap: 6px;
   padding: 10px 6px;
   font-size: 14px;
   text-decoration: none;
+  width: 100%;
 }
 
 .botao-ler:hover {

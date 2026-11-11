@@ -1,6 +1,7 @@
 let obraProgressoAtual = null;
 let obraNotificacaoAtual = null;
 let obrasCarregadas = [];
+let carregamentoInicialConcluido = false;
 let carregamentoObrasAtual = 0;
 let controladorCarregamentoObras = null;
 let imagemFundoPcSelecionada = null;
@@ -928,26 +929,48 @@ function abrirListaItens(botao, tipo) {
 }
 
 function abrirListaItensCombinada(botao) {
-  const card = botao.closest(".cards");
+  const obra = obrasCarregadas.find(
+    (item) => String(item.id) === String(botao.dataset.obraId),
+  );
+
+  if (!obra) {
+    mostrarMensagem("Não foi possível carregar o progresso da obra.", "erro");
+    return;
+  }
+
   const grupos = [
-    { tipo: "anime", seletor: ".lista-temporadas-card", titulo: "Temporadas" },
-    { tipo: "manga", seletor: ".lista-volumes-card", titulo: "Volumes" },
+    {
+      tipo: "anime",
+      titulo: "Temporadas",
+      itens: ordenarItensPeloProgresso(
+        obra,
+        lerConteudoObra(obra.temporadas),
+        "anime",
+      ),
+    },
+    {
+      tipo: "manga",
+      titulo: "Volumes",
+      itens: ordenarItensPeloProgresso(
+        obra,
+        lerConteudoObra(obra.volumes),
+        "manga",
+      ),
+    },
   ]
     .map((grupo) => {
-      const lista = card.querySelector(grupo.seletor);
-
-      if (!lista) {
+      if (!grupo.itens.length) {
         return "";
       }
 
-      const itens = [...lista.children]
-        .map((item) => {
-          const copia = item.cloneNode(true);
-          copia.hidden = false;
-          copia.removeAttribute("data-volume-extra");
-          copia.removeAttribute("data-temporada-extra");
-          return copia.outerHTML;
-        })
+      const itens = grupo.itens
+        .map((item) =>
+          grupo.tipo === "anime"
+            ? `<p>Temporada ${item.numero} — episódios ${obterInicioTemporada(item)}–${
+                obterInicioTemporada(item) + Number(item.episodios || 0) - 1
+              }</p>`
+            : `<p>Volume ${item.numero} — capítulos ${item.inicio}–${item.fim}</p>`,
+        )
         .join("");
 
       return `
@@ -1382,7 +1405,9 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
     controladorCarregamentoObras?.abort();
 
     controladorCarregamentoObras = new AbortController();
-    mostrarSkeletonObras();
+    if (!carregamentoInicialConcluido) {
+      mostrarSkeletonObras();
+    }
   }
 
   const requisicao = atualizarDados
@@ -1433,6 +1458,7 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
       );
 
       obrasCarregadas = obras;
+      carregamentoInicialConcluido = true;
 
       const lista = document.getElementById("lista-obras");
 
@@ -1608,6 +1634,22 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
 
         const linksLeitura = obterLinksLeitura(obra);
         const conteudoCard = mostrarProgressosSeparados ? "" : conteudo;
+        const progressoGeral = `
+          <div class="progresso-card">
+            <div class="progresso-texto">
+              <span>Progresso ${progresso.vistos}/${progresso.total}</span>
+            </div>
+            <div class="barra-progresso">
+              <div
+                class="barra-progresso-preenchida"
+                style="width: ${
+                  progresso.total > 0
+                    ? (progresso.vistos / progresso.total) * 100
+                    : 0
+                }%"
+              ></div>
+            </div>
+          </div>`;
 
         const imagemSegura = urlExternaSegura(imagens.principal);
         const tituloExibicao = escaparHtml(obterTituloExibicao(obra));
@@ -1747,38 +1789,21 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
 
             <div class="detalhes-card" hidden>
 
+              ${progressoGeral}
+
               ${
                 mostrarProgressosSeparados
                   ? `<button
-                      type="button"
-                      class="botao-lista-combinada"
-                      data-lista-combinada
-                    >
-                      <i class="fa-solid fa-list"></i>
-                      Ver anime e mangá
-                    </button>`
-                  : `<div class="progresso-card">
-
-                <div class="progresso-texto">
-                  <span>
-                    Progresso
-                    ${progresso.vistos}/${progresso.total}
-                  </span>
-                </div>
-
-                <div class="barra-progresso">
-
-                  <div
-                    class="barra-progresso-preenchida"
-                    style="width: ${
-                      progresso.total > 0
-                        ? (progresso.vistos / progresso.total) * 100
-                        : 0
-                    }%"
-                  ></div>
-
-                </div>`
-                }
+                    type="button"
+                    class="botao-lista-combinada"
+                    data-lista-combinada
+                    data-obra-id="${obra.id}"
+                  >
+                    <i class="fa-solid fa-list"></i>
+                    Ver progresso anime e mangá
+                  </button>`
+                  : ""
+              }
               ${conteudoCard}
 
             </div>
