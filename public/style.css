@@ -1,3 +1,49 @@
+#fonte-textos option {
+  font-size: 16px;
+}
+
+#fonte-textos option[value*="Arial"] { font-family: Arial, sans-serif; }
+#fonte-textos option[value*="Georgia"] { font-family: Georgia, serif; }
+#fonte-textos option[value*="Verdana"] { font-family: Verdana, sans-serif; }
+#fonte-textos option[value*="Trebuchet"] { font-family: "Trebuchet MS", sans-serif; }
+#fonte-textos option[value*="Tahoma"] { font-family: Tahoma, sans-serif; }
+#fonte-textos option[value*="Times"] { font-family: "Times New Roman", serif; }
+#fonte-textos option[value*="Courier"] { font-family: "Courier New", monospace; }
+#fonte-textos option[value*="Lucida"] { font-family: "Lucida Console", monospace; }
+#fonte-textos option[value*="Palatino"] { font-family: "Palatino Linotype", serif; }
+#fonte-textos option[value*="Impact"] { font-family: Impact, sans-serif; }
+#fonte-textos option[value*="Roboto"] { font-family: "Roboto", sans-serif; }
+#fonte-textos option[value*="Open Sans"] { font-family: "Open Sans", sans-serif; }
+#fonte-textos option[value*="Lato"] { font-family: "Lato", sans-serif; }
+#fonte-textos option[value*="Montserrat"] { font-family: "Montserrat", sans-serif; }
+#fonte-textos option[value*="Poppins"] { font-family: "Poppins", sans-serif; }
+#fonte-textos option[value*="Oswald"] { font-family: "Oswald", sans-serif; }
+#fonte-textos option[value*="Raleway"] { font-family: "Raleway", sans-serif; }
+#fonte-textos option[value*="Noto Sans"] { font-family: "Noto Sans", sans-serif; }
+#fonte-textos option[value*="Playfair"] { font-family: "Playfair Display", serif; }
+#fonte-textos option[value*="Merriweather"] { font-family: "Merriweather", serif; }
+#fonte-textos option[value*="Lora"] { font-family: "Lora", serif; }
+#fonte-textos option[value*="Cinzel"] { font-family: "Cinzel", serif; }
+#fonte-textos option[value*="Bebas"] { font-family: "Bebas Neue", sans-serif; }
+#fonte-textos option[value*="Pacifico"] { font-family: "Pacifico", cursive; }
+#fonte-textos option[value*="Dancing"] { font-family: "Dancing Script", cursive; }
+#fonte-textos option[value*="Great Vibes"] { font-family: "Great Vibes", cursive; }
+#fonte-textos option[value*="Lobster"] { font-family: "Lobster", cursive; }
+#fonte-textos option[value*="Fira Code"] { font-family: "Fira Code", monospace; }
+#fonte-textos option[value*="Cousine"] { font-family: "Cousine", monospace; }
+#fonte-textos option[value*="Nunito"] { font-family: "Nunito", sans-serif; }
+#fonte-textos option[value*="Quicksand"] { font-family: "Quicksand", sans-serif; }
+#fonte-textos option[value*="Ubuntu"] { font-family: "Ubuntu", sans-serif; }
+#fonte-textos option[value*="DM Sans"] { font-family: "DM Sans", sans-serif; }
+#fonte-textos option[value*="Space Grotesk"] { font-family: "Space Grotesk", sans-serif; }
+#fonte-textos option[value*="Source Sans 3"] { font-family: "Source Sans 3", sans-serif; }
+#fonte-textos option[value*="IBM Plex Sans"] { font-family: "IBM Plex Sans", sans-serif; }
+#fonte-textos option[value*="Libre Baskerville"] { font-family: "Libre Baskerville", serif; }
+#fonte-textos option[value*="Abril Fatface"] { font-family: "Abril Fatface", serif; }
+#fonte-textos option[value*="Righteous"] { font-family: "Righteous", sans-serif; }
+#fonte-textos option[value*="Comfortaa"] { font-family: "Comfortaa", cursive; }
+#fonte-textos option[value*="JetBrains Mono"] { font-family: "JetBrains Mono", monospace; }
+
 :root {
   font-family: Arial, sans-serif;
   font-size: 16px;

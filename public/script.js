@@ -196,11 +196,12 @@ document.getElementById("botao-inicio").addEventListener("click", () => {
 function mostrarMensagem(texto, tipo) {
   const mensagem = document.getElementById("mensagem");
 
+  clearTimeout(mostrarMensagem.temporizador);
   mensagem.textContent = texto;
   mensagem.className = tipo;
   mensagem.style.display = "block";
 
-  setTimeout(() => {
+  mostrarMensagem.temporizador = setTimeout(() => {
     mensagem.style.display = "none";
   }, 3000);
 }
@@ -233,6 +234,25 @@ function normalizarTexto(valor) {
     .toLocaleLowerCase("pt-BR")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
+}
+
+function escaparHtml(valor) {
+  return String(valor ?? "").replace(/[&<>"']/g, (caractere) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[caractere]);
+}
+
+function urlExternaSegura(valor) {
+  try {
+    const url = new URL(String(valor || ""), window.location.origin);
+    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+  } catch {
+    return "";
+  }
 }
 
 function tipoTemAnime(tipo) {
@@ -758,24 +778,12 @@ function obterImagemPreferida(obra) {
   };
 
   const preferida = obra.imagem_preferencia || "url";
-
-  const imagemLocal = imagens.arquivo;
-
-  const imagemPreferida = imagens[preferida] || imagens.url || imagens.arquivo;
-
-  if (imagemLocal) {
-    return {
-      principal: imagemLocal,
-
-      fallback:
-        imagemPreferida === imagemLocal ? imagens.url || "" : imagemPreferida,
-    };
-  }
-
   return {
-    principal: imagemPreferida || "",
-
-    fallback: preferida === "url" ? imagens.arquivo || "" : imagens.url || "",
+    principal: imagens[preferida] || imagens.url || imagens.arquivo || "",
+    fallback:
+      imagens[preferida] && imagens[preferida] === imagens.url
+        ? imagens.arquivo || ""
+        : imagens.url || "",
   };
 }
 
@@ -1538,12 +1546,14 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
 
         const linksLeitura = obterLinksLeitura(obra);
 
-        const imagem = imagens.principal
+        const imagemSegura = urlExternaSegura(imagens.principal);
+        const tituloExibicao = escaparHtml(obterTituloExibicao(obra));
+        const imagem = imagemSegura
           ? `<img
                     class="imagem-obra"
-                    src="${imagens.principal}"
+                    src="${escaparHtml(imagemSegura)}"
                     referrerpolicy="no-referrer"
-                    alt="${obterTituloExibicao(obra)}"
+                    alt="${tituloExibicao}"
                   >`
           : "";
 
@@ -1552,7 +1562,7 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
             ? `
               <a
                 class="botao-ler"
-                href="${linksLeitura[0].url}"
+                href="${escaparHtml(urlExternaSegura(linksLeitura[0].url))}"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -1624,13 +1634,13 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
                 title="Clique para copiar o título completo"
                 aria-label="Copiar título completo"
               >
-                ${obterTituloExibicao(obra)}
+                ${tituloExibicao}
               </h2>
 
               <span
                 class="status-card status-${obra.status}"
               >
-                ${statusExibido}
+                ${escaparHtml(statusExibido || "Sem status")}
               </span>
 
             </div>
@@ -1837,6 +1847,9 @@ document
       if (evento.target === popup) {
         if (popup.id === "popup-lista-itens") {
           fecharListaItens();
+        } else if (popup.id === "popup-perfil") {
+          cancelarEdicaoVisual();
+          popup.style.display = "none";
         } else {
           popup.style.display = "none";
         }
@@ -2002,14 +2015,19 @@ async function marcarProximoVisto(id, botao, tipo, indice) {
       return;
     }
 
-    await carregarObras(false);
-
     mostrarMensagem(
       `${
         tipo === "anime" ? "Episódio" : "Capítulo"
       } ${proximo} marcado como visto.`,
       "sucesso",
     );
+
+    carregarObras(false).catch(() => {
+      mostrarMensagem(
+        "Capítulo salvo, mas não foi possível atualizar a lista.",
+        "aviso",
+      );
+    });
   } catch (erro) {
     mostrarMensagem("Não foi possível marcar como visto.", "erro");
   } finally {
@@ -4728,9 +4746,9 @@ function carregarListaOrganizar() {
       atualizarBotoesOrganizar();
     });
 
-    const titulo = obterTituloExibicao(obra);
+    const titulo = escaparHtml(obterTituloExibicao(obra));
 
-    const imagem = obterImagemPreferida(obra).principal;
+    const imagem = urlExternaSegura(obterImagemPreferida(obra).principal);
 
     item.innerHTML = `
         <span
@@ -4741,7 +4759,7 @@ function carregarListaOrganizar() {
         </span>
 
         <img
-          src="${imagem}"
+          src="${escaparHtml(imagem)}"
           referrerpolicy="no-referrer"
           alt=""
         >
@@ -4942,6 +4960,9 @@ const configuracoesVisuaisPadrao = {
   textos: "#ffffff",
   titulos: "#ffffff",
 };
+let configuracoesVisuaisAntesDaEdicao = null;
+let configuracoesVisuaisAtuais = { ...configuracoesVisuaisPadrao };
+let visualEmEdicao = false;
 
 function lerPadroesVisuaisDoCss() {
   let estilosRaiz = null;
@@ -5065,6 +5086,49 @@ function aplicarConfiguracoesVisuais(configuracoes = {}) {
   raiz.style.setProperty("--cor-titulos-personalizada", valores.titulos);
 }
 
+function lerConfiguracoesVisuaisDoFormulario() {
+  return {
+    fundoInicio: document.getElementById("cor-fundo-inicio").value,
+    fundoIntermediaria: document.getElementById("cor-fundo-intermediaria").value,
+    fundoFim: document.getElementById("cor-fundo-fim").value,
+    fundoCelularInicio: document.getElementById("cor-fundo-celular-inicio").value,
+    fundoCelularIntermediaria: document.getElementById("cor-fundo-celular-intermediaria").value,
+    fundoCelularFim: document.getElementById("cor-fundo-celular-fim").value,
+    estiloFundoPc: document.getElementById("estilo-fundo-pc").value,
+    estiloFundoCelular: document.getElementById("estilo-fundo-celular").value,
+    modoFundoPc: document.getElementById("modo-fundo-pc").value,
+    imagemFundoPc: imagemFundoPcSelecionada || "",
+    modoFundoCelular: document.getElementById("modo-fundo-celular").value,
+    imagemFundoCelular: imagemFundoCelularSelecionada || "",
+    fonte: document.getElementById("fonte-textos").value,
+    botoes: document.getElementById("cor-botoes").value,
+    botoesTexto: document.getElementById("cor-conteudo-botoes").value,
+    textos: document.getElementById("cor-textos").value,
+    titulos: document.getElementById("cor-titulos").value,
+  };
+}
+
+function atualizarPreVisualizacaoVisual() {
+  if (visualEmEdicao) {
+    aplicarConfiguracoesVisuais(lerConfiguracoesVisuaisDoFormulario());
+  }
+}
+
+function cancelarEdicaoVisual() {
+  if (!visualEmEdicao) {
+    return;
+  }
+
+  const configuracoes = configuracoesVisuaisAntesDaEdicao ||
+    configuracoesVisuaisAtuais;
+
+  aplicarConfiguracoesVisuais(configuracoes);
+  preencherConfiguracoesVisuais(configuracoes);
+  document.getElementById("imagem-fundo-pc").value = "";
+  document.getElementById("imagem-fundo-celular").value = "";
+  visualEmEdicao = false;
+}
+
 function preencherConfiguracoesVisuais(configuracoes = {}) {
   const valores = obterConfiguracoesVisuais(configuracoes);
 
@@ -5152,6 +5216,7 @@ document.getElementById("imagem-fundo-pc").addEventListener("change", async (eve
   try {
     imagemFundoPcSelecionada = await lerFotoPerfil(arquivo);
     status.textContent = "Imagem importada. Salve as alterações para aplicar.";
+    atualizarPreVisualizacaoVisual();
   } catch (erro) {
     imagemFundoPcSelecionada = null;
     status.textContent = "Não foi possível importar a imagem.";
@@ -5178,6 +5243,7 @@ document
     try {
       imagemFundoCelularSelecionada = await lerFotoPerfil(arquivo);
       status.textContent = "Imagem importada. Salve as alterações para aplicar.";
+      atualizarPreVisualizacaoVisual();
     } catch (erro) {
       imagemFundoCelularSelecionada = null;
       status.textContent = "Não foi possível importar a imagem.";
@@ -5334,16 +5400,16 @@ async function abrirBibliotecaAmigo(identificador) {
     ? resultado.obras
         .map(
           (obra) => {
-            const imagem = obterImagemPreferida(obra).principal;
+            const imagem = urlExternaSegura(obterImagemPreferida(obra).principal);
 
             return `
             <article class="obra-publica" data-publica-obra="${obrasPublicasAtual.indexOf(obra)}" tabindex="0" role="button">
               <div class="obra-publica-imagem">
-                ${imagem ? `<img src="${imagem}" alt="" loading="lazy" />` : '<i class="fa-solid fa-book"></i>'}
+                ${imagem ? `<img src="${escaparHtml(imagem)}" alt="" loading="lazy" />` : '<i class="fa-solid fa-book"></i>'}
               </div>
               <div>
-                <strong>${obra.title}</strong>
-                <span>${obra.tipo || "Obra"} · ${obra.status || "Sem status"}</span>
+                <strong>${escaparHtml(obra.title)}</strong>
+                <span>${escaparHtml(obra.tipo || "Obra")} · ${escaparHtml(obra.status || "Sem status")}</span>
               </div>
           </article>
           `;
@@ -5393,9 +5459,9 @@ function abrirDetalheObraPublica(obra) {
 
   document.getElementById("conteudo-detalhe-obra-publica").innerHTML = `
     <article class="obra-publica-detalhe">
-      <h2>${obra.title}</h2>
-      ${imagem ? `<img class="obra-publica-detalhe-imagem" src="${imagem}" alt="" />` : ""}
-      <span class="status-card status-${obra.status || "indefinido"}">${obra.status || "Sem status"}</span>
+      <h2>${escaparHtml(obra.title)}</h2>
+      ${imagem ? `<img class="obra-publica-detalhe-imagem" src="${escaparHtml(imagem)}" alt="" />` : ""}
+      <span class="status-card status-${escaparHtml(obra.status || "indefinido")}">${escaparHtml(obra.status || "Sem status")}</span>
       <div class="progresso-texto">Progresso ${progresso.vistos}/${progresso.total}</div>
       <div class="barra-progresso">
         <div class="barra-progresso-preenchida" style="width: ${progresso.total ? (progresso.vistos / progresso.total) * 100 : 0}%"></div>
@@ -5437,6 +5503,7 @@ async function carregarPerfil() {
   fotoPerfilSelecionada = perfil.fotoPerfil || null;
   atualizarPreviewFotoPerfil(fotoPerfilSelecionada);
   preencherConfiguracoesVisuais(configuracoes);
+  configuracoesVisuaisAtuais = obterConfiguracoesVisuais(configuracoes);
   aplicarConfiguracoesVisuais(configuracoes);
   const categoriaSugestoes = document.getElementById("categoria-sugestoes-obras");
   categoriaSugestoes.hidden = !perfil.ehAdmin;
@@ -5522,6 +5589,8 @@ document.addEventListener("click", async (evento) => {
 });
 
 document.getElementById("botao-perfil").addEventListener("click", async () => {
+  configuracoesVisuaisAntesDaEdicao = structuredClone(configuracoesVisuaisAtuais);
+  visualEmEdicao = true;
   document.getElementById("popup-perfil").style.display = "flex";
 
   try {
@@ -5542,7 +5611,29 @@ document.getElementById("botao-amigos").addEventListener("click", async () => {
 });
 
 document.getElementById("fechar-perfil").addEventListener("click", () => {
+  cancelarEdicaoVisual();
   document.getElementById("popup-perfil").style.display = "none";
+});
+
+[
+  "cor-fundo-inicio",
+  "cor-fundo-intermediaria",
+  "cor-fundo-fim",
+  "cor-fundo-celular-inicio",
+  "cor-fundo-celular-intermediaria",
+  "cor-fundo-celular-fim",
+  "estilo-fundo-pc",
+  "estilo-fundo-celular",
+  "modo-fundo-pc",
+  "modo-fundo-celular",
+  "fonte-textos",
+  "cor-botoes",
+  "cor-conteudo-botoes",
+  "cor-textos",
+  "cor-titulos",
+].forEach((id) => {
+  document.getElementById(id).addEventListener("input", atualizarPreVisualizacaoVisual);
+  document.getElementById(id).addEventListener("change", atualizarPreVisualizacaoVisual);
 });
 
 document.getElementById("fechar-amigos").addEventListener("click", () => {
@@ -5698,27 +5789,7 @@ document.getElementById("salvar-perfil").addEventListener("click", async () => {
     return;
   }
 
-  const configuracoesVisuais = {
-    fundoInicio: document.getElementById("cor-fundo-inicio").value,
-    fundoIntermediaria: document.getElementById("cor-fundo-intermediaria").value,
-    fundoFim: document.getElementById("cor-fundo-fim").value,
-    fundoCelularInicio: document.getElementById("cor-fundo-celular-inicio").value,
-    fundoCelularIntermediaria: document.getElementById(
-      "cor-fundo-celular-intermediaria",
-    ).value,
-    fundoCelularFim: document.getElementById("cor-fundo-celular-fim").value,
-    estiloFundoPc: document.getElementById("estilo-fundo-pc").value,
-    estiloFundoCelular: document.getElementById("estilo-fundo-celular").value,
-    modoFundoPc: document.getElementById("modo-fundo-pc").value,
-    imagemFundoPc: imagemFundoPcSelecionada || "",
-    modoFundoCelular: document.getElementById("modo-fundo-celular").value,
-    imagemFundoCelular: imagemFundoCelularSelecionada || "",
-    fonte: document.getElementById("fonte-textos").value,
-    botoes: document.getElementById("cor-botoes").value,
-    botoesTexto: document.getElementById("cor-conteudo-botoes").value,
-    textos: document.getElementById("cor-textos").value,
-    titulos: document.getElementById("cor-titulos").value,
-  };
+  const configuracoesVisuais = lerConfiguracoesVisuaisDoFormulario();
   const botao = document.getElementById("salvar-perfil");
 
   botao.disabled = true;
@@ -5758,6 +5829,11 @@ document.getElementById("salvar-perfil").addEventListener("click", async () => {
     document.getElementById("nova-senha").value = "";
     document.getElementById("confirmar-nova-senha").value = "";
     aplicarConfiguracoesVisuais(resultado.configuracoesVisuais);
+    configuracoesVisuaisAtuais = obterConfiguracoesVisuais(
+      resultado.configuracoesVisuais,
+    );
+    configuracoesVisuaisAntesDaEdicao = structuredClone(configuracoesVisuaisAtuais);
+    visualEmEdicao = false;
     document.getElementById("popup-perfil").style.display = "none";
     mostrarMensagem("Perfil salvo com sucesso!", "sucesso");
   } catch (erroRequisicao) {
@@ -6011,6 +6087,168 @@ const catalogoObras = [
     volumes: criarVolumesCatalogo(63, 545),
   },
   {
+    titulo: "Diários de uma Apotecária",
+    titulosAlternativos: ["Kusuriya no Hitorigoto", "The Apothecary Diaries"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/1706/138033.jpg",
+    temporadas: criarTemporadasCatalogo([24, 24]),
+    volumes: criarVolumesCatalogo(14, 78),
+  },
+  {
+    titulo: "Black Clover",
+    titulosAlternativos: ["Burakku Kurōbā"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/1239/104931.jpg",
+    temporadas: criarTemporadasCatalogo([51, 19, 20, 19]),
+    volumes: criarVolumesCatalogo(36, 380),
+  },
+  {
+    titulo: "Spy x Family",
+    titulosAlternativos: ["Spy Family", "Spica"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/1908/126494.jpg",
+    temporadas: criarTemporadasCatalogo([12, 12, 13]),
+    volumes: criarVolumesCatalogo(15, 105),
+  },
+  {
+    titulo: "Chainsaw Man",
+    titulosAlternativos: ["C SM", "Denji"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/1792/138022.jpg",
+    temporadas: criarTemporadasCatalogo([12]),
+    volumes: criarVolumesCatalogo(19, 195),
+  },
+  {
+    titulo: "Dr. Stone",
+    titulosAlternativos: ["Doctor Stone"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/1171/109222.jpg",
+    temporadas: criarTemporadasCatalogo([24, 11, 22]),
+    volumes: criarVolumesCatalogo(26, 232),
+  },
+  {
+    titulo: "Mob Psycho 100",
+    titulosAlternativos: ["Mobu Psycho 100"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/11/133195.jpg",
+    temporadas: criarTemporadasCatalogo([12, 13, 12]),
+    volumes: criarVolumesCatalogo(16, 116),
+  },
+  {
+    titulo: "Vinland Saga",
+    titulosAlternativos: ["Vinrando Saga"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/1357/109602.jpg",
+    temporadas: criarTemporadasCatalogo([24, 24]),
+    volumes: criarVolumesCatalogo(28, 216),
+  },
+  {
+    titulo: "Fire Force",
+    titulosAlternativos: ["Enen no Shouboutai"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/1089/106884.jpg",
+    temporadas: criarTemporadasCatalogo([24, 24, 12]),
+    volumes: criarVolumesCatalogo(34, 340),
+  },
+  {
+    titulo: "Re:Zero",
+    titulosAlternativos: ["Re:Zero kara Hajimeru Isekai Seikatsu", "Starting Life in Another World"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/1171/109222.jpg",
+    temporadas: criarTemporadasCatalogo([25, 12, 16]),
+    volumes: criarVolumesCatalogo(12, 60),
+  },
+  {
+    titulo: "The Promised Neverland",
+    titulosAlternativos: ["Yakusoku no Neverland", "Neverland"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/1357/108941.jpg",
+    temporadas: criarTemporadasCatalogo([12, 11]),
+    volumes: criarVolumesCatalogo(20, 181),
+  },
+  {
+    titulo: "Naruto Shippuden",
+    titulosAlternativos: ["Naruto: Shippuuden", "Naruto Shipuden"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/1660/109645.jpg",
+    temporadas: criarTemporadasCatalogo([32, 35, 39, 46, 44, 22, 37, 53, 24, 47, 55]),
+    volumes: criarVolumesCatalogo(72, 700),
+  },
+  {
+    titulo: "Kaguya-sama: Love is War",
+    titulosAlternativos: ["Kaguya-sama wa Kokurasetai", "Kaguya"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/1451/114840.jpg",
+    temporadas: criarTemporadasCatalogo([12, 12, 13]),
+    volumes: criarVolumesCatalogo(28, 278),
+  },
+  {
+    titulo: "Steins;Gate",
+    titulosAlternativos: ["Steins Gate"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/758/92515.jpg",
+    temporadas: criarTemporadasCatalogo([24]),
+    volumes: criarVolumesCatalogo(3, 30),
+  },
+  {
+    titulo: "Code Geass",
+    titulosAlternativos: ["Code Geass: Hangyaku no Lelouch", "Lelouch of the Rebellion"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/5/8067.jpg",
+    temporadas: criarTemporadasCatalogo([25, 25]),
+    volumes: criarVolumesCatalogo(8, 60),
+  },
+  {
+    titulo: "Frieren: Beyond Journey's End",
+    titulosAlternativos: ["Sousou no Frieren", "Frieren"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/1015/138006.jpg",
+    temporadas: criarTemporadasCatalogo([28]),
+    volumes: criarVolumesCatalogo(14, 140),
+  },
+  {
+    titulo: "Solo Leveling",
+    titulosAlternativos: ["Ore dake Level Up na Ken"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/1801/142390.jpg",
+    temporadas: criarTemporadasCatalogo([12, 13]),
+    volumes: criarVolumesCatalogo(14, 202),
+  },
+  {
+    titulo: "The Beginning After the End",
+    titulosAlternativos: ["TBATE"],
+    tipo: "manga",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/manga/2/258006.jpg",
+    temporadas: [],
+    volumes: criarVolumesCatalogo(12, 220),
+  },
+  {
+    titulo: "Blue Lock",
+    titulosAlternativos: ["Burū Rokku"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/1647/138731.jpg",
+    temporadas: criarTemporadasCatalogo([24, 14]),
+    volumes: criarVolumesCatalogo(30, 275),
+  },
+  {
     titulo: "Haikyuu!!",
     titulosAlternativos: ["Haikyu!!"],
     tipo: "ambos",
@@ -6020,13 +6258,58 @@ const catalogoObras = [
     volumes: criarVolumesCatalogo(45, 402),
   },
   {
-    titulo: "Diários de uma Apotecária",
-    titulosAlternativos: ["Kusuriya no Hitorigoto", "The Apothecary Diaries"],
+    titulo: "Tokyo Revengers",
+    titulosAlternativos: ["Tokyo卍Revengers"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/1703/132855.jpg",
+    temporadas: criarTemporadasCatalogo([24, 13, 13]),
+    volumes: criarVolumesCatalogo(30, 278),
+  },
+  {
+    titulo: "The Seven Deadly Sins",
+    titulosAlternativos: ["Nanatsu no Taizai"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/8/65409.jpg",
+    temporadas: criarTemporadasCatalogo([24, 24, 24, 24, 24]),
+    volumes: criarVolumesCatalogo(41, 342),
+  },
+  {
+    titulo: "Black Butler",
+    titulosAlternativos: ["Kuroshitsuji"],
     tipo: "ambos",
     status: "lancando",
-    imagem: "https://cdn.myanimelist.net/images/anime/1706/138033.jpg",
-    temporadas: criarTemporadasCatalogo([24, 24]),
-    volumes: criarVolumesCatalogo(14, 78),
+    imagem: "https://cdn.myanimelist.net/images/anime/9/75137.jpg",
+    temporadas: criarTemporadasCatalogo([24, 12, 10, 11]),
+    volumes: criarVolumesCatalogo(34, 210),
+  },
+  {
+    titulo: "Fairy Tail: 100 Years Quest",
+    titulosAlternativos: ["Fairy Tail 100 Years Quest"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/1175/143167.jpg",
+    temporadas: criarTemporadasCatalogo([25]),
+    volumes: criarVolumesCatalogo(20, 190),
+  },
+  {
+    titulo: "Mushoku Tensei",
+    titulosAlternativos: ["Mushoku Tensei: Isekai Ittara Honki Dasu"],
+    tipo: "ambos",
+    status: "lancando",
+    imagem: "https://cdn.myanimelist.net/images/anime/1020/117168.jpg",
+    temporadas: criarTemporadasCatalogo([11, 12, 12, 12]),
+    volumes: criarVolumesCatalogo(20, 120),
+  },
+  {
+    titulo: "Delicious in Dungeon",
+    titulosAlternativos: ["Dungeon Meshi"],
+    tipo: "ambos",
+    status: "completa",
+    imagem: "https://cdn.myanimelist.net/images/anime/1711/141065.jpg",
+    temporadas: criarTemporadasCatalogo([24]),
+    volumes: criarVolumesCatalogo(14, 97),
   },
 ];
 

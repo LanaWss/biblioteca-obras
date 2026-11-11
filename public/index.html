@@ -4,13 +4,19 @@
 <head>
   <title>Biblioteca de Obras</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css?v=57" />
+  <link rel="stylesheet" href="style.css?v=58" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="icon" href="icone.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Oswald:wght@400;700&family=Raleway:wght@400;700&family=Noto+Sans:wght@400;700&family=Playfair+Display:wght@400;700&family=Merriweather:wght@400;700&family=Lora:wght@400;700&family=Cinzel:wght@400;700&family=Bebas+Neue&family=Pacifico&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Lobster&family=Fira+Code:wght@400;700&family=Cousine:wght@400;700&family=Nunito:wght@400;700&family=Quicksand:wght@400;700&family=Ubuntu:wght@400;700&family=DM+Sans:wght@400;700&family=Space+Grotesk:wght@400;700&family=Source+Sans+3:wght@400;700&family=IBM+Plex+Sans:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Abril+Fatface&family=Righteous&family=Comfortaa:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap"
+  />
 </head>
 
 <body>
-  <div id="mensagem"></div>
+  <div id="mensagem" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <button id="botao-inicio" type="button" aria-label="Voltar ao topo" title="Voltar ao topo">
     <i class="fa-solid fa-house"></i>
@@ -39,7 +45,7 @@
       </button>
 
       <button id="botao-obter-obra" type="button">
-        <i class="fa-solid fa-wand-magic-sparkles"></i> Obter obra
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Obter obras
       </button>
 
       <button id="botao-organizar" type="button">
@@ -263,7 +269,7 @@
         </button>
         <div>
           <div id="tela-pesquisa-catalogo">
-            <h2>Obter obra</h2>
+            <h2>Obter obras</h2>
             <p class="catalogo-descricao">Pesquise uma obra famosa para preencher os dados automaticamente.</p>
             <label for="buscar-catalogo-obras">Pesquisar obra</label>
             <input id="buscar-catalogo-obras" type="search" placeholder="Ex.: Naruto clássico" autocomplete="off" />
@@ -274,7 +280,7 @@
             <p class="catalogo-descricao">Preencha todos os dados no formulário e envie sua sugestão para análise.</p>
           </div>
           <div id="tela-detalhe-catalogo" hidden>
-            <h2>Obter obra</h2>
+            <h2>Obter obras</h2>
             <div id="previsao-catalogo-obra" class="previsao-catalogo-obra"></div>
             <div id="escolha-progresso-catalogo" class="escolha-progresso-catalogo">
               <h3>Você já viu esta obra?</h3>
@@ -452,8 +458,8 @@
       <h2 id="titulo-confirmar-exclusao">Deseja excluir esta obra?</h2>
       <p id="nome-obra-exclusao"></p>
       <div class="botoes-confirmacao">
-        <button id="confirmar-exclusao" type="button">S - Sim</button>
-        <button id="cancelar-exclusao" type="button">N - Não</button>
+        <button id="confirmar-exclusao" type="button">Sim</button>
+        <button id="cancelar-exclusao" type="button">Não</button>
       </div>
     </div>
   </div>
@@ -482,10 +488,10 @@
           <li>Recuperar senha do login.</li>
           <br>
           <h3>Sendo trabalhado:</h3>
-          <li></li>
+          <li>APK para celulares.</li>
           <br>
-          </p><strong>V 20.6</strong></p>
-          <p><i>Atualização feita em 06/11/2026</i></p>
+          </p><strong>V 20.6.1</strong></p>
+          <p><i>Atualização feita em 11/11/2026</i></p>
         </ul>
       </div>
     </div>
@@ -607,6 +613,37 @@
             <option value="Lucida Console, monospace">Lucida Console</option>
             <option value="Palatino Linotype, serif">Palatino Linotype</option>
             <option value="Impact, sans-serif">Impact</option>
+            <option value="'Roboto', sans-serif">Roboto</option>
+            <option value="'Open Sans', sans-serif">Open Sans</option>
+            <option value="'Lato', sans-serif">Lato</option>
+            <option value="'Montserrat', sans-serif">Montserrat</option>
+            <option value="'Poppins', sans-serif">Poppins</option>
+            <option value="'Oswald', sans-serif">Oswald</option>
+            <option value="'Raleway', sans-serif">Raleway</option>
+            <option value="'Noto Sans', sans-serif">Noto Sans</option>
+            <option value="'Playfair Display', serif">Playfair Display</option>
+            <option value="'Merriweather', serif">Merriweather</option>
+            <option value="'Lora', serif">Lora</option>
+            <option value="'Cinzel', serif">Cinzel</option>
+            <option value="'Bebas Neue', sans-serif">Bebas Neue</option>
+            <option value="'Pacifico', cursive">Pacifico</option>
+            <option value="'Dancing Script', cursive">Dancing Script</option>
+            <option value="'Great Vibes', cursive">Great Vibes</option>
+            <option value="'Lobster', cursive">Lobster</option>
+            <option value="'Fira Code', monospace">Fira Code</option>
+            <option value="'Cousine', monospace">Cousine</option>
+            <option value="'Nunito', sans-serif">Nunito</option>
+            <option value="'Quicksand', sans-serif">Quicksand</option>
+            <option value="'Ubuntu', sans-serif">Ubuntu</option>
+            <option value="'DM Sans', sans-serif">DM Sans</option>
+            <option value="'Space Grotesk', sans-serif">Space Grotesk</option>
+            <option value="'Source Sans 3', sans-serif">Source Sans 3</option>
+            <option value="'IBM Plex Sans', sans-serif">IBM Plex Sans</option>
+            <option value="'Libre Baskerville', serif">Libre Baskerville</option>
+            <option value="'Abril Fatface', serif">Abril Fatface</option>
+            <option value="'Righteous', sans-serif">Righteous</option>
+            <option value="'Comfortaa', cursive">Comfortaa</option>
+            <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
           </select>
           <label for="cor-botoes">Cor dos botões</label>
           <input type="color" id="cor-botoes" value="#175d69" />

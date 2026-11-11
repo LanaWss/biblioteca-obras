@@ -4,7 +4,9 @@ const express = require("express");
 const Database = require("better-sqlite3");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
+const dns = require("dns").promises;
 const jwt = require("jsonwebtoken");
+const net = require("net");
 const nodemailer = require("nodemailer");
 const path = require("path");
 const webpush = require("web-push");
@@ -20,13 +22,25 @@ const EMAIL_REMETENTE = String(
   process.env.EMAIL_FROM || process.env.SMTP_FROM || process.env.SMTP_USER || "",
 ).trim();
 const RESEND_API_KEY = String(process.env.RESEND_API_KEY || "").trim();
-const SEGREDO_JWT_LEGADO = "chave-secreta";
-const SEGREDO_JWT = process.env.JWT_SECRET || SEGREDO_JWT_LEGADO;
-const SEGREDOS_JWT_VALIDOS = [
-  ...new Set([SEGREDO_JWT, SEGREDO_JWT_LEGADO]),
-];
+const SEGREDO_JWT =
+  String(process.env.JWT_SECRET || "").trim() ||
+  (process.env.NODE_ENV === "production"
+    ? (() => {
+        throw new Error("JWT_SECRET deve ser configurado em produção.");
+      })()
+    : crypto.randomBytes(32).toString("hex"));
 
 app.use(express.json({ limit: "10mb" }));
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; frame-ancestors 'none'",
+  );
+  next();
+});
 app.use(express.static("public"));
 
 class ErroAplicacao extends Error {
@@ -135,21 +149,80 @@ async function enviarLinkRecuperacao(email, link) {
   }
 }
 
+function enderecoBloqueado(hostname, enderecos) {
+  const host = hostname.toLowerCase();
+
+  if (
+    host === "localhost" ||
+    host.endsWith(".localhost") ||
+    host === "metadata.google.internal" ||
+    host.endsWith(".internal")
+  ) {
+    return true;
+  }
+
+  return enderecos.some((endereco) => {
+    if (net.isIPv4(endereco)) {
+      const partes = endereco.split(".").map(Number);
+      return (
+        partes[0] === 10 ||
+        partes[0] === 127 ||
+        (partes[0] === 169 && partes[1] === 254) ||
+        (partes[0] === 172 && partes[1] >= 16 && partes[1] <= 31) ||
+        (partes[0] === 192 && partes[1] === 168)
+      );
+    }
+
+    return net.isIPv6(endereco) && (endereco === "::1" || endereco.startsWith("fc") || endereco.startsWith("fd") || endereco.startsWith("fe80:"));
+  });
+}
+
+async function validarEnderecoExterno(url) {
+  const endereco = new URL(url);
+
+  if (!["http:", "https:"].includes(endereco.protocol) || endereco.username || endereco.password) {
+    throw new Error("URL externa inválida");
+  }
+
+  const enderecos = await dns.lookup(endereco.hostname, { all: true });
+
+  if (enderecoBloqueado(endereco.hostname, enderecos.map((item) => item.address))) {
+    throw new Error("Endereço externo bloqueado");
+  }
+
+  return endereco;
+}
+
 async function baixarImagemComoDataUrl(url) {
   if (!url || !/^https?:\/\//i.test(url)) {
     return null;
   }
 
+  let endereco;
+  let resposta;
   const controlador = new AbortController();
   const tempoLimite = setTimeout(() => controlador.abort(), 8000);
 
   try {
-    const resposta = await fetch(url, {
-      signal: controlador.signal,
-      headers: {
-        Accept: "image/*",
-      },
-    });
+    endereco = await validarEnderecoExterno(url);
+
+    for (let tentativa = 0; tentativa < 4; tentativa++) {
+      resposta = await fetch(endereco, {
+        signal: controlador.signal,
+        redirect: "manual",
+        headers: { Accept: "image/*" },
+      });
+
+      if (![301, 302, 303, 307, 308].includes(resposta.status)) {
+        break;
+      }
+
+      const localizacao = resposta.headers.get("location");
+      if (!localizacao) {
+        return null;
+      }
+      endereco = await validarEnderecoExterno(new URL(localizacao, endereco).toString());
+    }
 
     if (!resposta.ok) {
       return null;
@@ -207,16 +280,10 @@ function verificarToken(req, res, next) {
 
   const token = autorizacao.replace(/^Bearer\s+/i, "");
 
-  for (const segredo of SEGREDOS_JWT_VALIDOS) {
-    try {
-      req.usuario = jwt.verify(token, segredo);
-      return next();
-    } catch (erro) {
-      // Tenta o próximo segredo durante a rotação da configuração.
-    }
-  }
-
-  if (!req.usuario) {
+  try {
+    req.usuario = jwt.verify(token, SEGREDO_JWT);
+    return next();
+  } catch (erro) {
     return responderErro(res, 401, "Token inválido");
   }
 }
@@ -471,11 +538,12 @@ async function verificarNotificacoesAgendadas() {
   }
 }
 
-setInterval(() => {
+const temporizadorNotificacoes = setInterval(() => {
   verificarNotificacoesAgendadas().catch((erro) => {
     console.error("Erro ao verificar notificações:", erro);
   });
 }, 30000);
+temporizadorNotificacoes.unref();
 
 verificarNotificacoesAgendadas().catch((erro) => {
   console.error("Erro ao iniciar verificação de notificações:", erro);
@@ -846,6 +914,7 @@ app.post("/login", async (req, res) => {
       id: usuario.id,
     },
     SEGREDO_JWT,
+    { expiresIn: "2h" },
   );
 
   res.json({
@@ -888,7 +957,16 @@ app.post("/recuperar-senha", async (req, res) => {
   const tokenHash = criarHashToken(token);
   const expiraEm = Date.now() + TEMPO_EXPIRACAO_RECUPERACAO_MS;
 
-  const enderecoBase = String(process.env.APP_URL || `${req.protocol}://${req.get("host")}`).replace(/\/+$/, "");
+  const enderecoBase = String(process.env.APP_URL || "").trim().replace(/\/+$/, "");
+
+  if (!enderecoBase || !/^https?:\/\/[^/]+$/i.test(enderecoBase)) {
+    return responderErro(
+      res,
+      503,
+      "A recuperação de senha está temporariamente indisponível.",
+    );
+  }
+
   const link = `${enderecoBase}/redefinir-senha.html?token=${encodeURIComponent(token)}`;
 
   db.prepare("DELETE FROM tokens_recuperacao_senha WHERE usuario_id = ? OR expira_em <= ?").run(
