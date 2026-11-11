@@ -903,11 +903,18 @@ function abrirListaItens(botao, tipo) {
 }
 
 function abrirListaItensCombinada(botao) {
+  if (botao.dataset.abrindoLista === "true") {
+    return;
+  }
+
+  botao.dataset.abrindoLista = "true";
+
   const obra = obrasCarregadas.find(
     (item) => String(item.id) === String(botao.dataset.obraId),
   );
 
   if (!obra) {
+    botao.dataset.abrindoLista = "false";
     mostrarMensagem("Não foi possível carregar o progresso da obra.", "erro");
     return;
   }
@@ -958,6 +965,8 @@ function abrirListaItensCombinada(botao) {
     .join("");
 
   if (!grupos) {
+    botao.dataset.abrindoLista = "false";
+    mostrarMensagem("Esta obra ainda não possui anime ou mangá cadastrado.", "aviso");
     return;
   }
 
@@ -966,6 +975,7 @@ function abrirListaItensCombinada(botao) {
   document.getElementById("conteudo-lista-itens").innerHTML = grupos;
   document.getElementById("popup-lista-itens").style.display = "flex";
   botaoListaItensAberta = botao;
+  botao.dataset.abrindoLista = "false";
 }
 
 function salvarProgresso() {
@@ -3069,9 +3079,12 @@ document.addEventListener("click", async (evento) => {
   }
 
   if (evento.target.closest("button[data-lista-combinada]")) {
-    abrirListaItensCombinada(
-      evento.target.closest("button[data-lista-combinada]"),
+    const botaoListaCombinada = evento.target.closest(
+      "button[data-lista-combinada]",
     );
+
+    evento.stopImmediatePropagation();
+    abrirListaItensCombinada(botaoListaCombinada);
     return;
   }
 
