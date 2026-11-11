@@ -2669,8 +2669,11 @@ document.addEventListener("click", async (evento) => {
 
     popupExclusao.dataset.id = botaoExcluir.dataset.deleteId;
 
+    const nomeObra = obra?.title?.trim() || "esta obra";
+    document.getElementById("titulo-confirmar-exclusao").textContent =
+      `Deseja excluir a obra "${nomeObra}"?`;
     document.getElementById("nome-obra-exclusao").textContent =
-      obra?.title || "";
+      "Esta ação não poderá ser desfeita.";
 
     popupExclusao.hidden = false;
 

@@ -43,6 +43,37 @@
 #fonte-textos option[value*="Righteous"] { font-family: "Righteous", sans-serif; }
 #fonte-textos option[value*="Comfortaa"] { font-family: "Comfortaa", cursive; }
 #fonte-textos option[value*="JetBrains Mono"] { font-family: "JetBrains Mono", monospace; }
+#fonte-textos option[value*="Press Start 2P"] { font-family: "Press Start 2P", cursive; }
+#fonte-textos option[value*="Pixelify Sans"] { font-family: "Pixelify Sans", sans-serif; }
+#fonte-textos option[value*="VT323"] { font-family: "VT323", monospace; }
+#fonte-textos option[value*="Silkscreen"] { font-family: "Silkscreen", monospace; }
+#fonte-textos option[value*="DotGothic16"] { font-family: "DotGothic16", sans-serif; }
+#fonte-textos option[value*="Bungee"] { font-family: "Bungee", cursive; }
+#fonte-textos option[value*="Monoton"] { font-family: "Monoton", cursive; }
+#fonte-textos option[value*="Orbitron"] { font-family: "Orbitron", sans-serif; }
+#fonte-textos option[value*="Audiowide"] { font-family: "Audiowide", sans-serif; }
+#fonte-textos option[value*="Share Tech Mono"] { font-family: "Share Tech Mono", monospace; }
+#fonte-textos option[value*="Amatic SC"] { font-family: "Amatic SC", cursive; }
+#fonte-textos option[value*="Architects Daughter"] { font-family: "Architects Daughter", cursive; }
+#fonte-textos option[value*="Black Ops One"] { font-family: "Black Ops One", sans-serif; }
+#fonte-textos option[value*="Chewy"] { font-family: "Chewy", cursive; }
+#fonte-textos option[value*="Creepster"] { font-family: "Creepster", cursive; }
+#fonte-textos option[value*="Ewert"] { font-family: "Ewert", cursive; }
+#fonte-textos option[value*="Fascinate"] { font-family: "Fascinate", cursive; }
+#fonte-textos option[value*="Gruppo"] { font-family: "Gruppo", sans-serif; }
+#fonte-textos option[value*="IM Fell English SC"] { font-family: "IM Fell English SC", serif; }
+#fonte-textos option[value*="Indie Flower"] { font-family: "Indie Flower", cursive; }
+#fonte-textos option[value*="Josefin Sans"] { font-family: "Josefin Sans", sans-serif; }
+#fonte-textos option[value*="Kalam"] { font-family: "Kalam", cursive; }
+#fonte-textos option[value*="Kaushan Script"] { font-family: "Kaushan Script", cursive; }
+#fonte-textos option[value*="Major Mono Display"] { font-family: "Major Mono Display", monospace; }
+#fonte-textos option[value*="Marck Script"] { font-family: "Marck Script", cursive; }
+#fonte-textos option[value*="Poiret One"] { font-family: "Poiret One", sans-serif; }
+#fonte-textos option[value*="Rye"] { font-family: "Rye", serif; }
+#fonte-textos option[value*="Sacramento"] { font-family: "Sacramento", cursive; }
+#fonte-textos option[value*="Special Elite"] { font-family: "Special Elite", monospace; }
+#fonte-textos option[value*="UnifrakturCook"] { font-family: "UnifrakturCook", cursive; }
+#fonte-textos option[value*="Yeseva One"] { font-family: "Yeseva One", serif; }
 
 :root {
   font-family: Arial, sans-serif;
@@ -624,7 +655,7 @@ body:not(.pagina-login) [role="button"] {
 
 .botoes-card {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   width: 100%;
 }
@@ -641,10 +672,6 @@ body:not(.pagina-login) [role="button"] {
   line-height: 1.2;
   cursor: pointer;
   width: auto;
-}
-
-.botoes-card button:nth-child(4) {
-  grid-column: 2;
 }
 
 .cards button:active {
@@ -3000,16 +3027,18 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
 
 @media (min-width: 601px) {
   #lista-obras {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 260px));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 280px));
     gap: 12px;
+    align-items: stretch;
   }
 
   .cards,
-  .cards.progresso-expandido {
+  .cards.progresso-expandido,
+  .cards.progresso-tipo-expandido {
     width: 100%;
-    max-width: 260px;
-    height: 560px;
-    min-height: 560px;
+    max-width: 280px;
+    height: 620px;
+    min-height: 620px;
     padding: 9px;
     overflow: hidden;
   }
@@ -3567,16 +3596,21 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
   .cards,
   .cards.progresso-expandido,
   .cards.progresso-tipo-expandido {
-    height: auto !important;
-    min-height: 560px;
-    max-height: none !important;
-    overflow: visible !important;
+    height: 620px !important;
+    min-height: 620px !important;
+    max-height: 620px !important;
+    overflow: hidden !important;
   }
 
   .cards .detalhes-card[hidden],
   .cards .detalhes-card:not([hidden]) {
     height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .cards.progresso-expandido .detalhes-card:not([hidden]),
+  .cards.progresso-tipo-expandido .detalhes-card:not([hidden]) {
+    overflow: hidden !important;
   }
 }
