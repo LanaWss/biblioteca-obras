@@ -863,7 +863,9 @@ function fecharListaItens() {
     botaoListaItensAberta.closest(".cards")?.classList.remove("lista-itens-expandida");
     botaoListaItensAberta.dataset.temporadasExpandidas = "false";
     botaoListaItensAberta.dataset.volumesExpandidos = "false";
-    botaoListaItensAberta.textContent = "Ler mais";
+    if (!botaoListaItensAberta.hasAttribute("data-lista-combinada")) {
+      botaoListaItensAberta.textContent = "Ler mais";
+    }
     botaoListaItensAberta = null;
   }
 
@@ -2427,6 +2429,12 @@ document.addEventListener("click", async (evento) => {
     return;
   }
 
+  if (evento.target.closest("#botao-baixar-apk")) {
+    mostrarMensagem("O aplicativo ainda está sendo preparado para download.", "info");
+
+    return;
+  }
+
   if (evento.target.matches("#fechar-atualizacoes")) {
     document.getElementById("popup-atualizacoes").style.display = "none";
 
@@ -3205,6 +3213,12 @@ document.addEventListener("click", async (evento) => {
 
   if (evento.target.closest("#botao-atualizacoes")) {
     document.getElementById("popup-atualizacoes").style.display = "flex";
+
+    return;
+  }
+
+  if (evento.target.closest("#botao-baixar-apk")) {
+    mostrarMensagem("O aplicativo ainda está sendo preparado para download.", "info");
 
     return;
   }
@@ -5151,6 +5165,10 @@ function aplicarConfiguracoesVisuais(configuracoes = {}) {
         );
 
   raiz.style.setProperty("--fundo-personalizado", fundoPc);
+  raiz.style.setProperty(
+    "--cor-fundo-intermediaria-pc",
+    valores.fundoIntermediaria,
+  );
   const fundoCelular =
     valores.modoFundoCelular === "imagem" && valores.imagemFundoCelular
       ? `url("${valores.imagemFundoCelular}") center top / cover no-repeat fixed`
@@ -5164,6 +5182,10 @@ function aplicarConfiguracoesVisuais(configuracoes = {}) {
   raiz.style.setProperty(
     "--fundo-personalizado-mobile",
     fundoCelular,
+  );
+  raiz.style.setProperty(
+    "--cor-fundo-intermediaria-celular",
+    valores.fundoCelularIntermediaria,
   );
   raiz.style.setProperty("--fonte-textos-personalizada", valores.fonte);
   raiz.style.setProperty("--cor-botoes-personalizada", valores.botoes);

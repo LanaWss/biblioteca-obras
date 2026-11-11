@@ -87,6 +87,9 @@
   --cor-titulos-personalizada: #ffffff;
   --cor-conteudo-botoes-personalizada: #d3e7ff;
   --fonte-textos-personalizada: Arial, sans-serif;
+  --cor-fundo-intermediaria-pc: #196cf3;
+  --cor-fundo-intermediaria-celular: #0a0253;
+  --cor-fundo-popup: var(--cor-fundo-intermediaria-pc);
 }
 
 * {
@@ -134,6 +137,10 @@ body {
 }
 
 @media (max-width: 600px) {
+  :root {
+    --cor-fundo-popup: var(--cor-fundo-intermediaria-celular);
+  }
+
   body {
     background: var(--fundo-personalizado-mobile);
     background-attachment: fixed;
@@ -1085,7 +1092,7 @@ body:not(.pagina-login) .cards .titulo-card h2[role="button"] {
 
 .lista-combinada-grupo h3 {
   margin: 0;
-  color: #17263a;
+  color: #000 !important;
   font-size: 17px;
 }
 
@@ -2478,6 +2485,25 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
   box-shadow: 0 4px 12px rgba(23, 38, 58, 0.3);
 }
 
+#botao-baixar-apk {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 9000;
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  max-width: 52px;
+  min-height: 52px;
+  max-height: 52px;
+  margin: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: #2d7180;
+  box-shadow: 0 4px 12px rgba(23, 38, 58, 0.3);
+}
+
 #popup-atualizacoes {
   display: none;
   position: fixed;
@@ -2665,6 +2691,155 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
     max-width: 150px;
     white-space: nowrap;
   }
+}
+
+:is(
+  #popup-criar,
+  #popup-editar,
+  #popup-organizar,
+  #popup-obter-obra,
+  #popup-perfil,
+  #popup-amigos,
+  #popup-biblioteca-amigo,
+  #popup-lista-itens,
+  #popup-detalhe-obra-publica,
+  #popup-progresso,
+  #popup-filtros,
+  #popup-atualizacoes,
+  #popup-escolha-visto,
+  #popup-escolha-avanco,
+  #popup-escolha-link,
+  #popup-configurar-notificacao,
+  #popup-lista-notificacoes
+) .popup-shell > div,
+.popup-confirmacao-conteudo {
+  color: var(--cor-textos-personalizada) !important;
+  background: var(--cor-fundo-popup) !important;
+}
+
+:is(
+  #popup-criar,
+  #popup-editar,
+  #popup-organizar,
+  #popup-obter-obra,
+  #popup-perfil,
+  #popup-amigos,
+  #popup-biblioteca-amigo,
+  #popup-lista-itens,
+  #popup-detalhe-obra-publica,
+  #popup-progresso,
+  #popup-filtros,
+  #popup-atualizacoes,
+  #popup-escolha-visto,
+  #popup-escolha-avanco,
+  #popup-escolha-link,
+  #popup-configurar-notificacao,
+  #popup-lista-notificacoes
+) h1,
+:is(
+  #popup-criar,
+  #popup-editar,
+  #popup-organizar,
+  #popup-obter-obra,
+  #popup-perfil,
+  #popup-amigos,
+  #popup-biblioteca-amigo,
+  #popup-lista-itens,
+  #popup-detalhe-obra-publica,
+  #popup-progresso,
+  #popup-filtros,
+  #popup-atualizacoes,
+  #popup-escolha-visto,
+  #popup-escolha-avanco,
+  #popup-escolha-link,
+  #popup-configurar-notificacao,
+  #popup-lista-notificacoes
+) h2,
+:is(
+  #popup-criar,
+  #popup-editar,
+  #popup-organizar,
+  #popup-obter-obra,
+  #popup-perfil,
+  #popup-amigos,
+  #popup-biblioteca-amigo,
+  #popup-lista-itens,
+  #popup-detalhe-obra-publica,
+  #popup-progresso,
+  #popup-filtros,
+  #popup-atualizacoes,
+  #popup-escolha-visto,
+  #popup-escolha-avanco,
+  #popup-escolha-link,
+  #popup-configurar-notificacao,
+  #popup-lista-notificacoes
+) h3,
+:is(
+  #popup-criar,
+  #popup-editar,
+  #popup-organizar,
+  #popup-obter-obra,
+  #popup-perfil,
+  #popup-amigos,
+  #popup-biblioteca-amigo,
+  #popup-lista-itens,
+  #popup-detalhe-obra-publica,
+  #popup-progresso,
+  #popup-filtros,
+  #popup-atualizacoes,
+  #popup-escolha-visto,
+  #popup-escolha-avanco,
+  #popup-escolha-link,
+  #popup-configurar-notificacao,
+  #popup-lista-notificacoes
+) h4,
+.popup-confirmacao-conteudo h1,
+.popup-confirmacao-conteudo h2,
+.popup-confirmacao-conteudo h3,
+.popup-confirmacao-conteudo h4 {
+  color: var(--cor-titulos-personalizada) !important;
+}
+
+:is(
+  #popup-criar,
+  #popup-editar,
+  #popup-organizar,
+  #popup-obter-obra,
+  #popup-perfil,
+  #popup-amigos,
+  #popup-biblioteca-amigo,
+  #popup-lista-itens,
+  #popup-detalhe-obra-publica,
+  #popup-progresso,
+  #popup-filtros,
+  #popup-atualizacoes,
+  #popup-escolha-visto,
+  #popup-escolha-avanco,
+  #popup-escolha-link,
+  #popup-configurar-notificacao,
+  #popup-lista-notificacoes
+) p,
+:is(
+  #popup-criar,
+  #popup-editar,
+  #popup-organizar,
+  #popup-obter-obra,
+  #popup-perfil,
+  #popup-amigos,
+  #popup-biblioteca-amigo,
+  #popup-lista-itens,
+  #popup-detalhe-obra-publica,
+  #popup-progresso,
+  #popup-filtros,
+  #popup-atualizacoes,
+  #popup-escolha-visto,
+  #popup-escolha-avanco,
+  #popup-escolha-link,
+  #popup-configurar-notificacao,
+  #popup-lista-notificacoes
+) label,
+.popup-confirmacao-conteudo p {
+  color: var(--cor-textos-personalizada) !important;
 }
 
 @media (max-width: 600px) {
