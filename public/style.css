@@ -1058,6 +1058,36 @@ body:not(.pagina-login) .cards .titulo-card h2[role="button"] {
   margin: 2px auto;
 }
 
+.botao-lista-combinada {
+  display: flex;
+  flex: 0 0 auto !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 42px;
+  margin: 2px 0 !important;
+  padding: 9px 12px !important;
+  font-size: 13px !important;
+}
+
+.lista-combinada-grupo {
+  display: grid;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid #d5d8d8;
+}
+
+.lista-combinada-grupo:last-child {
+  border-bottom: 0;
+}
+
+.lista-combinada-grupo h3 {
+  margin: 0;
+  color: #17263a;
+  font-size: 17px;
+}
+
 .progressos-separados-card {
   display: grid;
   gap: 6px;
@@ -1132,6 +1162,82 @@ body:not(.pagina-login) .cards .titulo-card h2[role="button"] {
   gap: 20px;
   padding-bottom: 20px;
   margin-top: 30px;
+}
+
+.skeleton-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-height: 560px;
+  padding: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  background: rgba(31, 41, 55, 0.22);
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.skeleton::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.28),
+    transparent
+  );
+  transform: translateX(-100%);
+  animation: skeleton-brilho 1.4s infinite;
+}
+
+.skeleton-botao {
+  align-self: flex-end;
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+}
+
+.skeleton-titulo {
+  width: 78%;
+  height: 48px;
+  margin: 20px auto 0;
+}
+
+.skeleton-imagem {
+  width: 62%;
+  height: 210px;
+  margin: 4px auto;
+}
+
+.skeleton-linha {
+  width: 92%;
+  height: 16px;
+  margin: 2px auto;
+}
+
+.skeleton-linha-curta {
+  width: 68%;
+}
+
+.skeleton-acoes {
+  width: 100%;
+  height: 76px;
+  margin-top: auto;
+}
+
+@keyframes skeleton-brilho {
+  to {
+    transform: translateX(100%);
+  }
 }
 
 #popup-criar,

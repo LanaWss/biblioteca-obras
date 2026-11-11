@@ -927,6 +927,50 @@ function abrirListaItens(botao, tipo) {
   botaoListaItensAberta = botao;
 }
 
+function abrirListaItensCombinada(botao) {
+  const card = botao.closest(".cards");
+  const grupos = [
+    { tipo: "anime", seletor: ".lista-temporadas-card", titulo: "Temporadas" },
+    { tipo: "manga", seletor: ".lista-volumes-card", titulo: "Volumes" },
+  ]
+    .map((grupo) => {
+      const lista = card.querySelector(grupo.seletor);
+
+      if (!lista) {
+        return "";
+      }
+
+      const itens = [...lista.children]
+        .map((item) => {
+          const copia = item.cloneNode(true);
+          copia.hidden = false;
+          copia.removeAttribute("data-volume-extra");
+          copia.removeAttribute("data-temporada-extra");
+          return copia.outerHTML;
+        })
+        .join("");
+
+      return `
+        <section class="lista-combinada-grupo">
+          <h3>${grupo.titulo}</h3>
+          ${itens}
+        </section>
+      `;
+    })
+    .filter(Boolean)
+    .join("");
+
+  if (!grupos) {
+    return;
+  }
+
+  document.getElementById("titulo-lista-itens").textContent =
+    "Anime e mangá";
+  document.getElementById("conteudo-lista-itens").innerHTML = grupos;
+  document.getElementById("popup-lista-itens").style.display = "flex";
+  botaoListaItensAberta = botao;
+}
+
 function salvarProgresso() {
   filaSalvamentoProgresso = filaSalvamentoProgresso.then(async () => {
     const obra = obraProgressoAtual;
@@ -1305,6 +1349,22 @@ function obterTituloExibicao(obra) {
   return obra.titulo_exibicao;
 }
 
+function mostrarSkeletonObras() {
+  const lista = document.getElementById("lista-obras");
+
+  lista.setAttribute("aria-busy", "true");
+  lista.innerHTML = Array.from({ length: 6 }, () => `
+    <article class="skeleton-card" aria-hidden="true">
+      <div class="skeleton skeleton-botao"></div>
+      <div class="skeleton skeleton-titulo"></div>
+      <div class="skeleton skeleton-imagem"></div>
+      <div class="skeleton skeleton-linha"></div>
+      <div class="skeleton skeleton-linha skeleton-linha-curta"></div>
+      <div class="skeleton skeleton-acoes"></div>
+    </article>
+  `).join("");
+}
+
 function carregarObras(atualizarDados = true, mostrarErros = true) {
   const token = localStorage.getItem("token");
 
@@ -1322,6 +1382,7 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
     controladorCarregamentoObras?.abort();
 
     controladorCarregamentoObras = new AbortController();
+    mostrarSkeletonObras();
   }
 
   const requisicao = atualizarDados
@@ -1376,6 +1437,7 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
       const lista = document.getElementById("lista-obras");
 
       lista.innerHTML = "";
+      lista.setAttribute("aria-busy", "false");
 
       obterObrasFiltradas().forEach((obra) => {
         let conteudo = "";
@@ -1684,7 +1746,17 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
 
             <div class="detalhes-card" hidden>
 
-              <div class="progresso-card">
+              ${
+                mostrarProgressosSeparados
+                  ? `<button
+                      type="button"
+                      class="botao-lista-combinada"
+                      data-lista-combinada
+                    >
+                      <i class="fa-solid fa-list"></i>
+                      Ver anime e mangá
+                    </button>`
+                  : `<div class="progresso-card">
 
                 <div class="progresso-texto">
                   <span>
@@ -1704,7 +1776,8 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
                     }%"
                   ></div>
 
-                </div>
+                </div>`
+                }
 
               </div>
 
@@ -1753,6 +1826,9 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
       if (erro.name === "AbortError") {
         return;
       }
+
+      const lista = document.getElementById("lista-obras");
+      lista.setAttribute("aria-busy", "false");
 
       if (erro.status === 401) {
         localStorage.removeItem("token");
@@ -2978,6 +3054,13 @@ document.addEventListener("click", async (evento) => {
       abrirListaItens(botao, "manga");
     }
 
+    return;
+  }
+
+  if (evento.target.closest("button[data-lista-combinada]")) {
+    abrirListaItensCombinada(
+      evento.target.closest("button[data-lista-combinada]"),
+    );
     return;
   }
 
