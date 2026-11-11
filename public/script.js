@@ -730,42 +730,14 @@ function renderizarProgressoTipo(obra, tipo, conteudoItens = "") {
 }
 
 function ordenarItensPeloProgresso(obra, itens, tipo = obra.tipo) {
-  if (itens.length < 2) {
-    return itens;
-  }
+  return [...itens].sort((itemA, itemB) => {
+    const numeroA =
+      tipo === "manga" ? Number(itemA.numero ?? itemA.inicio) : Number(itemA.numero);
+    const numeroB =
+      tipo === "manga" ? Number(itemB.numero ?? itemB.inicio) : Number(itemB.numero);
 
-  const maiorVisto = Math.max(
-    ...itens.flatMap((item) =>
-      Array.isArray(item.vistos) ? item.vistos.map(Number) : [],
-    ),
-    0,
-  );
-
-  if (maiorVisto === 0) {
-    return itens;
-  }
-
-  let indiceAtual = 0;
-
-  itens.forEach((item, indice) => {
-    const inicio =
-      tipo === "manga" ? Number(item.inicio) : obterInicioTemporada(item);
-
-    const fim =
-      tipo === "manga"
-        ? Number(item.fim)
-        : inicio + Number(item.episodios || 0) - 1;
-
-    if (maiorVisto >= inicio && maiorVisto <= fim) {
-      indiceAtual = indice;
-    }
+    return (numeroA || 0) - (numeroB || 0);
   });
-
-  return [
-    itens[indiceAtual],
-
-    ...itens.filter((_, indice) => indice !== indiceAtual),
-  ];
 }
 
 function obterInicioTemporada(temporada) {
@@ -975,7 +947,7 @@ function abrirListaItensCombinada(botao) {
 
       return `
         <section class="lista-combinada-grupo">
-          <h3>${grupo.titulo}</h3>
+          <h3>${grupo.tipo === "anime" ? "Anime" : "Mangá"}</h3>
           ${itens}
         </section>
       `;
@@ -1457,10 +1429,18 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
           Number(obraA.id) - Number(obraB.id),
       );
 
+      const lista = document.getElementById("lista-obras");
+      const dadosNaoMudaram =
+        obrasCarregadas.length > 0 &&
+        JSON.stringify(obras) === JSON.stringify(obrasCarregadas);
+
       obrasCarregadas = obras;
       carregamentoInicialConcluido = true;
 
-      const lista = document.getElementById("lista-obras");
+      if (dadosNaoMudaram) {
+        lista.setAttribute("aria-busy", "false");
+        return;
+      }
 
       lista.innerHTML = "";
       lista.setAttribute("aria-busy", "false");
