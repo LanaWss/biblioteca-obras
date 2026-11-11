@@ -1607,6 +1607,7 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
         const imagens = obterImagemPreferida(obra);
 
         const linksLeitura = obterLinksLeitura(obra);
+        const conteudoCard = mostrarProgressosSeparados ? "" : conteudo;
 
         const imagemSegura = urlExternaSegura(imagens.principal);
         const tituloExibicao = escaparHtml(obterTituloExibicao(obra));
@@ -1778,10 +1779,7 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
 
                 </div>`
                 }
-
-              </div>
-
-              ${conteudo}
+              ${conteudoCard}
 
             </div>
 
