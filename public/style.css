@@ -859,6 +859,10 @@ body:not(.pagina-login) [role="button"] {
   pointer-events: none;
 }
 
+.cards[data-card-filtro="padrao"]::after {
+  background: var(--card-filtro-fundo);
+}
+
 .cards > * {
   position: relative;
   z-index: 1;

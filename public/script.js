@@ -89,6 +89,7 @@ function aplicarConfiguracaoCard(card, configuracao) {
   };
 
   if (configuracao.tipoFiltro && filtros[configuracao.tipoFiltro]) {
+    card.dataset.cardFiltro = configuracao.tipoFiltro;
     card.style.setProperty(
       "--card-filtro-fundo",
       filtros[configuracao.tipoFiltro],
@@ -98,6 +99,7 @@ function aplicarConfiguracaoCard(card, configuracao) {
       String(Number(configuracao.filtroOpacidade) / 100),
     );
   } else {
+    delete card.dataset.cardFiltro;
     card.style.removeProperty("--card-filtro-fundo");
     card.style.removeProperty("--card-filtro-opacidade");
   }
