@@ -860,7 +860,28 @@ let obrasPublicasAtual = [];
 
 function fecharListaItens() {
   if (botaoListaItensAberta) {
-    botaoListaItensAberta.closest(".cards")?.classList.remove("lista-itens-expandida");
+    const card = botaoListaItensAberta.closest(".cards");
+
+    card?.classList.remove("lista-itens-expandida");
+
+    if (botaoListaItensAberta.hasAttribute("data-lista-combinada")) {
+      const detalhes = card?.querySelector(".detalhes-card");
+      const botaoToggleCard = card?.querySelector(
+        "button[data-card-progresso-toggle]",
+      );
+
+      if (detalhes) {
+        detalhes.hidden = true;
+      }
+
+      card?.classList.remove("progresso-expandido");
+      botaoToggleCard?.setAttribute("aria-expanded", "false");
+
+      if (botaoToggleCard) {
+        botaoToggleCard.textContent = "Mostrar progresso";
+      }
+    }
+
     botaoListaItensAberta.dataset.temporadasExpandidas = "false";
     botaoListaItensAberta.dataset.volumesExpandidos = "false";
     if (!botaoListaItensAberta.hasAttribute("data-lista-combinada")) {
@@ -1491,7 +1512,11 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
                 ${temporadas
                   .map(
                     (temporada, indice) => `
-                    <p ${indice > 0 ? 'hidden data-temporada-extra="true"' : ""}>
+                    <p ${
+                      indice < temporadas.length - 1
+                        ? 'hidden data-temporada-extra="true"'
+                        : ""
+                    }>
                       Temporada ${temporada.numero} —
                       episódios ${obterInicioTemporada(temporada)}–${
                         obterInicioTemporada(temporada) +
@@ -1566,7 +1591,11 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
                 ${volumes
                   .map(
                     (volume, indice) => `
-                    <p ${indice > 0 ? 'hidden data-volume-extra="true"' : ""}>
+                    <p ${
+                      indice < volumes.length - 1
+                        ? 'hidden data-volume-extra="true"'
+                        : ""
+                    }>
                       Volume ${volume.numero} —
                       capítulos ${volume.inicio}–${volume.fim}
                     </p>
