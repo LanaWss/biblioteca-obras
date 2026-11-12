@@ -882,7 +882,7 @@ body:not(.pagina-login) [role="button"] {
 }
 
 .cards[data-card-filtro="padrao"] {
-  background-color: var(--secundary-color);
+  background-color: transparent;
   color: var(--cor-textos-personalizada);
 }
 

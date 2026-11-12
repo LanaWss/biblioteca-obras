@@ -117,15 +117,10 @@ function aplicarConfiguracaoCard(card, configuracao) {
   const usarPadraoPerfil = !configuracao.tipoFiltro;
 
   if (usarPadraoPerfil) {
-    card.style.setProperty(
-      "--card-cor-botoes",
-      estilosPerfil.getPropertyValue("--secundary-color").trim(),
-    );
     card.style.removeProperty("--card-cor-texto");
-    card.style.setProperty(
-      "--card-cor-texto-progresso",
-      estilosPerfil.getPropertyValue("--cor-textos-personalizada").trim(),
-    );
+    card.style.removeProperty("--card-cor-botoes");
+    card.style.removeProperty("--card-cor-texto-progresso");
+    card.style.removeProperty("--card-cor-barra-progresso");
     card.style.removeProperty("--card-filtro-fundo");
     card.style.removeProperty("--card-filtro-opacidade");
     card.style.removeProperty("--card-desfoque");
