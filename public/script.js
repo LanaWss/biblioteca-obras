@@ -14,7 +14,7 @@ let capaArquivoPreviewCard = "";
 
 const chaveConfiguracoesCards = "configuracoes-cards";
 const configuracaoCardPadrao = {
-  tipoFiltro: "gradiente",
+  tipoFiltro: "",
   capaUrl: "",
   capaArquivo: "",
   capaPreferencia: "url",
@@ -45,38 +45,62 @@ function obterConfiguracoesCards() {
 }
 
 function obterConfiguracaoCard(id) {
+  const configuracoes = obterConfiguracoesCards();
+  const salva = configuracoes[String(id)] || {};
   const configuracao = {
     ...configuracaoCardPadrao,
-    ...(obterConfiguracoesCards()[String(id)] || {}),
+    ...salva,
   };
 
   if (
-    !Object.prototype.hasOwnProperty.call(
-      obterConfiguracoesCards()[String(id)] || {},
-      "corTextoCardPersonalizada",
-    )
+    !Object.prototype.hasOwnProperty.call(salva, "corTextoCardPersonalizada")
   ) {
     configuracao.corTextoCardPersonalizada =
       configuracao.corTextoCard && configuracao.corTextoCard !== "#ffffff";
+  }
+
+  if (
+    configuracao.tipoFiltro === "gradiente" &&
+    configuracao.filtroCor === "#000000" &&
+    Number(configuracao.filtroOpacidade) === 45 &&
+    Number(configuracao.desfoque) === 2 &&
+    Number(configuracao.saturacao) === 125 &&
+    Number(configuracao.brilho) === 100
+  ) {
+    configuracao.tipoFiltro = "";
   }
 
   return configuracao;
 }
 
 function aplicarConfiguracaoCard(card, configuracao) {
-  card.style.setProperty("--card-filtro-cor", configuracao.filtroCor);
-  const fundoFiltro =
-    configuracao.tipoFiltro === "solido"
-      ? configuracao.filtroCor
-      : configuracao.tipoFiltro === "nenhum"
-        ? "transparent"
-        : "linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.18) 24%, rgba(0, 0, 0, 0.04) 48%, rgba(0, 0, 0, 0.2) 72%, rgba(0, 0, 0, 0.62) 100%)";
+  const filtros = {
+    gradiente:
+      "linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.18) 24%, rgba(0, 0, 0, 0.04) 48%, rgba(0, 0, 0, 0.2) 72%, rgba(0, 0, 0, 0.62) 100%)",
+    solido: configuracao.filtroCor,
+    nenhum: "transparent",
+    escuro: "rgba(0, 0, 0, 0.72)",
+    claro: "rgba(255, 255, 255, 0.42)",
+    quente: "linear-gradient(180deg, rgba(255, 126, 62, 0.62), rgba(132, 32, 12, 0.7))",
+    frio: "linear-gradient(180deg, rgba(54, 153, 255, 0.58), rgba(18, 30, 103, 0.72))",
+    neon: "linear-gradient(135deg, rgba(255, 0, 153, 0.55), rgba(0, 229, 255, 0.55))",
+    vinheta:
+      "radial-gradient(circle, rgba(0, 0, 0, 0) 25%, rgba(0, 0, 0, 0.78) 100%)",
+  };
 
-  card.style.setProperty("--card-filtro-fundo", fundoFiltro);
-  card.style.setProperty(
-    "--card-filtro-opacidade",
-    String(Number(configuracao.filtroOpacidade) / 100),
-  );
+  if (configuracao.tipoFiltro && filtros[configuracao.tipoFiltro]) {
+    card.style.setProperty(
+      "--card-filtro-fundo",
+      filtros[configuracao.tipoFiltro],
+    );
+    card.style.setProperty(
+      "--card-filtro-opacidade",
+      String(Number(configuracao.filtroOpacidade) / 100),
+    );
+  } else {
+    card.style.removeProperty("--card-filtro-fundo");
+    card.style.removeProperty("--card-filtro-opacidade");
+  }
   card.style.setProperty("--card-desfoque", `${Number(configuracao.desfoque)}px`);
   card.style.setProperty("--card-saturacao", `${Number(configuracao.saturacao)}%`);
   card.style.setProperty("--card-brilho", `${Number(configuracao.brilho)}%`);
@@ -121,7 +145,8 @@ function preencherConfiguracaoCard(configuracao) {
   document.getElementById("capa-preferencia-card").value =
     configuracao.capaPreferencia;
   document.getElementById("capa-arquivo-card").value = "";
-  document.getElementById("tipo-filtro-card").value = configuracao.tipoFiltro;
+  document.getElementById("tipo-filtro-card").value =
+    configuracao.tipoFiltro || "padrao";
   document.getElementById("cor-filtro-card").value = configuracao.filtroCor;
   document.getElementById("opacidade-filtro-card").value =
     configuracao.filtroOpacidade;
@@ -181,7 +206,10 @@ function atualizarPreviewConfiguracaoCard() {
 
 function lerConfiguracaoCardDoFormulario() {
   return {
-    tipoFiltro: document.getElementById("tipo-filtro-card").value,
+    tipoFiltro:
+      document.getElementById("tipo-filtro-card").value === "padrao"
+        ? ""
+        : document.getElementById("tipo-filtro-card").value,
     capaUrl: document.getElementById("capa-url-card").value.trim(),
     capaArquivo: "",
     capaPreferencia: document.getElementById("capa-preferencia-card").value,
@@ -1009,9 +1037,6 @@ function configurarImagemCard(
     const fundo = url ? obterImagemParaCss(url) : "none";
 
     card.style.setProperty("--imagem-obra", fundo);
-    card.style.backgroundImage = fundo;
-    card.style.backgroundSize = "cover";
-    card.style.backgroundPosition = "center";
   };
 
   definirFundo(imagemFundo);
