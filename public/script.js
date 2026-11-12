@@ -10,9 +10,14 @@ let linksLeituraCriacao = [];
 let linksLeituraEdicao = [];
 let linksEscolhaAtual = [];
 let obraConfiguracaoCardAtual = null;
+let capaArquivoPreviewCard = "";
 
 const chaveConfiguracoesCards = "configuracoes-cards";
 const configuracaoCardPadrao = {
+  tipoFiltro: "gradiente",
+  capaUrl: "",
+  capaArquivo: "",
+  capaPreferencia: "url",
   filtroCor: "#000000",
   filtroOpacidade: 45,
   desfoque: 2,
@@ -47,6 +52,14 @@ function obterConfiguracaoCard(id) {
 
 function aplicarConfiguracaoCard(card, configuracao) {
   card.style.setProperty("--card-filtro-cor", configuracao.filtroCor);
+  const fundoFiltro =
+    configuracao.tipoFiltro === "solido"
+      ? configuracao.filtroCor
+      : configuracao.tipoFiltro === "nenhum"
+        ? "transparent"
+        : "linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.18) 24%, rgba(0, 0, 0, 0.04) 48%, rgba(0, 0, 0, 0.2) 72%, rgba(0, 0, 0, 0.62) 100%)";
+
+  card.style.setProperty("--card-filtro-fundo", fundoFiltro);
   card.style.setProperty(
     "--card-filtro-opacidade",
     String(Number(configuracao.filtroOpacidade) / 100),
@@ -64,6 +77,17 @@ function aplicarConfiguracaoCard(card, configuracao) {
     configuracao.corBarraProgresso,
   );
 
+  const capaUrl = urlExternaSegura(configuracao.capaUrl);
+  const capaArquivo = String(configuracao.capaArquivo || "");
+  const capa =
+    configuracao.capaPreferencia === "arquivo"
+      ? capaArquivo || capaUrl
+      : capaUrl || capaArquivo;
+
+  if (capa) {
+    card.style.setProperty("--imagem-obra", obterImagemParaCss(capa));
+  }
+
   if (configuracao.corBotoes) {
     card.style.setProperty("--card-cor-botoes", configuracao.corBotoes);
   } else {
@@ -78,6 +102,11 @@ function salvarConfiguracaoCard(id, configuracao) {
 }
 
 function preencherConfiguracaoCard(configuracao) {
+  document.getElementById("capa-url-card").value = configuracao.capaUrl;
+  document.getElementById("capa-preferencia-card").value =
+    configuracao.capaPreferencia;
+  document.getElementById("capa-arquivo-card").value = "";
+  document.getElementById("tipo-filtro-card").value = configuracao.tipoFiltro;
   document.getElementById("cor-filtro-card").value = configuracao.filtroCor;
   document.getElementById("opacidade-filtro-card").value =
     configuracao.filtroOpacidade;
@@ -104,14 +133,38 @@ function abrirConfiguracaoCard(id) {
   }
 
   obraConfiguracaoCardAtual = obra;
+  capaArquivoPreviewCard = "";
   document.getElementById("titulo-configuracao-card").textContent =
     `Personalizar: ${obterTituloExibicao(obra)}`;
   preencherConfiguracaoCard(obterConfiguracaoCard(id));
   document.getElementById("popup-configuracao-card").style.display = "flex";
 }
 
+function atualizarPreviewConfiguracaoCard() {
+  if (!obraConfiguracaoCardAtual) {
+    return;
+  }
+
+  const configuracao = lerConfiguracaoCardDoFormulario();
+  configuracao.capaArquivo =
+    capaArquivoPreviewCard ||
+    obterConfiguracaoCard(obraConfiguracaoCardAtual.id).capaArquivo;
+  const card = document.querySelector(
+    `[data-card-id="${obraConfiguracaoCardAtual.id}"]`,
+  );
+
+  if (card) {
+    aplicarConfiguracaoCard(card, configuracao);
+    configurarImagemCard(card, obraConfiguracaoCardAtual, configuracao);
+  }
+}
+
 function lerConfiguracaoCardDoFormulario() {
   return {
+    tipoFiltro: document.getElementById("tipo-filtro-card").value,
+    capaUrl: document.getElementById("capa-url-card").value.trim(),
+    capaArquivo: "",
+    capaPreferencia: document.getElementById("capa-preferencia-card").value,
     filtroCor: document.getElementById("cor-filtro-card").value,
     filtroOpacidade: Number(
       document.getElementById("opacidade-filtro-card").value,
@@ -914,12 +967,25 @@ function validarImagem(url, arquivoDataUrl) {
   return true;
 }
 
-function configurarImagemCard(card, obra) {
+function configurarImagemCard(
+  card,
+  obra,
+  configuracao = obterConfiguracaoCard(obra.id),
+) {
   const imagem = card.querySelector(".imagem-obra");
 
   const aviso = card.querySelector(".aviso-imagem-card");
 
-  const imagens = obterImagemPreferida(obra);
+  const imagensOriginais = obterImagemPreferida(obra);
+  const capaUrl = urlExternaSegura(configuracao.capaUrl);
+  const capaArquivo = String(configuracao.capaArquivo || "");
+  const capaPersonalizada =
+    configuracao.capaPreferencia === "arquivo"
+      ? capaArquivo || capaUrl
+      : capaUrl || capaArquivo;
+  const imagens = capaPersonalizada
+    ? { principal: capaPersonalizada, fallback: imagensOriginais.principal }
+    : imagensOriginais;
 
   const definirFundo = (url) => {
     const fundo = url ? obterImagemParaCss(url) : "none";
@@ -1995,19 +2061,96 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
 document
   .getElementById("fechar-configuracao-card")
   .addEventListener("click", () => {
+    if (obraConfiguracaoCardAtual) {
+      const card = document.querySelector(
+        `[data-card-id="${obraConfiguracaoCardAtual.id}"]`,
+      );
+
+      if (card) {
+        const configuracaoSalva = obterConfiguracaoCard(
+          obraConfiguracaoCardAtual.id,
+        );
+        aplicarConfiguracaoCard(card, configuracaoSalva);
+        configurarImagemCard(card, obraConfiguracaoCardAtual, configuracaoSalva);
+      }
+    }
+
     document.getElementById("popup-configuracao-card").style.display = "none";
     obraConfiguracaoCardAtual = null;
+    capaArquivoPreviewCard = "";
+  });
+
+[
+  "tipo-filtro-card",
+  "capa-url-card",
+  "capa-preferencia-card",
+  "cor-filtro-card",
+  "opacidade-filtro-card",
+  "desfoque-card",
+  "saturacao-card",
+  "brilho-card",
+  "cor-botoes-card",
+  "cor-texto-card",
+  "cor-texto-progresso-card",
+  "cor-barra-progresso-card",
+].forEach((id) => {
+  const campo = document.getElementById(id);
+  campo.addEventListener("input", atualizarPreviewConfiguracaoCard);
+  campo.addEventListener("change", atualizarPreviewConfiguracaoCard);
+});
+
+document
+  .getElementById("capa-arquivo-card")
+  .addEventListener("change", async (evento) => {
+    const arquivo = evento.target.files[0];
+
+    try {
+      capaArquivoPreviewCard = arquivo
+        ? await lerArquivoComoDataUrl(arquivo)
+        : "";
+      atualizarPreviewConfiguracaoCard();
+    } catch (erro) {
+      mostrarMensagem(erro.message, "erro");
+    }
   });
 
 document
   .getElementById("salvar-configuracao-card")
-  .addEventListener("click", () => {
+  .addEventListener("click", async () => {
     if (!obraConfiguracaoCardAtual) {
       return;
     }
 
     const configuracao = lerConfiguracaoCardDoFormulario();
-    salvarConfiguracaoCard(obraConfiguracaoCardAtual.id, configuracao);
+    const arquivo = document.getElementById("capa-arquivo-card").files[0];
+
+    try {
+      if (arquivo) {
+        configuracao.capaArquivo = await lerArquivoComoDataUrl(arquivo);
+      } else {
+        configuracao.capaArquivo = obterConfiguracaoCard(
+          obraConfiguracaoCardAtual.id,
+        ).capaArquivo;
+      }
+    } catch (erro) {
+      mostrarMensagem(erro.message, "erro");
+      return;
+    }
+
+    if (configuracao.capaUrl && !urlExternaSegura(configuracao.capaUrl)) {
+      mostrarMensagem("Informe uma URL válida para a capa.", "erro");
+      return;
+    }
+
+    try {
+      salvarConfiguracaoCard(obraConfiguracaoCardAtual.id, configuracao);
+    } catch (erro) {
+      mostrarMensagem(
+        "Não foi possível salvar a capa. Escolha uma imagem menor.",
+        "erro",
+      );
+      return;
+    }
 
     const card = document.querySelector(
       `[data-card-id="${obraConfiguracaoCardAtual.id}"]`,
@@ -2015,6 +2158,7 @@ document
 
     if (card) {
       aplicarConfiguracaoCard(card, configuracao);
+      configurarImagemCard(card, obraConfiguracaoCardAtual);
     }
 
     document.getElementById("popup-configuracao-card").style.display = "none";
