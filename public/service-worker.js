@@ -1,8 +1,8 @@
-const CACHE = "biblioteca-obras-shell-v27";
+const CACHE = "biblioteca-obras-shell-v28";
 const RECURSOS = [
   "/login.html",
   "/index.html",
-  "/style.css?v=57",
+  "/style.css?v=75",
   "/icone-192.png",
   "/icone-512.png",
   "/manifest.json",
