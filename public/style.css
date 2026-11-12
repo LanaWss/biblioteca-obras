@@ -663,6 +663,7 @@ body:not(.pagina-login) h4 {
 button {
   padding: 6px 10px;
   margin: 3px;
+  font-family: inherit;
   color: var(--cor-conteudo-botoes-personalizada, var(--primary-color));
   background-color: var(--cor-botoes-personalizada, var(--secundary-color));
   border-radius: 10px;
@@ -699,6 +700,7 @@ body:not(.pagina-login) [role="button"] {
   line-height: 1.2;
   cursor: pointer;
   width: auto;
+  font-family: inherit;
 }
 
 .cards button:active {
@@ -708,6 +710,7 @@ body:not(.pagina-login) [role="button"] {
 .cards button,
 .cards a {
   text-shadow: none;
+  font-family: inherit;
 }
 
 .cards {
@@ -1162,6 +1165,7 @@ body:not(.pagina-login) .cards .titulo-card h2[role="button"] {
   font-size: 14px;
   text-decoration: none;
   width: 100%;
+  font-family: inherit;
 }
 
 .botao-ler:hover {
@@ -1691,6 +1695,7 @@ body:not(.pagina-login) .botao-ler {
   border-radius: 8px;
   color: var(--cor-conteudo-botoes-personalizada, var(--primary-color)) !important;
   background-color: var(--card-cor-botoes, var(--secundary-color)) !important;
+  font-family: inherit;
 }
 
 .cards .titulo-card h2,

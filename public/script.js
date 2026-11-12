@@ -179,7 +179,7 @@ function aplicarConfiguracaoCard(card, configuracao) {
       "--card-cor-texto-progresso",
       configuracao.corTextoProgresso,
     );
-  } else {
+  } else if (!usarPadraoPerfil) {
     card.style.removeProperty("--card-cor-texto-progresso");
   }
   if (!usarPadraoPerfil && configuracao.corTextoCardPersonalizada && configuracao.corTextoCard) {
@@ -192,7 +192,7 @@ function aplicarConfiguracaoCard(card, configuracao) {
       "--card-cor-barra-progresso",
       configuracao.corBarraProgresso,
     );
-  } else {
+  } else if (!usarPadraoPerfil) {
     card.style.removeProperty("--card-cor-barra-progresso");
   }
 
@@ -207,7 +207,7 @@ function aplicarConfiguracaoCard(card, configuracao) {
 
   if (!usarPadraoPerfil && configuracao.corBotoesPersonalizada === true && configuracao.corBotoes) {
     card.style.setProperty("--card-cor-botoes", configuracao.corBotoes);
-  } else {
+  } else if (!usarPadraoPerfil) {
     card.style.removeProperty("--card-cor-botoes");
   }
 }
@@ -232,7 +232,11 @@ function preencherConfiguracaoCard(configuracao) {
   document.getElementById("saturacao-card").value = configuracao.saturacao;
   document.getElementById("brilho-card").value = configuracao.brilho;
   document.getElementById("cor-botoes-card").value =
-    configuracao.corBotoes || "#5091eb";
+    configuracao.corBotoes ||
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--secundary-color")
+      .trim() ||
+    "#5091eb";
   document.getElementById("cor-texto-card").value =
     configuracao.corTextoCard ||
     getComputedStyle(document.documentElement)
@@ -240,9 +244,17 @@ function preencherConfiguracaoCard(configuracao) {
       .trim() ||
     "#ffffff";
   document.getElementById("cor-texto-progresso-card").value =
-    configuracao.corTextoProgresso;
+    configuracao.corTextoProgresso ||
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--cor-textos-personalizada")
+      .trim() ||
+    "#ffffff";
   document.getElementById("cor-barra-progresso-card").value =
-    configuracao.corBarraProgresso;
+    configuracao.corBarraProgresso ||
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--cor-conteudo-botoes-personalizada")
+      .trim() ||
+    "#ffffff";
 }
 
 function abrirConfiguracaoCard(id) {
@@ -6490,6 +6502,7 @@ document.getElementById("salvar-perfil").addEventListener("click", async () => {
     configuracoesVisuaisAntesDaEdicao = structuredClone(configuracoesVisuaisAtuais);
     visualEmEdicao = false;
     document.getElementById("popup-perfil").style.display = "none";
+    await carregarObras(false);
     mostrarMensagem("Perfil salvo com sucesso!", "sucesso");
   } catch (erroRequisicao) {
     erro.textContent = "Não foi possível salvar o perfil.";
