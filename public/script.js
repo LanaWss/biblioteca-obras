@@ -113,6 +113,27 @@ function obterConfiguracaoCard(id) {
 }
 
 function aplicarConfiguracaoCard(card, configuracao) {
+  const estilosPerfil = getComputedStyle(document.documentElement);
+  const usarPadraoPerfil = !configuracao.tipoFiltro;
+
+  if (usarPadraoPerfil) {
+    card.style.setProperty(
+      "--card-cor-botoes",
+      estilosPerfil.getPropertyValue("--secundary-color").trim(),
+    );
+    card.style.removeProperty("--card-cor-texto");
+    card.style.setProperty(
+      "--card-cor-texto-progresso",
+      estilosPerfil.getPropertyValue("--cor-textos-personalizada").trim(),
+    );
+    card.style.removeProperty("--card-filtro-fundo");
+    card.style.removeProperty("--card-filtro-opacidade");
+    card.style.removeProperty("--card-desfoque");
+    card.style.removeProperty("--card-saturacao");
+    card.style.removeProperty("--card-brilho");
+    card.dataset.cardFiltro = "padrao";
+  }
+
   const filtros = {
     gradiente:
       "linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.18) 24%, rgba(0, 0, 0, 0.04) 48%, rgba(0, 0, 0, 0.2) 72%, rgba(0, 0, 0, 0.62) 100%)",
@@ -138,9 +159,11 @@ function aplicarConfiguracaoCard(card, configuracao) {
       String(Number(configuracao.filtroOpacidade) / 100),
     );
   } else {
-    delete card.dataset.cardFiltro;
-    card.style.removeProperty("--card-filtro-fundo");
-    card.style.removeProperty("--card-filtro-opacidade");
+    if (!usarPadraoPerfil) {
+      delete card.dataset.cardFiltro;
+      card.style.removeProperty("--card-filtro-fundo");
+      card.style.removeProperty("--card-filtro-opacidade");
+    }
   }
   if (configuracao.efeitosPersonalizados === true) {
     card.style.setProperty("--card-desfoque", `${Number(configuracao.desfoque)}px`);
@@ -159,7 +182,7 @@ function aplicarConfiguracaoCard(card, configuracao) {
   } else {
     card.style.removeProperty("--card-cor-texto-progresso");
   }
-  if (configuracao.corTextoCardPersonalizada && configuracao.corTextoCard) {
+  if (!usarPadraoPerfil && configuracao.corTextoCardPersonalizada && configuracao.corTextoCard) {
     card.style.setProperty("--card-cor-texto", configuracao.corTextoCard);
   } else {
     card.style.removeProperty("--card-cor-texto");
@@ -182,7 +205,7 @@ function aplicarConfiguracaoCard(card, configuracao) {
     card.style.setProperty("--imagem-obra", obterImagemParaCss(capa));
   }
 
-  if (configuracao.corBotoesPersonalizada === true && configuracao.corBotoes) {
+  if (!usarPadraoPerfil && configuracao.corBotoesPersonalizada === true && configuracao.corBotoes) {
     card.style.setProperty("--card-cor-botoes", configuracao.corBotoes);
   } else {
     card.style.removeProperty("--card-cor-botoes");
@@ -5538,9 +5561,13 @@ document.querySelectorAll("[data-perfil-categoria]").forEach((botao) => {
 const configuracoesVisuaisPadrao = {
   fundoInicio: "#17448c",
   fundoIntermediaria: "#196cf3",
+  fundoTransicao2: "#404cf7",
+  fundoTransicao3: "#22147a",
   fundoFim: "#0a0253",
   fundoCelularInicio: "#17448c",
   fundoCelularIntermediaria: "#196cf3",
+  fundoCelularTransicao2: "#404cf7",
+  fundoCelularTransicao3: "#22147a",
   fundoCelularFim: "#0a0253",
   estiloFundoPc: "diagonal",
   estiloFundoCelular: "diagonal",
@@ -5592,10 +5619,16 @@ function lerPadroesVisuaisDoCss() {
     fundoInicio: coresDoFundo[0] || configuracoesVisuaisPadrao.fundoInicio,
     fundoIntermediaria:
       coresDoFundo[1] || configuracoesVisuaisPadrao.fundoIntermediaria,
+    fundoTransicao2:
+      coresDoFundo[2] || configuracoesVisuaisPadrao.fundoTransicao2,
+    fundoTransicao3:
+      coresDoFundo[3] || configuracoesVisuaisPadrao.fundoTransicao3,
     fundoFim:
       coresDoFundo[coresDoFundo.length - 1] || configuracoesVisuaisPadrao.fundoFim,
     fundoCelularInicio: configuracoesVisuaisPadrao.fundoCelularInicio,
     fundoCelularIntermediaria: configuracoesVisuaisPadrao.fundoCelularIntermediaria,
+    fundoCelularTransicao2: configuracoesVisuaisPadrao.fundoCelularTransicao2,
+    fundoCelularTransicao3: configuracoesVisuaisPadrao.fundoCelularTransicao3,
     fundoCelularFim: configuracoesVisuaisPadrao.fundoCelularFim,
     estiloFundoPc: configuracoesVisuaisPadrao.estiloFundoPc,
     estiloFundoCelular: configuracoesVisuaisPadrao.estiloFundoCelular,
@@ -5640,10 +5673,10 @@ function aplicarConfiguracoesVisuais(configuracoes = {}) {
     horizontal: "90deg",
     "diagonal-inversa": "45deg",
   };
-  const criarGradiente = (estilo, inicio, intermediaria, fim) =>
+  const criarGradiente = (estilo, inicio, intermediaria, transicao2, transicao3, fim) =>
     estilo === "radial"
-      ? `radial-gradient(circle, ${inicio}, ${intermediaria}, ${fim})`
-      : `linear-gradient(${direcoesGradiente[estilo] || "135deg"}, ${inicio}, ${intermediaria}, ${fim})`;
+      ? `radial-gradient(circle, ${inicio}, ${intermediaria}, ${transicao2}, ${transicao3}, ${fim})`
+      : `linear-gradient(${direcoesGradiente[estilo] || "135deg"}, ${inicio}, ${intermediaria}, ${transicao2}, ${transicao3}, ${fim})`;
 
   const fundoPc =
     valores.modoFundoPc === "imagem" && valores.imagemFundoPc
@@ -5652,6 +5685,8 @@ function aplicarConfiguracoesVisuais(configuracoes = {}) {
           valores.estiloFundoPc,
           valores.fundoInicio,
           valores.fundoIntermediaria,
+          valores.fundoTransicao2,
+          valores.fundoTransicao3,
           valores.fundoFim,
         );
 
@@ -5667,6 +5702,8 @@ function aplicarConfiguracoesVisuais(configuracoes = {}) {
           valores.estiloFundoCelular,
           valores.fundoCelularInicio,
           valores.fundoCelularIntermediaria,
+          valores.fundoCelularTransicao2,
+          valores.fundoCelularTransicao3,
           valores.fundoCelularFim,
         );
 
@@ -5692,9 +5729,13 @@ function lerConfiguracoesVisuaisDoFormulario() {
   return {
     fundoInicio: document.getElementById("cor-fundo-inicio").value,
     fundoIntermediaria: document.getElementById("cor-fundo-intermediaria").value,
+    fundoTransicao2: document.getElementById("cor-fundo-transicao-2").value,
+    fundoTransicao3: document.getElementById("cor-fundo-transicao-3").value,
     fundoFim: document.getElementById("cor-fundo-fim").value,
     fundoCelularInicio: document.getElementById("cor-fundo-celular-inicio").value,
     fundoCelularIntermediaria: document.getElementById("cor-fundo-celular-intermediaria").value,
+    fundoCelularTransicao2: document.getElementById("cor-fundo-celular-transicao-2").value,
+    fundoCelularTransicao3: document.getElementById("cor-fundo-celular-transicao-3").value,
     fundoCelularFim: document.getElementById("cor-fundo-celular-fim").value,
     estiloFundoPc: document.getElementById("estilo-fundo-pc").value,
     estiloFundoCelular: document.getElementById("estilo-fundo-celular").value,
@@ -5737,6 +5778,10 @@ function preencherConfiguracoesVisuais(configuracoes = {}) {
   document.getElementById("cor-fundo-inicio").value = valores.fundoInicio;
   document.getElementById("cor-fundo-intermediaria").value =
     valores.fundoIntermediaria;
+  document.getElementById("cor-fundo-transicao-2").value =
+    valores.fundoTransicao2;
+  document.getElementById("cor-fundo-transicao-3").value =
+    valores.fundoTransicao3;
   document.getElementById("cor-fundo-fim").value = valores.fundoFim;
   document.getElementById("estilo-fundo-pc").value = valores.estiloFundoPc;
   document.getElementById("modo-fundo-pc").value = valores.modoFundoPc;
@@ -5745,6 +5790,10 @@ function preencherConfiguracoesVisuais(configuracoes = {}) {
     valores.fundoCelularInicio;
   document.getElementById("cor-fundo-celular-intermediaria").value =
     valores.fundoCelularIntermediaria;
+  document.getElementById("cor-fundo-celular-transicao-2").value =
+    valores.fundoCelularTransicao2;
+  document.getElementById("cor-fundo-celular-transicao-3").value =
+    valores.fundoCelularTransicao3;
   document.getElementById("cor-fundo-celular-fim").value =
     valores.fundoCelularFim;
   document.getElementById("estilo-fundo-celular").value =
@@ -6220,9 +6269,13 @@ document.getElementById("fechar-perfil").addEventListener("click", () => {
 [
   "cor-fundo-inicio",
   "cor-fundo-intermediaria",
+  "cor-fundo-transicao-2",
+  "cor-fundo-transicao-3",
   "cor-fundo-fim",
   "cor-fundo-celular-inicio",
   "cor-fundo-celular-intermediaria",
+  "cor-fundo-celular-transicao-2",
+  "cor-fundo-celular-transicao-3",
   "cor-fundo-celular-fim",
   "estilo-fundo-pc",
   "estilo-fundo-celular",

@@ -84,6 +84,16 @@
 #fonte-textos option[value*="Special Elite"] { font-family: "Special Elite", monospace; }
 #fonte-textos option[value*="UnifrakturCook"] { font-family: "UnifrakturCook", cursive; }
 #fonte-textos option[value*="Yeseva One"] { font-family: "Yeseva One", serif; }
+#fonte-textos option[value*="Archivo"] { font-family: "Archivo", sans-serif; }
+#fonte-textos option[value*="Barlow"] { font-family: "Barlow", sans-serif; }
+#fonte-textos option[value*="Cabin"] { font-family: "Cabin", sans-serif; }
+#fonte-textos option[value*="Chakra Petch"] { font-family: "Chakra Petch", sans-serif; }
+#fonte-textos option[value*="Exo 2"] { font-family: "Exo 2", sans-serif; }
+#fonte-textos option[value*="Manrope"] { font-family: "Manrope", sans-serif; }
+#fonte-textos option[value*="Mulish"] { font-family: "Mulish", sans-serif; }
+#fonte-textos option[value*="Outfit"] { font-family: "Outfit", sans-serif; }
+#fonte-textos option[value*="Roboto Slab"] { font-family: "Roboto Slab", serif; }
+#fonte-textos option[value*="Space Mono"] { font-family: "Space Mono", monospace; }
 
 :root {
   font-family: Arial, sans-serif;
@@ -865,7 +875,12 @@ body:not(.pagina-login) [role="button"] {
 }
 
 .cards[data-card-filtro="padrao"]::after {
-  background: var(--card-filtro-fundo);
+  display: none;
+}
+
+.cards[data-card-filtro="padrao"] {
+  background-color: var(--secundary-color);
+  color: var(--cor-textos-personalizada);
 }
 
 .cards > * {
