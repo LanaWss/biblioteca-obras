@@ -11,6 +11,7 @@ let linksLeituraEdicao = [];
 let linksEscolhaAtual = [];
 let obraConfiguracaoCardAtual = null;
 let capaArquivoPreviewCard = "";
+let formularioConfiguracaoCardInicial = null;
 
 const chaveConfiguracoesCards = "configuracoes-cards";
 const configuracaoCardPadrao = {
@@ -24,10 +25,14 @@ const configuracaoCardPadrao = {
   saturacao: 125,
   brilho: 100,
   corBotoes: "",
+  corBotoesPersonalizada: false,
   corTextoCard: "",
   corTextoCardPersonalizada: false,
   corTextoProgresso: "#ffffff",
+  corTextoProgressoPersonalizada: false,
   corBarraProgresso: "#ffffff",
+  corBarraProgressoPersonalizada: false,
+  efeitosPersonalizados: false,
 };
 
 function obterConfiguracoesCards() {
@@ -70,6 +75,40 @@ function obterConfiguracaoCard(id) {
     configuracao.tipoFiltro = "";
   }
 
+  if (
+    Number(configuracao.desfoque) === 2 &&
+    Number(configuracao.saturacao) === 125 &&
+    Number(configuracao.brilho) === 100
+  ) {
+    configuracao.efeitosPersonalizados = false;
+  } else if (!Object.prototype.hasOwnProperty.call(salva, "efeitosPersonalizados")) {
+    configuracao.efeitosPersonalizados = true;
+  }
+
+  if (configuracao.corTextoProgresso === "#ffffff") {
+    configuracao.corTextoProgressoPersonalizada = false;
+  } else if (
+    !Object.prototype.hasOwnProperty.call(salva, "corTextoProgressoPersonalizada")
+  ) {
+    configuracao.corTextoProgressoPersonalizada = true;
+  }
+
+  if (configuracao.corBarraProgresso === "#ffffff") {
+    configuracao.corBarraProgressoPersonalizada = false;
+  } else if (
+    !Object.prototype.hasOwnProperty.call(salva, "corBarraProgressoPersonalizada")
+  ) {
+    configuracao.corBarraProgressoPersonalizada = true;
+  }
+
+  if (!configuracao.corBotoes || configuracao.corBotoes === "#5091eb") {
+    configuracao.corBotoesPersonalizada = false;
+  } else if (
+    !Object.prototype.hasOwnProperty.call(salva, "corBotoesPersonalizada")
+  ) {
+    configuracao.corBotoesPersonalizada = true;
+  }
+
   return configuracao;
 }
 
@@ -103,22 +142,36 @@ function aplicarConfiguracaoCard(card, configuracao) {
     card.style.removeProperty("--card-filtro-fundo");
     card.style.removeProperty("--card-filtro-opacidade");
   }
-  card.style.setProperty("--card-desfoque", `${Number(configuracao.desfoque)}px`);
-  card.style.setProperty("--card-saturacao", `${Number(configuracao.saturacao)}%`);
-  card.style.setProperty("--card-brilho", `${Number(configuracao.brilho)}%`);
-  card.style.setProperty(
-    "--card-cor-texto-progresso",
-    configuracao.corTextoProgresso,
-  );
+  if (configuracao.efeitosPersonalizados === true) {
+    card.style.setProperty("--card-desfoque", `${Number(configuracao.desfoque)}px`);
+    card.style.setProperty("--card-saturacao", `${Number(configuracao.saturacao)}%`);
+    card.style.setProperty("--card-brilho", `${Number(configuracao.brilho)}%`);
+  } else {
+    card.style.removeProperty("--card-desfoque");
+    card.style.removeProperty("--card-saturacao");
+    card.style.removeProperty("--card-brilho");
+  }
+  if (configuracao.corTextoProgressoPersonalizada === true) {
+    card.style.setProperty(
+      "--card-cor-texto-progresso",
+      configuracao.corTextoProgresso,
+    );
+  } else {
+    card.style.removeProperty("--card-cor-texto-progresso");
+  }
   if (configuracao.corTextoCardPersonalizada && configuracao.corTextoCard) {
     card.style.setProperty("--card-cor-texto", configuracao.corTextoCard);
   } else {
     card.style.removeProperty("--card-cor-texto");
   }
-  card.style.setProperty(
-    "--card-cor-barra-progresso",
-    configuracao.corBarraProgresso,
-  );
+  if (configuracao.corBarraProgressoPersonalizada === true) {
+    card.style.setProperty(
+      "--card-cor-barra-progresso",
+      configuracao.corBarraProgresso,
+    );
+  } else {
+    card.style.removeProperty("--card-cor-barra-progresso");
+  }
 
   const capaUrl = urlExternaSegura(configuracao.capaUrl);
   const capaArquivo = String(configuracao.capaArquivo || "");
@@ -129,7 +182,7 @@ function aplicarConfiguracaoCard(card, configuracao) {
     card.style.setProperty("--imagem-obra", obterImagemParaCss(capa));
   }
 
-  if (configuracao.corBotoes) {
+  if (configuracao.corBotoesPersonalizada === true && configuracao.corBotoes) {
     card.style.setProperty("--card-cor-botoes", configuracao.corBotoes);
   } else {
     card.style.removeProperty("--card-cor-botoes");
@@ -183,7 +236,19 @@ function abrirConfiguracaoCard(id) {
   capaArquivoPreviewCard = "";
   document.getElementById("titulo-configuracao-card").textContent =
     `Personalizar: ${obterTituloExibicao(obra)}`;
-  preencherConfiguracaoCard(obterConfiguracaoCard(id));
+  const configuracaoSalva = obterConfiguracaoCard(id);
+  preencherConfiguracaoCard(configuracaoSalva);
+  formularioConfiguracaoCardInicial = lerConfiguracaoCardDoFormulario();
+  formularioConfiguracaoCardInicial.efeitosPersonalizados =
+    configuracaoSalva.efeitosPersonalizados === true;
+  formularioConfiguracaoCardInicial.corBotoesPersonalizada =
+    configuracaoSalva.corBotoesPersonalizada === true;
+  formularioConfiguracaoCardInicial.corTextoCardPersonalizada =
+    configuracaoSalva.corTextoCardPersonalizada === true;
+  formularioConfiguracaoCardInicial.corTextoProgressoPersonalizada =
+    configuracaoSalva.corTextoProgressoPersonalizada === true;
+  formularioConfiguracaoCardInicial.corBarraProgressoPersonalizada =
+    configuracaoSalva.corBarraProgressoPersonalizada === true;
   document.getElementById("popup-configuracao-card").style.display = "flex";
 }
 
@@ -207,7 +272,7 @@ function atualizarPreviewConfiguracaoCard() {
 }
 
 function lerConfiguracaoCardDoFormulario() {
-  return {
+  const configuracao = {
     tipoFiltro:
       document.getElementById("tipo-filtro-card").value === "padrao"
         ? ""
@@ -224,10 +289,34 @@ function lerConfiguracaoCardDoFormulario() {
     brilho: Number(document.getElementById("brilho-card").value),
     corBotoes: document.getElementById("cor-botoes-card").value,
     corTextoCard: document.getElementById("cor-texto-card").value,
-    corTextoCardPersonalizada: true,
     corTextoProgresso: document.getElementById("cor-texto-progresso-card").value,
     corBarraProgresso: document.getElementById("cor-barra-progresso-card").value,
   };
+
+  const inicial = formularioConfiguracaoCardInicial || {};
+  if (!formularioConfiguracaoCardInicial) {
+    configuracao.efeitosPersonalizados = false;
+    configuracao.corBotoesPersonalizada = false;
+    configuracao.corTextoCardPersonalizada = false;
+    configuracao.corTextoProgressoPersonalizada = false;
+    configuracao.corBarraProgressoPersonalizada = false;
+    return configuracao;
+  }
+
+  configuracao.efeitosPersonalizados =
+    configuracao.desfoque !== inicial.desfoque ||
+    configuracao.saturacao !== inicial.saturacao ||
+    configuracao.brilho !== inicial.brilho;
+  configuracao.corBotoesPersonalizada =
+    configuracao.corBotoes !== inicial.corBotoes;
+  configuracao.corTextoCardPersonalizada =
+    configuracao.corTextoCard !== inicial.corTextoCard;
+  configuracao.corTextoProgressoPersonalizada =
+    configuracao.corTextoProgresso !== inicial.corTextoProgresso;
+  configuracao.corBarraProgressoPersonalizada =
+    configuracao.corBarraProgresso !== inicial.corBarraProgresso;
+
+  return configuracao;
 }
 
 function base64ParaUint8Array(base64String) {
@@ -1039,6 +1128,11 @@ function configurarImagemCard(
     const fundo = url ? obterImagemParaCss(url) : "none";
 
     card.style.setProperty("--imagem-obra", fundo);
+    const camadaFundo = card.querySelector(".fundo-card");
+
+    if (camadaFundo) {
+      camadaFundo.style.backgroundImage = fundo;
+    }
   };
 
   definirFundo(imagemFundo);
@@ -1920,6 +2014,7 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
             class="cards"
             data-card-id="${obra.id}"
           >
+            <div class="fundo-card" aria-hidden="true"></div>
 
             <button
               type="button"
@@ -2223,6 +2318,7 @@ document
     const configuracao = { ...configuracaoCardPadrao };
     salvarConfiguracaoCard(obraConfiguracaoCardAtual.id, configuracao);
     preencherConfiguracaoCard(configuracao);
+    formularioConfiguracaoCardInicial = lerConfiguracaoCardDoFormulario();
 
     const card = document.querySelector(
       `[data-card-id="${obraConfiguracaoCardAtual.id}"]`,
