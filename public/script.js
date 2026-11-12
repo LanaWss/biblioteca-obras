@@ -67,6 +67,19 @@ function migrarCartoesLegado() {
       salva.capaPreferencia = "url";
       alterado = true;
     }
+
+    // Versões antigas da engrenagem salvavam o default "#5091eb" como se
+    // fosse personalização do card, travando-o numa cor que não é a do
+    // perfil. Isso volta o card a herdar a cor do perfil.
+    if (
+      salva.corBotoes === "#5091eb" ||
+      salva.corBotoesPersonalizada === true &&
+        (!salva.corBotoes || salva.corBotoes === "#5091eb")
+    ) {
+      salva.corBotoes = "";
+      salva.corBotoesPersonalizada = false;
+      alterado = true;
+    }
   }
 
   if (alterado) {
