@@ -900,7 +900,10 @@ body:not(.pagina-login) [role="button"] {
 .cards .botoes-card .botao-ler,
 .cards .botao-configuracao-card {
   color: var(--cor-conteudo-botoes-personalizada, var(--primary-color)) !important;
-  background-color: var(--card-cor-botoes, var(--secundary-color)) !important;
+  background-color: var(
+    --card-cor-botoes,
+    var(--cor-botoes-personalizada, var(--secundary-color))
+  ) !important;
 }
 
 .botao-configuracao-card {
@@ -1694,7 +1697,10 @@ body:not(.pagina-login) .botao-ler {
   border: 1px solid #fff;
   border-radius: 8px;
   color: var(--cor-conteudo-botoes-personalizada, var(--primary-color)) !important;
-  background-color: var(--card-cor-botoes, var(--secundary-color)) !important;
+  background-color: var(
+    --card-cor-botoes,
+    var(--cor-botoes-personalizada, var(--secundary-color))
+  ) !important;
   font-family: inherit;
 }
 

@@ -292,6 +292,9 @@ function preencherConfiguracaoCard(configuracao) {
   document.getElementById("cor-botoes-card").value =
     configuracao.corBotoes ||
     getComputedStyle(document.documentElement)
+      .getPropertyValue("--cor-botoes-personalizada")
+      .trim() ||
+    getComputedStyle(document.documentElement)
       .getPropertyValue("--secundary-color")
       .trim() ||
     "#5091eb";
