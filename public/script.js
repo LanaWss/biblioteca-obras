@@ -2146,6 +2146,15 @@ async function copiarTituloObra(titulo) {
 }
 
 document.addEventListener("click", async (evento) => {
+  const botaoListaCombinada = evento.target.closest(
+    "button[data-lista-combinada]",
+  );
+
+  if (botaoListaCombinada) {
+    abrirListaItensCombinada(botaoListaCombinada);
+    return;
+  }
+
   const tituloCard = evento.target.closest("[data-copiar-titulo]");
 
   if (tituloCard) {
@@ -3081,16 +3090,6 @@ document.addEventListener("click", async (evento) => {
       abrirListaItens(botao, "manga");
     }
 
-    return;
-  }
-
-  if (evento.target.closest("button[data-lista-combinada]")) {
-    const botaoListaCombinada = evento.target.closest(
-      "button[data-lista-combinada]",
-    );
-
-    evento.stopImmediatePropagation();
-    abrirListaItensCombinada(botaoListaCombinada);
     return;
   }
 
