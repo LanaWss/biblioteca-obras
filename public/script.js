@@ -12,6 +12,56 @@ let linksEscolhaAtual = [];
 let obraConfiguracaoCardAtual = null;
 let capaArquivoPreviewCard = "";
 let formularioConfiguracaoCardInicial = null;
+let migracaoCartoesLegadoFeita = false;
+
+// Cards criados antes da personalização por card podem ter salvo configurações
+// antigas (por exemplo, tipoFiltro ausente sem flag) ou nenhuma configuração.
+// Esta migração garante que eles entrem no regime atual: herdar o perfil por
+// padrão e usar a imagem da própria obra como fundo até que uma capa
+// específica seja definida na engrenagem.
+function migrarCartoesLegado() {
+  if (migracaoCartoesLegadoFeita) {
+    return;
+  }
+
+  const configuracoes = obterConfiguracoesCards();
+  let alterado = false;
+
+  for (const [id, salva] of Object.entries(configuracoes)) {
+    if (!salva || typeof salva !== "object") {
+      delete configuracoes[id];
+      alterado = true;
+      continue;
+    }
+
+    // Normaliza campos que podem faltar em configurações antigas.
+    for (const [chave, valor] of Object.entries(configuracaoCardPadrao)) {
+      if (!Object.prototype.hasOwnProperty.call(salva, chave)) {
+        salva[chave] = valor;
+        alterado = true;
+      }
+    }
+
+    // Configurações antigas podiam salvar tipoFiltro como undefined/null;
+    // isso significa "padrão do perfil", não um filtro válido.
+    if (salva.tipoFiltro == null) {
+      salva.tipoFiltro = "";
+      alterado = true;
+    }
+
+    // Capa remanescente vazia não deve bloquear o uso da imagem da obra.
+    if (salva.capaPreferencia === "arquivo" && !salva.capaArquivo) {
+      salva.capaPreferencia = "url";
+      alterado = true;
+    }
+  }
+
+  if (alterado) {
+    localStorage.setItem(chaveConfiguracoesCards, JSON.stringify(configuracoes));
+  }
+
+  migracaoCartoesLegadoFeita = true;
+}
 
 const chaveConfiguracoesCards = "configuracoes-cards";
 const configuracaoCardPadrao = {
@@ -1724,6 +1774,7 @@ function mostrarSkeletonObras() {
 }
 
 function carregarObras(atualizarDados = true, mostrarErros = true) {
+  migrarCartoesLegado();
   const token = localStorage.getItem("token");
 
   if (!token) {
