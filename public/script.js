@@ -49,6 +49,19 @@ function migrarCartoesLegado() {
       alterado = true;
     }
 
+    // Na primeira versão da personalização, a engrenagem salvava
+    // "gradiente" com os valores default sem o usuário tocar em nada.
+    // Isso fazia o card ser pintado e cobrir a capa da obra. Aqui voltamos
+    // esses cards para o padrão do perfil.
+    if (
+      salva.tipoFiltro === "gradiente" &&
+      (!salva.filtroCor || salva.filtroCor === "#000000") &&
+      Number(salva.filtroOpacidade) === 45
+    ) {
+      salva.tipoFiltro = "";
+      alterado = true;
+    }
+
     // Capa remanescente vazia não deve bloquear o uso da imagem da obra.
     if (salva.capaPreferencia === "arquivo" && !salva.capaArquivo) {
       salva.capaPreferencia = "url";
