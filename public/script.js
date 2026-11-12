@@ -906,6 +906,10 @@ function abrirListaItens(botao, tipo) {
 }
 
 function abrirListaItensCombinada(botao) {
+  if (botaoListaItensAberta && botaoListaItensAberta !== botao) {
+    fecharListaItens();
+  }
+
   const obra = obrasCarregadas.find(
     (item) => String(item.id) === String(botao.dataset.obraId),
   );
