@@ -864,24 +864,6 @@ function fecharListaItens() {
 
     card?.classList.remove("lista-itens-expandida");
 
-    if (botaoListaItensAberta.hasAttribute("data-lista-combinada")) {
-      const detalhes = card?.querySelector(".detalhes-card");
-      const botaoToggleCard = card?.querySelector(
-        "button[data-card-progresso-toggle]",
-      );
-
-      if (detalhes) {
-        detalhes.hidden = true;
-      }
-
-      card?.classList.remove("progresso-expandido");
-      botaoToggleCard?.setAttribute("aria-expanded", "false");
-
-      if (botaoToggleCard) {
-        botaoToggleCard.textContent = "Mostrar progresso";
-      }
-    }
-
     botaoListaItensAberta.dataset.temporadasExpandidas = "false";
     botaoListaItensAberta.dataset.volumesExpandidos = "false";
     if (!botaoListaItensAberta.hasAttribute("data-lista-combinada")) {
