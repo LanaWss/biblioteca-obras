@@ -890,7 +890,7 @@ body:not(.pagina-login) [role="button"] {
   flex: 0 0 auto;
   position: absolute;
   right: 0;
-  padding: 4px 4px !important;
+  padding: 4px 2px !important;
   font-size: 11px !important;
   transform-origin: right center;
 }
@@ -980,13 +980,13 @@ body:not(.pagina-login) .cards .titulo-card h2[role="button"] {
 }
 
 .botao-mais-itens {
-  width: 33.333%;
-  flex: 0 0 auto;
+  width: fit-content;
+  flex: 0 0 auto !important;
   min-height: 36px;
   max-height: 36px;
   height: 36px;
   align-self: center;
-  margin: 0;
+  margin: 0 auto;
   padding: 8px 12px;
   font-size: 13px;
 }
@@ -1072,7 +1072,7 @@ body:not(.pagina-login) .cards .titulo-card h2[role="button"] {
   flex-shrink: 0;
   width: 100%;
   max-width: 320px;
-  margin: 2px auto;
+  margin: 8px auto 12px;
 }
 
 .botao-lista-combinada {
@@ -3010,7 +3010,7 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
     flex: 0 0 auto;
     width: auto;
     max-width: 108px;
-    padding: 4px 5px !important;
+    padding: 4px 2px !important;
     font-size: 9px !important;
     white-space: normal;
   }
@@ -3368,7 +3368,7 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
 
   .progresso-card {
     width: min(100%, 240px);
-    margin: 2px auto 8px;
+    margin: 8px auto 12px;
   }
 
   .cabecalho-tipo-card {
@@ -3392,6 +3392,10 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
 
   .botao-mais-itens {
     width: auto;
+    flex: 0 0 auto !important;
+    align-self: center;
+    margin-left: auto;
+    margin-right: auto;
     max-width: 120px;
     min-height: 32px;
     max-height: 32px;
