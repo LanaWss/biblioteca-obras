@@ -3,10 +3,13 @@
 }
 
 .cards .titulo-card h2,
+.cards .detalhes-card h3 {
+  color: var(--card-cor-texto, var(--cor-titulos-personalizada));
+}
+
 .cards .detalhes-card p,
-.cards .detalhes-card h3,
 .cards .detalhes-card span {
-  color: var(--card-cor-texto, inherit);
+  color: var(--card-cor-texto, var(--cor-textos-personalizada));
 }
 
 #fonte-textos option[value*="Arial"] { font-family: Arial, sans-serif; }
@@ -1662,11 +1665,20 @@ body:not(.pagina-login) .botao-ler {
 }
 
 .cards .titulo-card h2,
-.cards .detalhes-card h3,
+.cards .detalhes-card h3 {
+  color: var(--card-cor-texto, var(--cor-titulos-personalizada)) !important;
+}
+
 .cards .detalhes-card p,
 .cards .detalhes-card span,
 .cards > .status-card {
   color: var(--card-cor-texto, var(--cor-textos-personalizada)) !important;
+}
+
+.cards .botoes-card > i,
+.cards .botoes-card button i,
+.cards .botoes-card a i {
+  margin-right: 6px;
 }
 
 .botao-foto-perfil input {

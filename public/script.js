@@ -24,7 +24,8 @@ const configuracaoCardPadrao = {
   saturacao: 125,
   brilho: 100,
   corBotoes: "",
-  corTextoCard: "#ffffff",
+  corTextoCard: "",
+  corTextoCardPersonalizada: false,
   corTextoProgresso: "#ffffff",
   corBarraProgresso: "#ffffff",
 };
@@ -44,10 +45,22 @@ function obterConfiguracoesCards() {
 }
 
 function obterConfiguracaoCard(id) {
-  return {
+  const configuracao = {
     ...configuracaoCardPadrao,
     ...(obterConfiguracoesCards()[String(id)] || {}),
   };
+
+  if (
+    !Object.prototype.hasOwnProperty.call(
+      obterConfiguracoesCards()[String(id)] || {},
+      "corTextoCardPersonalizada",
+    )
+  ) {
+    configuracao.corTextoCardPersonalizada =
+      configuracao.corTextoCard && configuracao.corTextoCard !== "#ffffff";
+  }
+
+  return configuracao;
 }
 
 function aplicarConfiguracaoCard(card, configuracao) {
@@ -71,7 +84,11 @@ function aplicarConfiguracaoCard(card, configuracao) {
     "--card-cor-texto-progresso",
     configuracao.corTextoProgresso,
   );
-  card.style.setProperty("--card-cor-texto", configuracao.corTextoCard);
+  if (configuracao.corTextoCardPersonalizada && configuracao.corTextoCard) {
+    card.style.setProperty("--card-cor-texto", configuracao.corTextoCard);
+  } else {
+    card.style.removeProperty("--card-cor-texto");
+  }
   card.style.setProperty(
     "--card-cor-barra-progresso",
     configuracao.corBarraProgresso,
@@ -113,7 +130,12 @@ function preencherConfiguracaoCard(configuracao) {
   document.getElementById("brilho-card").value = configuracao.brilho;
   document.getElementById("cor-botoes-card").value =
     configuracao.corBotoes || "#5091eb";
-  document.getElementById("cor-texto-card").value = configuracao.corTextoCard;
+  document.getElementById("cor-texto-card").value =
+    configuracao.corTextoCard ||
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--cor-titulos-personalizada")
+      .trim() ||
+    "#ffffff";
   document.getElementById("cor-texto-progresso-card").value =
     configuracao.corTextoProgresso;
   document.getElementById("cor-barra-progresso-card").value =
@@ -172,6 +194,7 @@ function lerConfiguracaoCardDoFormulario() {
     brilho: Number(document.getElementById("brilho-card").value),
     corBotoes: document.getElementById("cor-botoes-card").value,
     corTextoCard: document.getElementById("cor-texto-card").value,
+    corTextoCardPersonalizada: true,
     corTextoProgresso: document.getElementById("cor-texto-progresso-card").value,
     corBarraProgresso: document.getElementById("cor-barra-progresso-card").value,
   };
@@ -979,9 +1002,8 @@ function configurarImagemCard(
   const capaArquivo = String(configuracao.capaArquivo || "");
   const capaPersonalizada =
     configuracao.capaPreferencia === "arquivo" ? capaArquivo : capaUrl;
-  const imagens = capaPersonalizada
-    ? { principal: capaPersonalizada, fallback: imagensOriginais.principal }
-    : imagensOriginais;
+  const imagemFundo = capaPersonalizada || imagensOriginais.principal;
+  const imagemExibida = imagensOriginais;
 
   const definirFundo = (url) => {
     const fundo = url ? obterImagemParaCss(url) : "none";
@@ -992,19 +1014,21 @@ function configurarImagemCard(
     card.style.backgroundPosition = "center";
   };
 
-  definirFundo(imagens.principal);
+  definirFundo(imagemFundo);
 
-  if (!imagem || !imagens.principal) {
+  if (!imagem || !imagemExibida.principal) {
     return;
   }
 
   const usarFallback = () => {
-    if (imagens.fallback && !imagem.dataset.fallbackTentado) {
+    if (imagemExibida.fallback && !imagem.dataset.fallbackTentado) {
       imagem.dataset.fallbackTentado = "true";
 
-      imagem.src = imagens.fallback;
+      imagem.src = imagemExibida.fallback;
 
-      definirFundo(imagens.fallback);
+      if (!capaPersonalizada) {
+        definirFundo(imagemExibida.fallback);
+      }
 
       return;
     }
@@ -1029,7 +1053,7 @@ function configurarImagemCard(
 
   imagem.addEventListener("error", usarFallback);
 
-  imagem.src = imagens.principal;
+  imagem.src = imagemExibida.principal;
 }
 
 let filaSalvamentoProgresso = Promise.resolve();
