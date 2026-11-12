@@ -9,6 +9,118 @@ let imagemFundoCelularSelecionada = null;
 let linksLeituraCriacao = [];
 let linksLeituraEdicao = [];
 let linksEscolhaAtual = [];
+let obraConfiguracaoCardAtual = null;
+
+const chaveConfiguracoesCards = "configuracoes-cards";
+const configuracaoCardPadrao = {
+  filtroCor: "#000000",
+  filtroOpacidade: 45,
+  desfoque: 2,
+  saturacao: 125,
+  brilho: 100,
+  corBotoes: "",
+  corTextoProgresso: "#ffffff",
+  corBarraProgresso: "#ffffff",
+};
+
+function obterConfiguracoesCards() {
+  try {
+    const configuracoes = JSON.parse(
+      localStorage.getItem(chaveConfiguracoesCards) || "{}",
+    );
+
+    return configuracoes && typeof configuracoes === "object"
+      ? configuracoes
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function obterConfiguracaoCard(id) {
+  return {
+    ...configuracaoCardPadrao,
+    ...(obterConfiguracoesCards()[String(id)] || {}),
+  };
+}
+
+function aplicarConfiguracaoCard(card, configuracao) {
+  card.style.setProperty("--card-filtro-cor", configuracao.filtroCor);
+  card.style.setProperty(
+    "--card-filtro-opacidade",
+    String(Number(configuracao.filtroOpacidade) / 100),
+  );
+  card.style.setProperty("--card-desfoque", `${Number(configuracao.desfoque)}px`);
+  card.style.setProperty("--card-saturacao", `${Number(configuracao.saturacao)}%`);
+  card.style.setProperty("--card-brilho", `${Number(configuracao.brilho)}%`);
+  card.style.setProperty(
+    "--card-cor-texto-progresso",
+    configuracao.corTextoProgresso,
+  );
+  card.style.setProperty(
+    "--card-cor-barra-progresso",
+    configuracao.corBarraProgresso,
+  );
+
+  if (configuracao.corBotoes) {
+    card.style.setProperty("--card-cor-botoes", configuracao.corBotoes);
+  } else {
+    card.style.removeProperty("--card-cor-botoes");
+  }
+}
+
+function salvarConfiguracaoCard(id, configuracao) {
+  const configuracoes = obterConfiguracoesCards();
+  configuracoes[String(id)] = configuracao;
+  localStorage.setItem(chaveConfiguracoesCards, JSON.stringify(configuracoes));
+}
+
+function preencherConfiguracaoCard(configuracao) {
+  document.getElementById("cor-filtro-card").value = configuracao.filtroCor;
+  document.getElementById("opacidade-filtro-card").value =
+    configuracao.filtroOpacidade;
+  document.getElementById("desfoque-card").value = configuracao.desfoque;
+  document.getElementById("saturacao-card").value = configuracao.saturacao;
+  document.getElementById("brilho-card").value = configuracao.brilho;
+  document.getElementById("cor-botoes-card").value =
+    configuracao.corBotoes || "#5091eb";
+  document.getElementById("cor-texto-progresso-card").value =
+    configuracao.corTextoProgresso;
+  document.getElementById("cor-barra-progresso-card").value =
+    configuracao.corBarraProgresso;
+}
+
+function abrirConfiguracaoCard(id) {
+  const obra = obrasCarregadas.find(
+    (item) => String(item.id) === String(id),
+  );
+
+  if (!obra) {
+    mostrarMensagem("Não foi possível configurar este card.", "erro");
+    return;
+  }
+
+  obraConfiguracaoCardAtual = obra;
+  document.getElementById("titulo-configuracao-card").textContent =
+    `Personalizar: ${obterTituloExibicao(obra)}`;
+  preencherConfiguracaoCard(obterConfiguracaoCard(id));
+  document.getElementById("popup-configuracao-card").style.display = "flex";
+}
+
+function lerConfiguracaoCardDoFormulario() {
+  return {
+    filtroCor: document.getElementById("cor-filtro-card").value,
+    filtroOpacidade: Number(
+      document.getElementById("opacidade-filtro-card").value,
+    ),
+    desfoque: Number(document.getElementById("desfoque-card").value),
+    saturacao: Number(document.getElementById("saturacao-card").value),
+    brilho: Number(document.getElementById("brilho-card").value),
+    corBotoes: document.getElementById("cor-botoes-card").value,
+    corTextoProgresso: document.getElementById("cor-texto-progresso-card").value,
+    corBarraProgresso: document.getElementById("cor-barra-progresso-card").value,
+  };
+}
 
 function base64ParaUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -1806,6 +1918,16 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
 
             </div>
 
+            <button
+              type="button"
+              class="botao-configuracao-card"
+              data-configuracao-card="${obra.id}"
+              aria-label="Personalizar card"
+              title="Personalizar card"
+            >
+              <i class="fa-solid fa-gear"></i>
+            </button>
+
             <div class="botoes-card">
 
               ${botaoLeitura}
@@ -1839,6 +1961,7 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
         const card = lista.querySelector(`[data-card-id="${obra.id}"]`);
 
         if (card) {
+          aplicarConfiguracaoCard(card, obterConfiguracaoCard(obra.id));
           configurarImagemCard(card, obra);
         }
       });
@@ -1864,6 +1987,56 @@ function carregarObras(atualizarDados = true, mostrarErros = true) {
       }
     });
 }
+
+document
+  .getElementById("fechar-configuracao-card")
+  .addEventListener("click", () => {
+    document.getElementById("popup-configuracao-card").style.display = "none";
+    obraConfiguracaoCardAtual = null;
+  });
+
+document
+  .getElementById("salvar-configuracao-card")
+  .addEventListener("click", () => {
+    if (!obraConfiguracaoCardAtual) {
+      return;
+    }
+
+    const configuracao = lerConfiguracaoCardDoFormulario();
+    salvarConfiguracaoCard(obraConfiguracaoCardAtual.id, configuracao);
+
+    const card = document.querySelector(
+      `[data-card-id="${obraConfiguracaoCardAtual.id}"]`,
+    );
+
+    if (card) {
+      aplicarConfiguracaoCard(card, configuracao);
+    }
+
+    document.getElementById("popup-configuracao-card").style.display = "none";
+    obraConfiguracaoCardAtual = null;
+    mostrarMensagem("Personalização do card salva.", "sucesso");
+  });
+
+document
+  .getElementById("restaurar-configuracao-card")
+  .addEventListener("click", () => {
+    if (!obraConfiguracaoCardAtual) {
+      return;
+    }
+
+    const configuracao = { ...configuracaoCardPadrao };
+    salvarConfiguracaoCard(obraConfiguracaoCardAtual.id, configuracao);
+    preencherConfiguracaoCard(configuracao);
+
+    const card = document.querySelector(
+      `[data-card-id="${obraConfiguracaoCardAtual.id}"]`,
+    );
+
+    if (card) {
+      aplicarConfiguracaoCard(card, configuracao);
+    }
+  });
 
 let temporizadorBusca;
 
@@ -1937,7 +2110,7 @@ document.getElementById("limpar-filtros").addEventListener("click", () => {
 
 document
   .querySelectorAll(
-    "#popup-filtros,#popup-configurar-notificacao, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-perfil, #popup-amigos, #popup-biblioteca-amigo, #popup-lista-itens, #popup-detalhe-obra-publica, #popup-escolha-avanco, #popup-escolha-link, #popup-lista-notificacoes, #popup-escolha-visto",
+    "#popup-filtros,#popup-configurar-notificacao, #popup-organizar, #popup-criar, #popup-editar, #popup-progresso, #popup-confirmar-exclusao, #popup-atualizacoes, #popup-perfil, #popup-amigos, #popup-biblioteca-amigo, #popup-lista-itens, #popup-configuracao-card, #popup-detalhe-obra-publica, #popup-escolha-avanco, #popup-escolha-link, #popup-lista-notificacoes, #popup-escolha-visto",
   )
   .forEach((popup) => {
     popup.addEventListener("click", (evento) => {
@@ -2146,6 +2319,15 @@ async function copiarTituloObra(titulo) {
 }
 
 document.addEventListener("click", async (evento) => {
+  const botaoConfiguracaoCard = evento.target.closest(
+    "button[data-configuracao-card]",
+  );
+
+  if (botaoConfiguracaoCard) {
+    abrirConfiguracaoCard(botaoConfiguracaoCard.dataset.configuracaoCard);
+    return;
+  }
+
   const botaoListaCombinada = evento.target.closest(
     "button[data-lista-combinada]",
   );

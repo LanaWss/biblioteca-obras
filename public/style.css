@@ -821,7 +821,9 @@ body:not(.pagina-login) [role="button"] {
   background-image: var(--imagem-obra, none);
   background-size: cover;
   background-position: center;
-  filter: blur(2px) saturate(125%);
+  filter: blur(var(--card-desfoque, 2px))
+    saturate(var(--card-saturacao, 125%))
+    brightness(var(--card-brilho, 100%));
   opacity: 1;
   z-index: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
@@ -831,14 +833,8 @@ body:not(.pagina-login) [role="button"] {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.5) 0%,
-    rgba(0, 0, 0, 0.18) 24%,
-    rgba(0, 0, 0, 0.04) 48%,
-    rgba(0, 0, 0, 0.2) 72%,
-    rgba(0, 0, 0, 0.62) 100%
-  );
+  background: var(--card-filtro-cor, #000);
+  opacity: var(--card-filtro-opacidade, 0.45);
   z-index: 0;
   pointer-events: none;
 }
@@ -846,6 +842,50 @@ body:not(.pagina-login) [role="button"] {
 .cards > * {
   position: relative;
   z-index: 1;
+}
+
+.cards .botoes-card button,
+.cards .botao-configuracao-card {
+  background-color: var(--card-cor-botoes, var(--secundary-color)) !important;
+}
+
+.botao-configuracao-card {
+  width: 40px;
+  height: 34px;
+  min-width: 40px;
+  margin: 0 auto;
+  padding: 0;
+  border: 1px solid #fff;
+  border-radius: 8px;
+  color: var(--primary-color);
+  background-color: var(--secundary-color);
+  flex: 0 0 auto;
+}
+
+#popup-configuracao-card > .popup-shell > div {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  max-width: 450px;
+  max-height: 90vh;
+  padding: 25px;
+  overflow-y: auto;
+  border-radius: 15px;
+  color: #17263a;
+  background-color: #fff;
+  text-align: left;
+}
+
+#popup-configuracao-card input[type="color"] {
+  width: 100%;
+  min-height: 36px;
+}
+
+.acoes-configuracao-card {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .cards > .botao-favorito {
@@ -1135,6 +1175,7 @@ body:not(.pagina-login) .cards .titulo-card h2[role="button"] {
 .progresso-tipo-card .progresso-texto {
   justify-content: center;
   text-align: center;
+  color: var(--card-cor-texto-progresso, inherit);
 }
 
 .progresso-tipo-card .progresso-texto {
@@ -1162,7 +1203,7 @@ body:not(.pagina-login) .cards .titulo-card h2[role="button"] {
 
 .barra-progresso-preenchida {
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: var(--card-cor-barra-progresso, rgba(255, 255, 255, 0.8));
   border-radius: 10px;
   transition: width 0.4s ease;
 }
@@ -1272,6 +1313,7 @@ body:not(.pagina-login) .cards .titulo-card h2[role="button"] {
 #popup-amigos,
 #popup-biblioteca-amigo,
 #popup-lista-itens,
+#popup-configuracao-card,
 #popup-detalhe-obra-publica {
   display: none;
   position: fixed;

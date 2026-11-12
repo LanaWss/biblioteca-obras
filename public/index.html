@@ -4,7 +4,7 @@
 <head>
   <title>Biblioteca de Obras</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css?v=60" />
+  <link rel="stylesheet" href="style.css?v=61" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="icon" href="icone.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -517,11 +517,12 @@
           <li>Recuperar senha do login.</li>
           <li>Melhoria visual dos cards e progresso de leitura.</li>
           <li>Melhoria visual e legivel dos popup.</li>
+          <li>Configuração pessoal para cada card.</li>
           <br>
           <h3>Sendo trabalhado:</h3>
           <li>APK para celulares.</li>
           <br>
-          </p><strong>V 20.7.5</strong></p>
+          </p><strong>V 20.7.6</strong></p>
           <p><i>Atualização feita em 12/11/2026</i></p>
         </ul>
       </div>
@@ -968,6 +969,44 @@
     </div>
   </div>
 
+  <div id="popup-configuracao-card">
+    <div class="popup-shell">
+      <button id="fechar-configuracao-card" class="popup-fechar" type="button" aria-label="Fechar personalização">X</button>
+      <div>
+        <h2 id="titulo-configuracao-card">Personalizar card</h2>
+
+        <label for="cor-filtro-card">Cor do filtro da imagem</label>
+        <input id="cor-filtro-card" type="color" value="#000000">
+
+        <label for="opacidade-filtro-card">Intensidade do filtro</label>
+        <input id="opacidade-filtro-card" type="range" min="0" max="90" value="45">
+
+        <label for="desfoque-card">Desfoque da imagem</label>
+        <input id="desfoque-card" type="range" min="0" max="12" value="2">
+
+        <label for="saturacao-card">Saturação da imagem</label>
+        <input id="saturacao-card" type="range" min="0" max="250" value="125">
+
+        <label for="brilho-card">Brilho da imagem</label>
+        <input id="brilho-card" type="range" min="30" max="180" value="100">
+
+        <label for="cor-botoes-card">Cor dos botões deste card</label>
+        <input id="cor-botoes-card" type="color" value="#5091eb">
+
+        <label for="cor-texto-progresso-card">Cor do texto do progresso</label>
+        <input id="cor-texto-progresso-card" type="color" value="#ffffff">
+
+        <label for="cor-barra-progresso-card">Cor da barra de progresso</label>
+        <input id="cor-barra-progresso-card" type="color" value="#ffffff">
+
+        <div class="acoes-configuracao-card">
+          <button id="restaurar-configuracao-card" type="button">Restaurar padrão</button>
+          <button id="salvar-configuracao-card" type="button">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="popup-lista-notificacoes">
     <div class="popup-shell">
 
@@ -984,7 +1023,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=27"></script>
+  <script src="script.js?v=29"></script>
 </body>
 
 </html>
