@@ -80,9 +80,7 @@ function aplicarConfiguracaoCard(card, configuracao) {
   const capaUrl = urlExternaSegura(configuracao.capaUrl);
   const capaArquivo = String(configuracao.capaArquivo || "");
   const capa =
-    configuracao.capaPreferencia === "arquivo"
-      ? capaArquivo || capaUrl
-      : capaUrl || capaArquivo;
+    configuracao.capaPreferencia === "arquivo" ? capaArquivo : capaUrl;
 
   if (capa) {
     card.style.setProperty("--imagem-obra", obterImagemParaCss(capa));
@@ -980,9 +978,7 @@ function configurarImagemCard(
   const capaUrl = urlExternaSegura(configuracao.capaUrl);
   const capaArquivo = String(configuracao.capaArquivo || "");
   const capaPersonalizada =
-    configuracao.capaPreferencia === "arquivo"
-      ? capaArquivo || capaUrl
-      : capaUrl || capaArquivo;
+    configuracao.capaPreferencia === "arquivo" ? capaArquivo : capaUrl;
   const imagens = capaPersonalizada
     ? { principal: capaPersonalizada, fallback: imagensOriginais.principal }
     : imagensOriginais;

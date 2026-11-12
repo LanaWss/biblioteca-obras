@@ -938,6 +938,44 @@ body:not(.pagina-login) [role="button"] {
   right: 8px;
 }
 
+.cards > .botao-configuracao-card,
+.cards > .botao-configuracao-card:hover,
+.cards > .botao-configuracao-card:active {
+  box-sizing: border-box;
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  height: 24px !important;
+  min-height: 24px !important;
+  max-height: 24px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transform: none;
+}
+
+.cards .botoes-card > button,
+.cards .botoes-card > a,
+.cards .botoes-card > button:hover,
+.cards .botoes-card > a:hover {
+  box-sizing: border-box;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  margin: 0 !important;
+  padding: 6px 5px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.15;
+  transform: none;
+}
+
 .cards > .botao-favorito {
   position: absolute;
   top: 10px;
