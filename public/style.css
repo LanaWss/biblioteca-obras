@@ -2,6 +2,13 @@
   font-size: 16px;
 }
 
+.cards .titulo-card h2,
+.cards .detalhes-card p,
+.cards .detalhes-card h3,
+.cards .detalhes-card span {
+  color: var(--card-cor-texto, inherit);
+}
+
 #fonte-textos option[value*="Arial"] { font-family: Arial, sans-serif; }
 #fonte-textos option[value*="Georgia"] { font-family: Georgia, serif; }
 #fonte-textos option[value*="Verdana"] { font-family: Verdana, sans-serif; }
@@ -130,7 +137,7 @@ body {
 body {
   min-height: 100vh;
   background: var(--fundo-personalizado);
-  color: var(--cor-textos-personalizada);
+  color: var(--card-cor-texto, var(--cor-textos-personalizada));
   text-align: center;
   background-attachment: fixed;
   font-family: var(--fonte-textos-personalizada);
@@ -845,13 +852,15 @@ body:not(.pagina-login) [role="button"] {
 }
 
 .cards .botoes-card button,
+.cards .botoes-card .botao-ler,
 .cards .botao-configuracao-card {
+  color: var(--cor-conteudo-botoes-personalizada, var(--primary-color)) !important;
   background-color: var(--card-cor-botoes, var(--secundary-color)) !important;
 }
 
 .botao-configuracao-card {
   width: 40px;
-  height: 34px;
+  height: 28px;
   min-width: 40px;
   margin: 0 auto;
   padding: 0;
@@ -904,6 +913,7 @@ body:not(.pagina-login) [role="button"] {
 
 .cards h3 {
   margin: 4px 0;
+  color: var(--card-cor-texto, inherit);
 }
 
 .cards h3 + p {
@@ -1441,7 +1451,8 @@ body:not(.pagina-login) .cards .titulo-card h2[role="button"] {
 
 #popup-criar > .popup-shell > div,
 #popup-editar > .popup-shell > div, 
-#popup-organizar > .popup-shell > div {
+#popup-organizar > .popup-shell > div,
+#popup-configuracao-card > .popup-shell > div {
   background-color: white;
   padding: 25px;
   border-radius: 15px;
@@ -3216,7 +3227,8 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
   #popup-escolha-avanco,
   #popup-escolha-link,
   #popup-configurar-notificacao,
-  #popup-lista-notificacoes {
+  #popup-lista-notificacoes,
+  #popup-configuracao-card {
     align-items: center;
     justify-content: center;
     padding: 4px;
@@ -3262,6 +3274,7 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
   #popup-criar > .popup-shell > div,
   #popup-editar > .popup-shell > div,
   #popup-organizar > .popup-shell > div,
+  #popup-configuracao-card > .popup-shell > div,
   #popup-obter-obra > .popup-shell > div,
   #popup-perfil > .popup-shell > div:not(.perfil-acoes),
   #popup-amigos > .popup-shell > div,
@@ -3494,7 +3507,8 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
   #popup-escolha-avanco,
   #popup-escolha-link,
   #popup-configurar-notificacao,
-  #popup-lista-notificacoes {
+  #popup-lista-notificacoes,
+  #popup-configuracao-card {
     padding: 5vh 4vw;
     align-items: center;
     justify-content: center;
@@ -3530,6 +3544,7 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
   #popup-criar > .popup-shell > div,
   #popup-editar > .popup-shell > div,
   #popup-organizar > .popup-shell > div,
+  #popup-configuracao-card > .popup-shell > div,
   #popup-obter-obra > .popup-shell > div,
   #popup-perfil > .popup-shell > div:not(.perfil-acoes),
   #popup-amigos > .popup-shell > div,
@@ -3837,7 +3852,8 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
   #popup-escolha-avanco,
   #popup-escolha-link,
   #popup-configurar-notificacao,
-  #popup-lista-notificacoes {
+  #popup-lista-notificacoes,
+  #popup-configuracao-card {
     padding: 12px;
     align-items: center;
     justify-content: center;
@@ -3875,6 +3891,7 @@ body:not(.pagina-login) #popup-obter-obra .opcoes-progresso-catalogo button:hove
   #popup-criar > .popup-shell > div,
   #popup-editar > .popup-shell > div,
   #popup-organizar > .popup-shell > div,
+  #popup-configuracao-card > .popup-shell > div,
   #popup-obter-obra > .popup-shell > div,
   #popup-perfil > .popup-shell > div:not(.perfil-acoes),
   #popup-amigos > .popup-shell > div,

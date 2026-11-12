@@ -19,6 +19,7 @@ const configuracaoCardPadrao = {
   saturacao: 125,
   brilho: 100,
   corBotoes: "",
+  corTextoCard: "#ffffff",
   corTextoProgresso: "#ffffff",
   corBarraProgresso: "#ffffff",
 };
@@ -57,6 +58,7 @@ function aplicarConfiguracaoCard(card, configuracao) {
     "--card-cor-texto-progresso",
     configuracao.corTextoProgresso,
   );
+  card.style.setProperty("--card-cor-texto", configuracao.corTextoCard);
   card.style.setProperty(
     "--card-cor-barra-progresso",
     configuracao.corBarraProgresso,
@@ -84,6 +86,7 @@ function preencherConfiguracaoCard(configuracao) {
   document.getElementById("brilho-card").value = configuracao.brilho;
   document.getElementById("cor-botoes-card").value =
     configuracao.corBotoes || "#5091eb";
+  document.getElementById("cor-texto-card").value = configuracao.corTextoCard;
   document.getElementById("cor-texto-progresso-card").value =
     configuracao.corTextoProgresso;
   document.getElementById("cor-barra-progresso-card").value =
@@ -117,6 +120,7 @@ function lerConfiguracaoCardDoFormulario() {
     saturacao: Number(document.getElementById("saturacao-card").value),
     brilho: Number(document.getElementById("brilho-card").value),
     corBotoes: document.getElementById("cor-botoes-card").value,
+    corTextoCard: document.getElementById("cor-texto-card").value,
     corTextoProgresso: document.getElementById("cor-texto-progresso-card").value,
     corBarraProgresso: document.getElementById("cor-barra-progresso-card").value,
   };
