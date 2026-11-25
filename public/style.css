@@ -877,12 +877,7 @@ body:not(.pagina-login) [role="button"] {
   pointer-events: none;
 }
 
-.cards[data-card-filtro="padrao"]::after {
-  display: none;
-}
-
 .cards[data-card-filtro="padrao"] {
-  background-color: transparent;
   color: var(--cor-textos-personalizada);
 }
 
