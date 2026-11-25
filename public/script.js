@@ -267,15 +267,6 @@ function aplicarConfiguracaoCard(card, configuracao) {
     card.style.removeProperty("--card-cor-barra-progresso");
   }
 
-  const capaUrl = urlExternaSegura(configuracao.capaUrl);
-  const capaArquivo = String(configuracao.capaArquivo || "");
-  const capa =
-    configuracao.capaPreferencia === "arquivo" ? capaArquivo : capaUrl;
-
-  if (capa) {
-    card.style.setProperty("--imagem-obra", obterImagemParaCss(capa));
-  }
-
   if (!usarPadraoPerfil && configuracao.corBotoesPersonalizada === true && configuracao.corBotoes) {
     card.style.setProperty("--card-cor-botoes", configuracao.corBotoes);
   } else if (!usarPadraoPerfil) {
@@ -1228,8 +1219,11 @@ function configurarImagemCard(
   const imagensOriginais = obterImagemPreferida(obra);
   const capaUrl = urlExternaSegura(configuracao.capaUrl);
   const capaArquivo = String(configuracao.capaArquivo || "");
-  const capaPersonalizada =
+  const capaPreferida =
     configuracao.capaPreferencia === "arquivo" ? capaArquivo : capaUrl;
+  const capaAlternativa =
+    configuracao.capaPreferencia === "arquivo" ? capaUrl : capaArquivo;
+  const capaPersonalizada = capaPreferida || capaAlternativa;
   const imagemFundo = capaPersonalizada || imagensOriginais.principal;
   const imagemExibida = imagensOriginais;
 
@@ -2375,14 +2369,15 @@ document
 
     const configuracao = lerConfiguracaoCardDoFormulario();
     const arquivo = document.getElementById("capa-arquivo-card").files[0];
+    const configAnterior = obterConfiguracaoCard(obraConfiguracaoCardAtual.id);
 
     try {
       if (arquivo) {
         configuracao.capaArquivo = await lerArquivoComoDataUrl(arquivo);
+      } else if (configuracao.capaPreferencia === "arquivo") {
+        configuracao.capaArquivo = configAnterior.capaArquivo;
       } else {
-        configuracao.capaArquivo = obterConfiguracaoCard(
-          obraConfiguracaoCardAtual.id,
-        ).capaArquivo;
+        configuracao.capaArquivo = "";
       }
     } catch (erro) {
       mostrarMensagem(erro.message, "erro");
@@ -2410,7 +2405,7 @@ document
 
     if (card) {
       aplicarConfiguracaoCard(card, configuracao);
-      configurarImagemCard(card, obraConfiguracaoCardAtual);
+      configurarImagemCard(card, obraConfiguracaoCardAtual, configuracao);
     }
 
     document.getElementById("popup-configuracao-card").style.display = "none";
