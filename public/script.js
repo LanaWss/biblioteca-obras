@@ -657,8 +657,14 @@ function escaparHtml(valor) {
 }
 
 function urlExternaSegura(valor) {
+  const texto = String(valor || "").trim();
+
+  if (!texto) {
+    return "";
+  }
+
   try {
-    const url = new URL(String(valor || ""), window.location.origin);
+    const url = new URL(texto, window.location.origin);
     return ["http:", "https:"].includes(url.protocol) ? url.href : "";
   } catch {
     return "";
