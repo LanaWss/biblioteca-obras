@@ -12,6 +12,7 @@ let linksEscolhaAtual = [];
 let obraConfiguracaoCardAtual = null;
 let capaArquivoPreviewCard = "";
 let formularioConfiguracaoCardInicial = null;
+let sincronizacaoCardsPendente = null;
 let migracaoCartoesLegadoFeita = false;
 
 // Cards criados antes da personalização por card podem ter salvo configurações
@@ -278,6 +279,93 @@ function salvarConfiguracaoCard(id, configuracao) {
   const configuracoes = obterConfiguracoesCards();
   configuracoes[String(id)] = configuracao;
   localStorage.setItem(chaveConfiguracoesCards, JSON.stringify(configuracoes));
+  sincronizarConfiguracoesCardsComServidor();
+}
+
+// A capa escolhida do dispositivo ficava presa ao localStorage e sumia nos
+// outros PC/celular. Agora o conjunto inteiro de configurações de cards é
+// sincronizado com o servidor por usuário, igual ao perfil visual.
+async function sincronizarConfiguracoesCardsComServidor() {
+  if (!localStorage.getItem("token")) {
+    return;
+  }
+
+  if (sincronizacaoCardsPendente) {
+    return sincronizacaoCardsPendente;
+  }
+
+  sincronizacaoCardsPendente = (async () => {
+    try {
+      const resposta = await fetch("/configuracoes-cards", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          configuracoes: obterConfiguracoesCards(),
+        }),
+      });
+
+      if (!resposta.ok) {
+        const resultado = await resposta.json().catch(() => ({}));
+        mostrarMensagem(
+          resultado.erro ||
+            "Não foi possível sincronizar as capas para outros dispositivos.",
+          "erro",
+        );
+      }
+    } catch {
+      // Offline: o localStorage continua como fonte local e tenta de novo depois.
+    } finally {
+      sincronizacaoCardsPendente = null;
+    }
+  })();
+
+  return sincronizacaoCardsPendente;
+}
+
+async function carregarConfiguracoesCardsDoServidor() {
+  if (!localStorage.getItem("token")) {
+    return;
+  }
+
+  try {
+    const resposta = await fetch("/configuracoes-cards", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (!resposta.ok) {
+      return;
+    }
+
+    const doServidor = await resposta.json().catch(() => ({}));
+
+    if (!doServidor || typeof doServidor !== "object" || Array.isArray(doServidor)) {
+      return;
+    }
+
+    const locais = obterConfiguracoesCards();
+    // Mescla: o servidor é a base e o local vence (permite editar offline).
+    const mesclado = { ...doServidor, ...locais };
+
+    if (JSON.stringify(mesclado) !== JSON.stringify(locais)) {
+      localStorage.setItem(
+        chaveConfiguracoesCards,
+        JSON.stringify(mesclado),
+      );
+
+      if (obterObrasFiltradas().length) {
+        carregarObras(false);
+      }
+    }
+
+    sincronizarConfiguracoesCardsComServidor();
+  } catch {
+    // Offline: mantém o que está no localStorage.
+  }
 }
 
 function preencherConfiguracaoCard(configuracao) {
@@ -6588,6 +6676,7 @@ document.getElementById("salvar-perfil").addEventListener("click", async () => {
 });
 
 carregarPerfil().catch(() => {});
+carregarConfiguracoesCardsDoServidor();
 sincronizarInscricaoPushComControle().catch(() => {});
 
 const popupExclusao = document.getElementById("popup-confirmar-exclusao");

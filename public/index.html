@@ -1004,7 +1004,11 @@
         </select>
 
         <label for="capa-url-card">Capa de fundo por link</label>
-        <input id="capa-url-card" type="url" placeholder="https://exemplo.com/capa.jpg">
+        <div class="campo-com-limpar">
+          <input id="capa-url-card" type="url" placeholder="https://exemplo.com/capa.jpg">
+          <button type="button" class="botao-limpar-campo" data-limpar-campo="capa-url-card"
+            aria-label="Limpar capa por link">×</button>
+        </div>
 
         <label for="capa-arquivo-card">Ou capa do dispositivo</label>
         <input id="capa-arquivo-card" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
@@ -1066,7 +1070,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=51"></script>
+  <script src="script.js?v=52"></script>
 </body>
 
 </html>

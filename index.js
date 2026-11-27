@@ -658,6 +658,7 @@ for (const coluna of [
   "ALTER TABLE usuarios ADD COLUMN biblioteca_publica INTEGER NOT NULL DEFAULT 0",
   "ALTER TABLE usuarios ADD COLUMN foto_perfil TEXT",
   "ALTER TABLE usuarios ADD COLUMN eh_admin INTEGER NOT NULL DEFAULT 0",
+  "ALTER TABLE usuarios ADD COLUMN configuracoes_cards TEXT NOT NULL DEFAULT '{}'",
 ]) {
   try {
     db.exec(coluna);
@@ -1024,6 +1025,54 @@ app.post("/redefinir-senha", async (req, res) => {
   atualizar();
 
   return res.json({ mensagem: "Senha redefinida com sucesso" });
+});
+
+app.get("/configuracoes-cards", verificarToken, (req, res) => {
+  const usuario = db
+    .prepare("SELECT configuracoes_cards FROM usuarios WHERE id = ?")
+    .get(req.usuario.id);
+
+  if (!usuario) {
+    return responderErro(res, 404, "Usuário não encontrado");
+  }
+
+  res.json(JSON.parse(usuario.configuracoes_cards || "{}"));
+});
+
+app.put("/configuracoes-cards", verificarToken, (req, res) => {
+  const configuracoes = req.body?.configuracoes;
+
+  if (!configuracoes || typeof configuracoes !== "object" || Array.isArray(configuracoes)) {
+    return responderErro(res, 400, "Configurações de cards inválidas");
+  }
+
+  let tamanho;
+
+  try {
+    tamanho = JSON.stringify(configuracoes).length;
+  } catch {
+    return responderErro(res, 400, "Configurações de cards inválidas");
+  }
+
+  // 40 MB dá folga para várias capas em base64 (cada imagem conta ~33% a mais).
+  if (tamanho > 40 * 1024 * 1024) {
+    return responderErro(res, 400, "As capas dos cards são grandes demais para sincronizar");
+  }
+
+  try {
+    db.prepare("UPDATE usuarios SET configuracoes_cards = ? WHERE id = ?").run(
+      JSON.stringify(configuracoes),
+      req.usuario.id,
+    );
+  } catch (erro) {
+    if (erro.code === "SQLITE_FULL" || erro.code === "SQLITE_TOOBIG") {
+      return responderErro(res, 400, "As capas dos cards são grandes demais para sincronizar");
+    }
+
+    throw erro;
+  }
+
+  res.json({ ok: true });
 });
 
 app.get("/perfil", verificarToken, (req, res) => {
